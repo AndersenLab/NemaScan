@@ -36,14 +36,22 @@ params.out = "Analysis_Results-${date}"
 
 genes = Channel.fromPath("${params.genes}")
 
-log.info ""
-log.info "------------------------------------------"
-log.info "        C. elegans GWAS pipeline "
-log.info "------------------------------------------"
-log.info ""
-
 
 if (params.help) {
+	log.info '''                    
+
+
+O~~~     O~~                                   O~~ ~~                            
+O~ O~~   O~~                                 O~~    O~~                          
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
+O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
+O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
+O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+                                                                                    
+
+
+    '''
     log.info "----------------------------------------------------------------"
     log.info "                      USAGE                                     "
     log.info "----------------------------------------------------------------"
@@ -92,7 +100,20 @@ if (params.help) {
     log.info "--------------------------------------------------------"    
     exit 1
 } else {
+	log.info '''                    
 
+
+O~~~     O~~                                   O~~ ~~                            
+O~ O~~   O~~                                 O~~    O~~                          
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
+O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
+O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
+O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+                                                                                    
+
+
+    '''
 log.info ""
 log.info "Phenotype Directory                     = ${params.traitdir}"
 log.info "VCF                                     = ${params.vcf}"
@@ -194,6 +215,7 @@ Channel
 Channel
 	.fromPath("${params.traitfile}")
 	.set{ traits_to_strainlist }
+
 
 process fix_strain_names_bulk {
 
