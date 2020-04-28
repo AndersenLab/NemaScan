@@ -1,1 +1,143 @@
-Apr-27 16:58:31.305 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf -help
+Apr-28 15:10:11.657 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv
+Apr-28 15:10:11.795 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-28 15:10:11.819 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [sharp_mahavira] - revision: f04cb895f2
+Apr-28 15:10:11.829 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-28 15:10:11.829 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:10:11.830 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-28 15:10:11.830 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:10:11.857 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:10:12.488 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:10:12.600 [main] DEBUG nextflow.Session - Session uuid: c01f530f-3240-44e1-947b-c2ce3149671a
+Apr-28 15:10:12.600 [main] DEBUG nextflow.Session - Run name: sharp_mahavira
+Apr-28 15:10:12.601 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-28 15:10:12.615 [main] DEBUG nextflow.cli.CmdRun - 
+  Version: 19.07.0 build 5106
+  Created: 27-07-2019 13:22 UTC (08:22 CDT)
+  System: Linux 3.10.0-862.el7.x86_64
+  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
+  Encoding: UTF-8 (UTF-8)
+  Process: 18244@quser21 [172.20.4.21]
+  CPUs: 28 - Mem: 124.1 GB (10.1 GB) - Swap: 0 (0)
+Apr-28 15:10:12.647 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-28 15:10:12.821 [main] DEBUG nextflow.Session - Session start invoked
+Apr-28 15:10:13.652 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-28 15:10:13.751 [main] INFO  nextflow.Nextflow -                     
+
+
+O~~~     O~~                                   O~~ ~~                            
+O~ O~~   O~~                                 O~~    O~~                          
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
+O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
+O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
+O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+                                                                                    
+
+
+    
+Apr-28 15:10:13.751 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:10:13.753 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-28 15:10:13.753 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-28 15:10:13.753 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-28 15:10:13.753 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-28 15:10:13.754 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-28 15:10:13.754 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:10:13.754 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-28 15:10:13.754 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-28 15:10:13.754 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:10:13.754 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-28 15:10:13.761 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-28 15:10:13.761 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200428
+Apr-28 15:10:13.761 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-28 15:10:13.761 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:10:13.892 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:10:13.892 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:10:13.896 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Apr-28 15:10:13.900 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
+Apr-28 15:10:13.936 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
+Apr-28 15:10:13.974 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:10:13.975 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:10:13.976 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
+Apr-28 15:10:14.019 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:10:14.019 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:10:14.035 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
+Apr-28 15:10:14.044 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
+Apr-28 15:10:14.048 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
+Apr-28 15:10:14.064 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
+Apr-28 15:10:14.084 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
+Apr-28 15:10:14.116 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:10:14.116 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:10:14.119 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
+Apr-28 15:10:14.132 [main] DEBUG nextflow.Session - Session aborted -- Cause: Unknown variable 'vcf_to_whole_gcta_grm'
+Apr-28 15:10:14.166 [main] DEBUG nextflow.Session - The following nodes are still active:
+[process] vcf_to_geno_matrix
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: strains
+  port 2: (cntrl) -     ; channel: $
+
+[process] chrom_eigen_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: genotypes
+  port 1: (value) bound ; channel: __$eachinparam<1>
+  port 2: (cntrl) -     ; channel: $
+
+[process] collect_eigen_variants
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: chrom_tests
+  port 1: (cntrl) -     ; channel: $
+
+Apr-28 15:10:14.278 [main] ERROR nextflow.cli.Launcher - @unknown
+groovy.lang.MissingPropertyException: Unknown variable 'vcf_to_whole_gcta_grm'
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at org.codehaus.groovy.reflection.CachedConstructor.invoke(CachedConstructor.java:80)
+	at org.codehaus.groovy.reflection.CachedConstructor.doConstructorInvoke(CachedConstructor.java:74)
+	at org.codehaus.groovy.runtime.callsite.ConstructorSite$ConstructorSiteNoUnwrap.callConstructor(ConstructorSite.java:84)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:265)
+	at nextflow.script.ProcessConfig.getProperty(ProcessConfig.groovy:268)
+	at org.codehaus.groovy.runtime.InvokerHelper.getProperty(InvokerHelper.java:190)
+	at groovy.lang.Closure.getPropertyTryThese(Closure.java:313)
+	at groovy.lang.Closure.getPropertyDelegateFirst(Closure.java:303)
+	at groovy.lang.Closure.getProperty(Closure.java:288)
+	at org.codehaus.groovy.runtime.callsite.PogoGetPropertySite.getProperty(PogoGetPropertySite.java:49)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callGroovyObjectGetProperty(AbstractCallSite.java:309)
+	at Script_0f5daae6$_runScript_closure20.doCall(Script_0f5daae6:457)
+	at Script_0f5daae6$_runScript_closure20.doCall(Script_0f5daae6)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.reflection.CachedMethod.invoke(CachedMethod.java:101)
+	at groovy.lang.MetaMethod.doMethodInvoke(MetaMethod.java:323)
+	at org.codehaus.groovy.runtime.metaclass.ClosureMetaClass.invokeMethod(ClosureMetaClass.java:263)
+	at groovy.lang.MetaClassImpl.invokeMethod(MetaClassImpl.java:1041)
+	at groovy.lang.Closure.call(Closure.java:405)
+	at groovy.lang.Closure.call(Closure.java:399)
+	at nextflow.script.ProcessFactory.createProcessor(ProcessFactory.groovy:109)
+	at nextflow.script.ProcessFactory.createProcessor(ProcessFactory.groovy)
+	at nextflow.script.ProcessFactory$createProcessor.call(Unknown Source)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCall(CallSiteArray.java:47)
+	at nextflow.script.ProcessFactory$createProcessor.call(Unknown Source)
+	at nextflow.script.BaseScript.process(BaseScript.groovy:105)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.runtime.callsite.PlainObjectMetaMethodSite.doInvoke(PlainObjectMetaMethodSite.java:43)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite$PogoCachedMethodSiteNoUnwrapNoCoerce.invoke(PogoMetaMethodSite.java:190)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite.callCurrent(PogoMetaMethodSite.java:58)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:156)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:176)
+	at Script_0f5daae6.runScript(Script_0f5daae6:449)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:151)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:189)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:287)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:132)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:246)
+	at nextflow.cli.Launcher.run(Launcher.groovy:451)
+	at nextflow.cli.Launcher.main(Launcher.groovy:633)
+Apr-28 15:10:14.292 [Task submitter] DEBUG nextflow.executor.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run

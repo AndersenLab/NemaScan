@@ -1,27 +1,27 @@
-Apr-27 20:56:30.454 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
-Apr-27 20:56:30.607 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-27 20:56:30.622 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [admiring_euler] - revision: f81308311b
-Apr-27 20:56:30.633 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-27 20:56:30.633 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-27 20:56:30.634 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-27 20:56:30.635 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-27 20:56:30.666 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-27 20:56:31.135 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-27 20:56:31.232 [main] DEBUG nextflow.Session - Session uuid: f5d31e34-15d5-46a5-bb09-565186986554
-Apr-27 20:56:31.233 [main] DEBUG nextflow.Session - Run name: admiring_euler
-Apr-27 20:56:31.233 [main] DEBUG nextflow.Session - Executor pool size: 28
-Apr-27 20:56:31.245 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-28 15:57:02.063 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -resume
+Apr-28 15:57:02.208 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-28 15:57:02.222 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [condescending_hopper] - revision: e1ade1eddc
+Apr-28 15:57:02.231 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-28 15:57:02.231 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:57:02.232 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-28 15:57:02.232 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:57:02.257 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:57:02.817 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:57:03.009 [main] DEBUG nextflow.Session - Session uuid: 4ab1a6c7-f2c7-4bcd-90b7-2c67ca54de9d
+Apr-28 15:57:03.010 [main] DEBUG nextflow.Session - Run name: condescending_hopper
+Apr-28 15:57:03.012 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-28 15:57:03.032 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
   Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 31761@quser22 [172.20.4.22]
-  CPUs: 28 - Mem: 124.1 GB (8.2 GB) - Swap: 0 (0)
-Apr-27 20:56:31.275 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-27 20:56:31.521 [main] DEBUG nextflow.Session - Session start invoked
-Apr-27 20:56:32.218 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-27 20:56:32.384 [main] INFO  nextflow.Nextflow -                     
+  Process: 26511@quser21 [172.20.4.21]
+  CPUs: 28 - Mem: 124.1 GB (10 GB) - Swap: 0 (0)
+Apr-28 15:57:03.093 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-28 15:57:03.358 [main] DEBUG nextflow.Session - Session start invoked
+Apr-28 15:57:04.319 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-28 15:57:04.419 [main] INFO  nextflow.Nextflow -                     
 
 
 O~~~     O~~                                   O~~ ~~                            
@@ -35,28 +35,90 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 
 
     
-Apr-27 20:56:32.385 [main] INFO  nextflow.Nextflow - 
-Apr-27 20:56:32.386 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
-Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
-Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
-Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
-Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - P3D                                     = null
-Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
-Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
-Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-27 20:56:32.388 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
-Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Gene File                               = null
-Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200427
-Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
-Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - 
-Apr-27 20:56:32.393 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
-Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await
-Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await > all process finished
-Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await > all barriers passed
-Apr-27 20:56:32.397 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=0; failedCount=0; ignoredCount=0; cachedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=0ms]
-Apr-27 20:56:32.397 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
-Apr-27 20:56:32.402 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
-  {}
-Apr-27 20:56:33.600 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
-Apr-27 20:56:33.615 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
+Apr-28 15:57:04.420 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:57:04.421 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-28 15:57:04.422 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-28 15:57:04.422 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-28 15:57:04.422 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-28 15:57:04.422 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-28 15:57:04.422 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:57:04.423 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-28 15:57:04.423 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-28 15:57:04.423 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:57:04.423 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-28 15:57:04.426 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-28 15:57:04.426 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200428
+Apr-28 15:57:04.426 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-28 15:57:04.427 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:57:04.558 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:57:04.559 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:57:04.563 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Apr-28 15:57:04.567 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
+Apr-28 15:57:04.603 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
+Apr-28 15:57:04.635 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:57:04.635 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:57:04.636 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
+Apr-28 15:57:04.644 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:57:04.644 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:57:04.650 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
+Apr-28 15:57:04.652 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
+Apr-28 15:57:04.654 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
+Apr-28 15:57:04.660 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
+Apr-28 15:57:04.667 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
+Apr-28 15:57:04.681 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:57:04.681 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:57:04.682 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
+Apr-28 15:57:04.740 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:57:04.741 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:57:04.743 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > prepare_gcta_files -- maxForks: 28
+Apr-28 15:57:04.751 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:57:04.751 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:57:04.755 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
+Apr-28 15:57:04.756 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
+Apr-28 15:57:04.757 [main] DEBUG nextflow.Session - Session await
+Apr-28 15:57:04.972 [Actor Thread 4] INFO  nextflow.processor.TaskProcessor - [ce/a827a3] Cached process > fix_strain_names_bulk (1)
+Apr-28 15:57:05.924 [Actor Thread 5] INFO  nextflow.processor.TaskProcessor - [88/3c1474] Cached process > vcf_to_geno_matrix (1)
+Apr-28 15:57:06.035 [Actor Thread 5] DEBUG n.util.BlockingThreadExecutorFactory - Thread pool name=FileTransfer; maxThreads=84; maxQueueSize=252; keepAlive=1m
+Apr-28 15:57:06.167 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process prepare_gcta_files (1) > jobId: 9826180; workDir: /projects/b1042/AndersenLab/work/stefan/a6/efc83207ed3ee48e19a63840d762d6
+Apr-28 15:57:06.175 [Task submitter] INFO  nextflow.Session - [a6/efc832] Submitted process > prepare_gcta_files (1)
+Apr-28 15:57:06.440 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (I) > jobId: 9826181; workDir: /projects/b1042/AndersenLab/work/stefan/c0/7bfc5f39c3f6f5e96d9f9269a13d71
+Apr-28 15:57:06.441 [Task submitter] INFO  nextflow.Session - [c0/7bfc5f] Submitted process > chrom_eigen_variants (I)
+Apr-28 15:57:06.514 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (IV) > jobId: 9826182; workDir: /projects/b1042/AndersenLab/work/stefan/c5/cd3c74fa6ab5bd7cfcd7a8642cc767
+Apr-28 15:57:06.515 [Task submitter] INFO  nextflow.Session - [c5/cd3c74] Submitted process > chrom_eigen_variants (IV)
+Apr-28 15:57:06.589 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (III) > jobId: 9826183; workDir: /projects/b1042/AndersenLab/work/stefan/97/f5daf96c8a314cabb6341beb463bc9
+Apr-28 15:57:06.589 [Task submitter] INFO  nextflow.Session - [97/f5daf9] Submitted process > chrom_eigen_variants (III)
+Apr-28 15:57:06.662 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (V) > jobId: 9826184; workDir: /projects/b1042/AndersenLab/work/stefan/48/21003e4727d196aeb5aa09549d2121
+Apr-28 15:57:06.663 [Task submitter] INFO  nextflow.Session - [48/21003e] Submitted process > chrom_eigen_variants (V)
+Apr-28 15:57:07.322 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (X) > jobId: 9826185; workDir: /projects/b1042/AndersenLab/work/stefan/49/7b712de173468bf6c5ed19072dc573
+Apr-28 15:57:07.323 [Task submitter] INFO  nextflow.Session - [49/7b712d] Submitted process > chrom_eigen_variants (X)
+Apr-28 15:57:08.357 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process chrom_eigen_variants (II) > jobId: 9826186; workDir: /projects/b1042/AndersenLab/work/stefan/41/c8c3e93d15ef2ef786ccd0dba115d3
+Apr-28 15:57:08.357 [Task submitter] INFO  nextflow.Session - [41/c8c3e9] Submitted process > chrom_eigen_variants (II)
+Apr-28 15:58:29.675 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826181; id: 4; name: chrom_eigen_variants (I); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/c0/7bfc5f39c3f6f5e96d9f9269a13d71 started: 1588107429757; exited: 2020-04-28T20:58:28.463695Z; ]
+Apr-28 15:59:29.669 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826185; id: 9; name: chrom_eigen_variants (X); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/49/7b712de173468bf6c5ed19072dc573 started: 1588107429805; exited: 2020-04-28T20:59:27.923435Z; ]
+Apr-28 16:00:09.671 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826180; id: 3; name: prepare_gcta_files (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/a6/efc83207ed3ee48e19a63840d762d6 started: 1588107429671; exited: 2020-04-28T21:00:08.746087Z; ]
+Apr-28 16:00:11.436 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process gcta_grm (1) > jobId: 9826307; workDir: /projects/b1042/AndersenLab/work/stefan/6b/8754dbf837caa69e3424712392ddff
+Apr-28 16:00:11.437 [Task submitter] INFO  nextflow.Session - [6b/8754db] Submitted process > gcta_grm (1)
+Apr-28 16:00:16.607 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826307; id: 10; name: gcta_grm (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/6b/8754dbf837caa69e3424712392ddff started: 1588107616601; exited: 2020-04-28T21:00:13.013253Z; ]
+Apr-28 16:00:59.671 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826182; id: 7; name: chrom_eigen_variants (IV); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/c5/cd3c74fa6ab5bd7cfcd7a8642cc767 started: 1588107429777; exited: 2020-04-28T21:00:56.963335Z; ]
+Apr-28 16:01:09.687 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826183; id: 6; name: chrom_eigen_variants (III); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/97/f5daf96c8a314cabb6341beb463bc9 started: 1588107429786; exited: 2020-04-28T21:01:06.867106Z; ]
+Apr-28 16:01:44.680 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826184; id: 8; name: chrom_eigen_variants (V); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/48/21003e4727d196aeb5aa09549d2121 started: 1588107429798; exited: 2020-04-28T21:01:41.405612Z; ]
+Apr-28 16:02:04.770 [Task monitor] DEBUG n.processor.TaskPollingMonitor - No more task to compute -- The following nodes are still active:
+[process] collect_eigen_variants
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: chrom_tests
+  port 1: (cntrl) -     ; channel: $
+
+Apr-28 16:02:09.667 [Task monitor] DEBUG n.processor.TaskPollingMonitor - !! executor slurm > tasks to be completed: 1 -- pending tasks are shown below
+~> TaskHandler[jobId: 9826186; id: 5; name: chrom_eigen_variants (II); status: RUNNING; exit: -; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/41/c8c3e93d15ef2ef786ccd0dba115d3 started: 1588107429814; exited: -; ]
+Apr-28 16:03:19.734 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9826186; id: 5; name: chrom_eigen_variants (II); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/41/c8c3e93d15ef2ef786ccd0dba115d3 started: 1588107429814; exited: 2020-04-28T21:03:19.144376Z; ]
+Apr-28 16:03:19.883 [Task submitter] DEBUG nextflow.executor.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Apr-28 16:03:19.894 [Task submitter] INFO  nextflow.Session - [e5/9a34ed] Submitted process > collect_eigen_variants
+Apr-28 16:03:21.889 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 11; name: collect_eigen_variants; status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/e5/9a34edcd3d9cbf09955f8f5fcc5d5b]
+Apr-28 16:03:21.897 [main] DEBUG nextflow.Session - Session await > all process finished
+Apr-28 16:03:24.673 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Apr-28 16:03:24.683 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=9; failedCount=0; ignoredCount=0; cachedCount=2; succeedDuration=2h 24m 18s; failedDuration=0ms; cachedDuration=5m 31s]
+Apr-28 16:03:24.683 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
+Apr-28 16:03:24.786 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
+  {"vcf_to_geno_matrix":{"cpu":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"mem":{"mean":18120704,"min":18120704,"q1":18120704,"q2":18120704,"q3":18120704,"max":18120704,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"vmem":{"mean":38675202048,"min":38675202048,"q1":38675202048,"q2":38675202048,"q3":38675202048,"max":38675202048,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"time":{"mean":319572,"min":319572,"q1":319572,"q2":319572,"q3":319572,"max":319572,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"reads":{"mean":2197708206,"min":2197708206,"q1":2197708206,"q2":2197708206,"q3":2197708206,"max":2197708206,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"writes":{"mean":1539510642,"min":1539510642,"q1":1539510642,"q2":1539510642,"q3":1539510642,"max":1539510642,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"cpuUsage":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"memUsage":{"mean":0.03,"min":0.03,"q1":0.03,"q2":0.03,"q3":0.03,"max":0.03,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"timeUsage":null},"fix_strain_names_bulk":{"cpu":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"mem":{"mean":133984256,"min":133984256,"q1":133984256,"q2":133984256,"q3":133984256,"max":133984256,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"vmem":{"mean":492855296,"min":492855296,"q1":492855296,"q2":492855296,"q3":492855296,"max":492855296,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"time":{"mean":11513,"min":11513,"q1":11513,"q2":11513,"q3":11513,"max":11513,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"reads":{"mean":67416833,"min":67416833,"q1":67416833,"q2":67416833,"q3":67416833,"max":67416833,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"writes":{"mean":4922,"min":4922,"q1":4922,"q2":4922,"q3":4922,"max":4922,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"cpuUsage":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"memUsage":{"mean":0.19,"min":0.19,"q1":0.19,"q2":0.19,"q3":0.19,"max":0.19,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"timeUsage":null},"chrom_eigen_variants":{"cpu":{"mean":98.33,"min":96,"q1":98.6,"q2":98.6,"q3":98.68,"max":99.5,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (V)"},"mem":{"mean":1977262080,"min":678428672,"q1":1046376448,"q2":2003412992,"q3":2534995968,"max":3738763264,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"vmem":{"mean":2340723370.67,"min":1042550784,"q1":1409954816,"q2":2365677568,"q3":2899749888,"max":4101279744,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"time":{"mean":220529.5,"min":79200,"q1":159842.5,"q2":232717.5,"q3":264084.5,"max":368451,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"reads":{"mean":47520821.67,"min":47520806,"q1":47520819.25,"q2":47520823.5,"q3":47520824.75,"max":47520834,"minLabel":"chrom_eigen_variants (IV)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (I)","q3Label":"chrom_eigen_variants (V)"},"writes":{"mean":19537421.83,"min":18314363,"q1":18620183.5,"q2":19672694.5,"q3":20173513.75,"max":20954979,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"cpuUsage":{"mean":16.39,"min":16,"q1":16.43,"q2":16.43,"q3":16.45,"max":16.58,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (V)"},"memUsage":{"mean":1.84,"min":0.63,"q1":0.97,"q2":1.87,"q3":2.36,"max":3.48,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"timeUsage":null},"gcta_grm":{"cpu":{"mean":186.4,"min":186.4,"q1":186.4,"q2":186.4,"q3":186.4,"max":186.4,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"mem":{"mean":4718592,"min":4718592,"q1":4718592,"q2":4718592,"q3":4718592,"max":4718592,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"vmem":{"mean":161013760,"min":161013760,"q1":161013760,"q2":161013760,"q3":161013760,"max":161013760,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"time":{"mean":392,"min":392,"q1":392,"q2":392,"q3":392,"max":392,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"reads":{"mean":4770542,"min":4770542,"q1":4770542,"q2":4770542,"q3":4770542,"max":4770542,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"writes":{"mean":34323,"min":34323,"q1":34323,"q2":34323,"q3":34323,"max":34323,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"cpuUsage":{"mean":46.6,"min":46.6,"q1":46.6,"q2":46.6,"q3":46.6,"max":46.6,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"memUsage":{"mean":0.01,"min":0.01,"q1":0.01,"q2":0.01,"q3":0.01,"max":0.01,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"timeUsage":null},"prepare_gcta_files":{"cpu":{"mean":210.9,"min":210.9,"q1":210.9,"q2":210.9,"q3":210.9,"max":210.9,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"mem":{"mean":30384128,"min":30384128,"q1":30384128,"q2":30384128,"q3":30384128,"max":30384128,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"vmem":{"mean":67797737472,"min":67797737472,"q1":67797737472,"q2":67797737472,"q3":67797737472,"max":67797737472,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"time":{"mean":179457,"min":179457,"q1":179457,"q2":179457,"q3":179457,"max":179457,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"reads":{"mean":5757366608,"min":5757366608,"q1":5757366608,"q2":5757366608,"q3":5757366608,"max":5757366608,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"writes":{"mean":5334371506,"min":5334371506,"q1":5334371506,"q2":5334371506,"q3":5334371506,"max":5334371506,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"cpuUsage":{"mean":52.73,"min":52.73,"q1":52.73,"q2":52.73,"q3":52.73,"max":52.73,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"memUsage":{"mean":0.04,"min":0.04,"q1":0.04,"q2":0.04,"q3":0.04,"max":0.04,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"timeUsage":null},"collect_eigen_variants":{"cpu":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"mem":null,"vmem":null,"time":{"mean":9,"min":9,"q1":9,"q2":9,"q3":9,"max":9,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"reads":{"mean":63659,"min":63659,"q1":63659,"q2":63659,"q3":63659,"max":63659,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"writes":{"mean":544,"min":544,"q1":544,"q2":544,"q3":544,"max":544,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"cpuUsage":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"memUsage":null,"timeUsage":null}}
+Apr-28 16:03:26.291 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
+Apr-28 16:03:26.313 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

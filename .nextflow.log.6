@@ -1,78 +1,155 @@
-Apr-27 16:59:26.782 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --help
-Apr-27 16:59:26.864 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-27 16:59:26.878 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [angry_woese] - revision: b8fc7a07f8
-Apr-27 16:59:26.884 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-27 16:59:26.885 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-27 16:59:26.902 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-27 16:59:27.231 [main] DEBUG nextflow.Session - Session uuid: eebc59cc-9b64-4384-91d6-309df327ecf4
-Apr-27 16:59:27.231 [main] DEBUG nextflow.Session - Run name: angry_woese
-Apr-27 16:59:27.231 [main] DEBUG nextflow.Session - Executor pool size: 6
-Apr-27 16:59:27.239 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-28 15:13:49.684 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv
+Apr-28 15:13:49.832 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-28 15:13:49.846 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [fabulous_heisenberg] - revision: d49eb14cbc
+Apr-28 15:13:49.857 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-28 15:13:49.857 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:13:49.858 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-28 15:13:49.858 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-28 15:13:49.888 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:13:50.444 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-28 15:13:50.575 [main] DEBUG nextflow.Session - Session uuid: c1809343-eeff-4e41-83e9-f8b30f16d34a
+Apr-28 15:13:50.575 [main] DEBUG nextflow.Session - Run name: fabulous_heisenberg
+Apr-28 15:13:50.576 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-28 15:13:50.589 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
-  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_222-b10
+  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 455459@qnode9031 [172.20.135.31]
-  CPUs: 6 - Mem: 188.4 GB (175.4 GB) - Swap: 0 (0)
-Apr-27 16:59:27.305 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-27 16:59:27.463 [main] DEBUG nextflow.Session - Session start invoked
-Apr-27 16:59:27.945 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-27 16:59:28.033 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.033 [main] INFO  nextflow.Nextflow - ------------------------------------------
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow -         C. elegans GWAS pipeline 
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - ------------------------------------------
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - 
-	           _   __                             _____                       
-	   / | / /  ___    ____ ___   ____ _  / ___/  _____  ____ _   ____ 
-	  /  |/ /  / _ \  / __ `__ \ / __ `/  \__ \  / ___/ / __ `/  / __ \
-	 / /|  /  /  __/ / / / / / // /_/ /  ___/ / / /__  / /_/ /  / / / /
-	/_/ |_/   \___/ /_/ /_/ /_/ \__,_/  /____/  \___/  \__,_/  /_/ /_/ 
+  Process: 31350@quser21 [172.20.4.21]
+  CPUs: 28 - Mem: 124.1 GB (10.2 GB) - Swap: 0 (0)
+Apr-28 15:13:50.624 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-28 15:13:50.864 [main] DEBUG nextflow.Session - Session start invoked
+Apr-28 15:13:51.758 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-28 15:13:51.844 [main] INFO  nextflow.Nextflow -                     
+
+
+O~~~     O~~                                   O~~ ~~                            
+O~ O~~   O~~                                 O~~    O~~                          
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
+O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
+O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
+O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+                                                                                    
+
+
     
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow -                       USAGE                                     
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:59:28.034 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - nextflow main.nf --traitfile=test_bulk --vcf=bin/WI.20180527.impute.vcf.gz --p3d=TRUE --sthresh=EIGEN # run all traits from a single file
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - nextflow main.nf --traitdir=test_bulk --p3d=TRUE --sthresh=BF # download VCF from CeNDR
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - Mandatory arguments:
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - --traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ...
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - --vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - --p3d                    BOOLEAN               Set to FALSE for EMMA algortith, TRUE for EMMAx
-Apr-27 16:59:28.035 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:59:28.036 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:59:28.040 [main] INFO  nextflow.Nextflow - Optional arguments (General):
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --out                    String                Name of folder that will contain the results
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --e_mem                  String                Value that corresponds to the amount of memory to allocate for eigen decomposition of chromosomes (DEFAULT = 100)
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --cendr_v                String                CeNDR release (DEFAULT = 20180527)
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - Optional arguments (Marker):
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)
-Apr-27 16:59:28.041 [main] INFO  nextflow.Nextflow - --ci_size                Integer               Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - Optional arguments (Burden):
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --freqUpper              Float                 Maximum allele frequency for a variant to be considered for burden mapping, (DEFAULT = 0.05)
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --minburden              Interger              Minimum number of strains to have a variant for the variant to be considered for burden mapping, (DEFAULT = 2)
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --genes                  String                refFlat file format that contains start and stop genomic coordinates for genes of interest, (DEFAULT = bin/gene_ref_flat.Rda)
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - Information describing the stucture of the input files can be located in input_files/README.txt
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - Flags:
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --help                                      Display this message
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
-Apr-27 16:59:28.042 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow -  Required software packages to be in users path
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - BCFtools               v1.9
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - plink                  v1.9
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-cegwas2              Found on GitHub
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-tidyverse            v1.2.1
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-correlateR           Found on GitHub
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-rrBLUP               v4.6
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-sommer               v3.5
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-RSpectra             v0.13-1
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - R-ggbeeswarm           v0.6.0
-Apr-27 16:59:28.043 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
+Apr-28 15:13:51.845 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:13:51.846 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-28 15:13:51.847 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-28 15:13:51.847 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-28 15:13:51.847 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-28 15:13:51.847 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-28 15:13:51.848 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:13:51.848 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-28 15:13:51.848 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-28 15:13:51.848 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-28 15:13:51.848 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-28 15:13:51.852 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-28 15:13:51.852 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200428
+Apr-28 15:13:51.852 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-28 15:13:51.852 [main] INFO  nextflow.Nextflow - 
+Apr-28 15:13:51.981 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:13:51.981 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:13:51.986 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Apr-28 15:13:51.990 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
+Apr-28 15:13:52.050 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
+Apr-28 15:13:52.092 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:13:52.092 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:13:52.093 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
+Apr-28 15:13:52.109 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:13:52.109 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:13:52.114 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
+Apr-28 15:13:52.118 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
+Apr-28 15:13:52.119 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
+Apr-28 15:13:52.125 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
+Apr-28 15:13:52.132 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
+Apr-28 15:13:52.143 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-28 15:13:52.143 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-28 15:13:52.145 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
+Apr-28 15:13:52.157 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-28 15:13:52.157 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-28 15:13:52.161 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
+Apr-28 15:13:52.163 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
+Apr-28 15:13:52.163 [main] DEBUG nextflow.Session - Session await
+Apr-28 15:13:52.267 [Task submitter] DEBUG nextflow.executor.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
+Apr-28 15:13:52.277 [Task submitter] INFO  nextflow.Session - [81/306f7b] Submitted process > fix_strain_names_bulk (1)
+Apr-28 15:14:07.937 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: fix_strain_names_bulk (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/81/306f7b62c28e51e42f0c89b89a263f]
+Apr-28 15:14:08.071 [Actor Thread 11] ERROR nextflow.processor.TaskProcessor - Error executing process > 'gcta_grm (1)'
+
+Caused by:
+  Unknown variable 'traits' -- Make sure it is not misspelt and defined somewhere in the script before using it
+
+Source block:
+  """
+  
+  bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
+  bcftools view -S ${strains} |\\
+  bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
+  
+  tabix -p vcf renamed_chroms.vcf.gz
+  
+  plink --vcf renamed_chroms.vcf.gz \\
+  --snps-only \\
+  --biallelic-only \\
+  --maf 0.05 \\
+  --set-missing-var-ids @:# \\
+  --indep-pairwise 50 10 0.8 \\
+  --geno \\
+  --not-chr MtDNA \\
+  --allow-extra-chr
+  
+  tail -n +2 ${traits} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_formated_trats.tsv
+  
+  plink --vcf renamed_chroms.vcf.gz \\
+  --make-bed \\
+  --snps-only \\
+  --biallelic-only \\
+  --maf 0.05 \\
+  --set-missing-var-ids @:# \\
+  --extract plink.prune.in \\
+  --geno \\
+  --recode \\
+  --out test \\
+  --allow-extra-chr \\
+  --pheno plink_formated_trats.tsv
+  
+  
+  """
+
+Tip: when you have fixed the problem you can continue the execution adding the option `-resume` to the run command line
+Apr-28 15:14:08.080 [Actor Thread 11] DEBUG nextflow.Session - Session aborted -- Cause: Process `null` script contains error(s)
+Apr-28 15:14:08.115 [Actor Thread 11] DEBUG nextflow.Session - The following nodes are still active:
+[process] vcf_to_geno_matrix
+  status=ACTIVE
+  port 0: (queue) closed; channel: -
+  port 1: (queue) OPEN  ; channel: strains
+  port 2: (cntrl) -     ; channel: $
+
+[process] chrom_eigen_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: genotypes
+  port 1: (value) bound ; channel: __$eachinparam<1>
+  port 2: (cntrl) -     ; channel: $
+
+[process] collect_eigen_variants
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: chrom_tests
+  port 1: (cntrl) -     ; channel: $
+
+[process] gcta_grm
+  status=ACTIVE
+  port 0: (queue) closed; channel: -
+  port 1: (queue) OPEN  ; channel: num_chroms
+  port 2: (queue) OPEN  ; channel: strains
+  port 3: (cntrl) -     ; channel: $
+
+Apr-28 15:14:08.118 [main] DEBUG nextflow.Session - Session await > all process finished
+Apr-28 15:14:08.119 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Apr-28 15:14:08.128 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=1; failedCount=0; ignoredCount=0; cachedCount=0; succeedDuration=14.2s; failedDuration=0ms; cachedDuration=0ms]
+Apr-28 15:14:08.128 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
+Apr-28 15:14:08.188 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
+  {"fix_strain_names_bulk":{"cpu":{"mean":73.2,"min":73.2,"q1":73.2,"q2":73.2,"q3":73.2,"max":73.2,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"mem":{"mean":134500352,"min":134500352,"q1":134500352,"q2":134500352,"q3":134500352,"max":134500352,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"vmem":{"mean":493453312,"min":493453312,"q1":493453312,"q2":493453312,"q3":493453312,"max":493453312,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"time":{"mean":14159,"min":14159,"q1":14159,"q2":14159,"q3":14159,"max":14159,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"reads":{"mean":67416830,"min":67416830,"q1":67416830,"q2":67416830,"q3":67416830,"max":67416830,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"writes":{"mean":4923,"min":4923,"q1":4923,"q2":4923,"q3":4923,"max":4923,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"cpuUsage":{"mean":73.2,"min":73.2,"q1":73.2,"q2":73.2,"q3":73.2,"max":73.2,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"memUsage":{"mean":0.2,"min":0.2,"q1":0.2,"q2":0.2,"q3":0.2,"max":0.2,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"timeUsage":null}}
+Apr-28 15:14:09.325 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
+Apr-28 15:14:09.340 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
