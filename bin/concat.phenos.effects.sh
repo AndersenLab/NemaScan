@@ -5,7 +5,7 @@
 #SBATCH -N 1                            # Number of Nodes
 #SBATCH --job-name="GCTA.cat"    # Name of job
 
-BASE=/projects/b1059/projects/Sam/GWAS_sensitivity
+BASE=/projects/b1059/projects/Sam/NemaScan
 NQTL=$1
 HSQ=$2
 MAF=$3
