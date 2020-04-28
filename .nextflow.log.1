@@ -1,33 +1,62 @@
-Apr-27 17:01:37.157 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --help
-Apr-27 17:01:37.278 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-27 17:01:37.293 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [nauseous_goodall] - revision: b73991e18a
-Apr-27 17:01:37.299 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-27 17:01:37.300 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-27 17:01:37.318 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-27 17:01:37.647 [main] DEBUG nextflow.Session - Session uuid: 56e4c99c-8686-42f5-9abf-dffe3618e92a
-Apr-27 17:01:37.648 [main] DEBUG nextflow.Session - Run name: nauseous_goodall
-Apr-27 17:01:37.648 [main] DEBUG nextflow.Session - Executor pool size: 6
-Apr-27 17:01:37.656 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-27 20:56:30.454 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-27 20:56:30.607 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-27 20:56:30.622 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [admiring_euler] - revision: f81308311b
+Apr-27 20:56:30.633 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-27 20:56:30.633 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-27 20:56:30.634 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-27 20:56:30.635 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-27 20:56:30.666 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-27 20:56:31.135 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-27 20:56:31.232 [main] DEBUG nextflow.Session - Session uuid: f5d31e34-15d5-46a5-bb09-565186986554
+Apr-27 20:56:31.233 [main] DEBUG nextflow.Session - Run name: admiring_euler
+Apr-27 20:56:31.233 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-27 20:56:31.245 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
-  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_222-b10
+  Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 455856@qnode9031 [172.20.135.31]
-  CPUs: 6 - Mem: 188.4 GB (175.4 GB) - Swap: 0 (0)
-Apr-27 17:01:37.712 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-27 17:01:37.868 [main] DEBUG nextflow.Session - Session start invoked
-Apr-27 17:01:37.899 [main] DEBUG nextflow.Session - Session aborted -- Cause: startup failed:
-Script_f49117ba: 61: unexpected char: '\' @ line 61, column 8.
-        _/\/\____/\/\_     ____________     ________________     ____________     ___/\/\/\/\/\_     ____________     ____________     ____________
-          ^
+  Process: 31761@quser22 [172.20.4.22]
+  CPUs: 28 - Mem: 124.1 GB (8.2 GB) - Swap: 0 (0)
+Apr-27 20:56:31.275 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-27 20:56:31.521 [main] DEBUG nextflow.Session - Session start invoked
+Apr-27 20:56:32.218 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-27 20:56:32.384 [main] INFO  nextflow.Nextflow -                     
 
-1 error
 
-Apr-27 17:01:38.057 [main] ERROR nextflow.cli.Launcher - startup failed:
-Script_f49117ba: 61: unexpected char: '\' @ line 61, column 8.
-        _/\/\____/\/\_     ____________     ________________     ____________     ___/\/\/\/\/\_     ____________     ____________     ____________
-          ^
+O~~~     O~~                                   O~~ ~~                            
+O~ O~~   O~~                                 O~~    O~~                          
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
+O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
+O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
+O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+                                                                                    
 
-1 error
 
+    
+Apr-27 20:56:32.385 [main] INFO  nextflow.Nextflow - 
+Apr-27 20:56:32.386 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-27 20:56:32.387 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-27 20:56:32.388 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-27 20:56:32.388 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200427
+Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-27 20:56:32.392 [main] INFO  nextflow.Nextflow - 
+Apr-27 20:56:32.393 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
+Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await
+Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await > all process finished
+Apr-27 20:56:32.393 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Apr-27 20:56:32.397 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=0; failedCount=0; ignoredCount=0; cachedCount=0; succeedDuration=0ms; failedDuration=0ms; cachedDuration=0ms]
+Apr-27 20:56:32.397 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
+Apr-27 20:56:32.402 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
+  {}
+Apr-27 20:56:33.600 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
+Apr-27 20:56:33.615 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

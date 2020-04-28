@@ -4,3 +4,6 @@
 2020-04-27 17:00:04	-	mad_brahmagupta	-	da9d605ea467b227c2c0c01fcd1966f8	db2bd147-82a5-4b49-906f-c789f216797b	nextflow main.nf --help
 2020-04-27 17:01:37	-	nauseous_goodall	-	b73991e18a2b72aea3785f8bfd6fce37	56e4c99c-8686-42f5-9abf-dffe3618e92a	nextflow main.nf --help
 2020-04-27 17:10:56	-	silly_goldstine	-	c5416f92ebb8f20b66dccb217058d254	5969426e-ba6b-405b-ab1c-41eabeaeb364	nextflow main.nf --help
+2020-04-27 20:55:24	-	modest_magritte	-	9766db1bb4c78d475760e762597a2e85	0b3828b4-c4f3-49c6-8a3a-81985ca1b558	nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+2020-04-27 20:56:31	2.6s	admiring_euler	OK	f81308311bce394cc6516555eca1b631	f5d31e34-15d5-46a5-bb09-565186986554	nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+2020-04-27 20:56:59	2.3s	serene_murdock	OK	f81308311bce394cc6516555eca1b631	c6105b8e-968c-4699-8165-1a85ce64c79f	nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz

@@ -1,78 +1,33 @@
-Apr-27 16:58:57.119 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --help
-Apr-27 16:58:57.208 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-27 16:58:57.221 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [fabulous_avogadro] - revision: 8eb9fbffaf
-Apr-27 16:58:57.227 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-27 16:58:57.228 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-27 16:58:57.246 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-27 16:58:57.576 [main] DEBUG nextflow.Session - Session uuid: 60493554-d288-4e0a-812d-52cdad88eac8
-Apr-27 16:58:57.577 [main] DEBUG nextflow.Session - Run name: fabulous_avogadro
-Apr-27 16:58:57.577 [main] DEBUG nextflow.Session - Executor pool size: 6
-Apr-27 16:58:57.585 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-27 17:01:37.157 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --help
+Apr-27 17:01:37.278 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-27 17:01:37.293 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [nauseous_goodall] - revision: b73991e18a
+Apr-27 17:01:37.299 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-27 17:01:37.300 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-27 17:01:37.318 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-27 17:01:37.647 [main] DEBUG nextflow.Session - Session uuid: 56e4c99c-8686-42f5-9abf-dffe3618e92a
+Apr-27 17:01:37.648 [main] DEBUG nextflow.Session - Run name: nauseous_goodall
+Apr-27 17:01:37.648 [main] DEBUG nextflow.Session - Executor pool size: 6
+Apr-27 17:01:37.656 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
   Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_222-b10
   Encoding: UTF-8 (UTF-8)
-  Process: 455334@qnode9031 [172.20.135.31]
+  Process: 455856@qnode9031 [172.20.135.31]
   CPUs: 6 - Mem: 188.4 GB (175.4 GB) - Swap: 0 (0)
-Apr-27 16:58:57.647 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-27 16:58:58.006 [main] DEBUG nextflow.Session - Session start invoked
-Apr-27 16:58:58.499 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-27 16:58:58.568 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.568 [main] INFO  nextflow.Nextflow - ------------------------------------------
-Apr-27 16:58:58.568 [main] INFO  nextflow.Nextflow -         C. elegans GWAS pipeline 
-Apr-27 16:58:58.568 [main] INFO  nextflow.Nextflow - ------------------------------------------
-Apr-27 16:58:58.568 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - 
-	    _   __                             _____                       
-	   / | / /  ___    ____ ___   ____ _  / ___/  _____  ____ _   ____ 
-	  /  |/ /  / _ \  / __ `__ \ / __ `/  \__ \  / ___/ / __ `/  / __ \
-	 / /|  /  /  __/ / / / / / // /_/ /  ___/ / / /__  / /_/ /  / / / /
-	/_/ |_/   \___/ /_/ /_/ /_/ \__,_/  /____/  \___/  \__,_/  /_/ /_/ 
-    
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow -                       USAGE                                     
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - nextflow main.nf --traitfile=test_bulk --vcf=bin/WI.20180527.impute.vcf.gz --p3d=TRUE --sthresh=EIGEN # run all traits from a single file
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - nextflow main.nf --traitdir=test_bulk --p3d=TRUE --sthresh=BF # download VCF from CeNDR
-Apr-27 16:58:58.569 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - Mandatory arguments:
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - --traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ...
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - --vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - --p3d                    BOOLEAN               Set to FALSE for EMMA algortith, TRUE for EMMAx
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:58:58.570 [main] INFO  nextflow.Nextflow - ----------------------------------------------------------------
-Apr-27 16:58:58.574 [main] INFO  nextflow.Nextflow - Optional arguments (General):
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --out                    String                Name of folder that will contain the results
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --e_mem                  String                Value that corresponds to the amount of memory to allocate for eigen decomposition of chromosomes (DEFAULT = 100)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --cendr_v                String                CeNDR release (DEFAULT = 20180527)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - Optional arguments (Marker):
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --ci_size                Integer               Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - Optional arguments (Burden):
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --freqUpper              Float                 Maximum allele frequency for a variant to be considered for burden mapping, (DEFAULT = 0.05)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --minburden              Interger              Minimum number of strains to have a variant for the variant to be considered for burden mapping, (DEFAULT = 2)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --genes                  String                refFlat file format that contains start and stop genomic coordinates for genes of interest, (DEFAULT = bin/gene_ref_flat.Rda)
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.575 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - Information describing the stucture of the input files can be located in input_files/README.txt
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - Flags:
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - --help                                      Display this message
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - 
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow -  Required software packages to be in users path
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - BCFtools               v1.9
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - plink                  v1.9
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - R-cegwas2              Found on GitHub
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - R-tidyverse            v1.2.1
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - R-correlateR           Found on GitHub
-Apr-27 16:58:58.576 [main] INFO  nextflow.Nextflow - R-rrBLUP               v4.6
-Apr-27 16:58:58.577 [main] INFO  nextflow.Nextflow - R-sommer               v3.5
-Apr-27 16:58:58.577 [main] INFO  nextflow.Nextflow - R-RSpectra             v0.13-1
-Apr-27 16:58:58.577 [main] INFO  nextflow.Nextflow - R-ggbeeswarm           v0.6.0
-Apr-27 16:58:58.577 [main] INFO  nextflow.Nextflow - --------------------------------------------------------
+Apr-27 17:01:37.712 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-27 17:01:37.868 [main] DEBUG nextflow.Session - Session start invoked
+Apr-27 17:01:37.899 [main] DEBUG nextflow.Session - Session aborted -- Cause: startup failed:
+Script_f49117ba: 61: unexpected char: '\' @ line 61, column 8.
+        _/\/\____/\/\_     ____________     ________________     ____________     ___/\/\/\/\/\_     ____________     ____________     ____________
+          ^
+
+1 error
+
+Apr-27 17:01:38.057 [main] ERROR nextflow.cli.Launcher - startup failed:
+Script_f49117ba: 61: unexpected char: '\' @ line 61, column 8.
+        _/\/\____/\/\_     ____________     ________________     ____________     ___/\/\/\/\/\_     ____________     ____________     ____________
+          ^
+
+1 error
+
