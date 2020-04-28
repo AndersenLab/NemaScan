@@ -6,16 +6,13 @@
 #SBATCH --job-name="GCTA.SJW"    # Name of job
 
 export REP=$1
-# Example:
-#
-
 conda activate sam_env
 mkdir simulation.rep.${REP}
 cd simulation.rep.${REP}
 
 
 echo "Generating Causal QTLs"
-Rscript --vanilla ${SCRIPTS}/create.causal.QTLs.R ${RECODED}.bim
+Rscript --vanilla ${BIN}/create.causal.QTLs.R ${RECODED}.bim
 echo "REPLICATE ${REP} TEST STATEMENT"
 
 # Simulated Traits, Supplied Heritability
