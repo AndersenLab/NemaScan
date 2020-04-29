@@ -2,3 +2,4 @@
 *.nextflow
 report.html.*
 Analysis_Results-*
+.nextflow
