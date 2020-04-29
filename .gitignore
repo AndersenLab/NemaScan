@@ -1,5 +1,5 @@
 *.nextflow.log*
 *.nextflow
-report.html.*
+report.*
 Analysis_Results-*
-.nextflow
+.nextflow/
