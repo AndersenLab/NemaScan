@@ -461,7 +461,7 @@ process prepare_gcta_files {
     set file(strains), val(TRAIT), file(traits), file(vcf), file(index) from gcta_prep_inputs
 
     output:
-    set val(TRAIT), file(traits), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped"), file("${TRAIT}.log") into gcta_grm_inputs
+    set val(TRAIT), file("plink_formated_trats.tsv"), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped"), file("${TRAIT}.log") into gcta_grm_inputs
 
     """
 
@@ -507,12 +507,56 @@ process gcta_grm {
     set val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log) from gcta_grm_inputs
 
     output:
-
+    set val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file("${TRAIT}_gcta_grm.grm.bin"), file("${TRAIT}_gcta_grm.grm.id"), file("${TRAIT}_gcta_grm.grm.N.bin"), file("${TRAIT}_heritability.hsq"), file("${TRAIT}_heritability.log"), file("${TRAIT}_gcta_grm_inbred.grm.bin"), file("${TRAIT}_gcta_grm_inbred.grm.id"), file("${TRAIT}_gcta_grm_inbred.grm.N.bin"), file("${TRAIT}_heritability_inbred.hsq"), file("${TRAIT}_heritability_inbred.log") into gcta_mapping_inputs
 
     """
 
     gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm --out ${TRAIT}_gcta_grm --thread-num 10
+    gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}_gcta_grm_inbred --thread-num 10
+
+    gcta64 --grm ${TRAIT}_gcta_grm --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability --thread-num 10
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability_inbred --thread-num 10
 
     """
 }
 
+gcta_mapping_inputs
+    .into{gcta_lmm_exact;
+          gcta_lmm;
+          gcta_mlma_loco}
+
+process gcta_lmm_exact_mapping {
+
+    cpus 4
+
+    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*_lmm-exact.fastGWA"
+    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*_lmm-exact_inbred.fastGWA"
+
+    input:
+    set val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), file(h2_inbred), file(h2log_inbred) from gcta_lmm_exact
+
+    output:
+    set val(TRAIT), file(traits), file("${TRAIT}_lmm-exact.fastGWA"), file("${TRAIT}_lmm-exact_inbred.fastGWA") into lmm_exact_output
+
+    """
+
+    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm
+
+    gcta64 --fastGWA-lmm-exact \\
+        --grm-sparse ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm-exact \\
+        --pheno ${traits} \\
+        --maf 0.01
+
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm_inbred
+
+    gcta64 --fastGWA-lmm-exact \\
+        --grm-sparse ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm-exact_inbred \\
+        --pheno ${traits} \\
+        --maf 0.01
+
+    """
+}
