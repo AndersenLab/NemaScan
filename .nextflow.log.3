@@ -1,27 +1,27 @@
-Apr-28 18:57:05.342 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -resume
-Apr-28 18:57:05.496 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-28 18:57:05.511 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [elegant_bhabha] - revision: 8f53be4ec2
-Apr-28 18:57:05.519 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-28 18:57:05.520 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-28 18:57:05.522 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-28 18:57:05.522 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-28 18:57:05.580 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-28 18:57:06.258 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-28 18:57:06.372 [main] DEBUG nextflow.Session - Session uuid: 4ab1a6c7-f2c7-4bcd-90b7-2c67ca54de9d
-Apr-28 18:57:06.372 [main] DEBUG nextflow.Session - Run name: elegant_bhabha
-Apr-28 18:57:06.373 [main] DEBUG nextflow.Session - Executor pool size: 28
-Apr-28 18:57:06.387 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-29 11:01:04.022 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -resume
+Apr-29 11:01:04.211 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-29 11:01:04.232 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [hungry_snyder] - revision: 525e7f1b4d
+Apr-29 11:01:04.243 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-29 11:01:04.243 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-29 11:01:04.244 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-29 11:01:04.244 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-29 11:01:04.273 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-29 11:01:04.786 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-29 11:01:04.897 [main] DEBUG nextflow.Session - Session uuid: 4ab1a6c7-f2c7-4bcd-90b7-2c67ca54de9d
+Apr-29 11:01:04.897 [main] DEBUG nextflow.Session - Run name: hungry_snyder
+Apr-29 11:01:04.898 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-29 11:01:04.911 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
   Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 30067@quser23 [172.20.4.23]
-  CPUs: 28 - Mem: 124.1 GB (14.1 GB) - Swap: 0 (0)
-Apr-28 18:57:06.432 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-28 18:57:06.899 [main] DEBUG nextflow.Session - Session start invoked
-Apr-28 18:57:07.422 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-28 18:57:07.494 [main] INFO  nextflow.Nextflow -                     
+  Process: 21887@quser22 [172.20.4.22]
+  CPUs: 28 - Mem: 124.1 GB (1.3 GB) - Swap: 0 (0)
+Apr-29 11:01:04.958 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-29 11:01:05.546 [main] DEBUG nextflow.Session - Session start invoked
+Apr-29 11:01:06.121 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-29 11:01:06.238 [main] INFO  nextflow.Nextflow -                     
 
 
 O~~~     O~~                                   O~~ ~~                            
@@ -35,144 +35,140 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 
 
     
-Apr-28 18:57:07.495 [main] INFO  nextflow.Nextflow - 
-Apr-28 18:57:07.496 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
-Apr-28 18:57:07.496 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
-Apr-28 18:57:07.496 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
-Apr-28 18:57:07.496 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
-Apr-28 18:57:07.496 [main] INFO  nextflow.Nextflow - P3D                                     = null
-Apr-28 18:57:07.497 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-28 18:57:07.497 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
-Apr-28 18:57:07.497 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
-Apr-28 18:57:07.497 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-28 18:57:07.497 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
-Apr-28 18:57:07.499 [main] INFO  nextflow.Nextflow - Gene File                               = null
-Apr-28 18:57:07.499 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200428
-Apr-28 18:57:07.500 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
-Apr-28 18:57:07.500 [main] INFO  nextflow.Nextflow - 
-Apr-28 18:57:07.675 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:57:07.675 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:57:07.679 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
-Apr-28 18:57:07.683 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
-Apr-28 18:57:07.719 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
-Apr-28 18:57:07.762 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:57:07.763 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:57:07.764 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
-Apr-28 18:57:07.779 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:57:07.780 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:57:07.789 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
-Apr-28 18:57:07.795 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
-Apr-28 18:57:07.797 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
-Apr-28 18:57:07.807 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
-Apr-28 18:57:07.821 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
-Apr-28 18:57:07.845 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:57:07.846 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:57:07.854 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
-Apr-28 18:57:07.889 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:57:07.890 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:57:07.892 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > prepare_gcta_files -- maxForks: 28
-Apr-28 18:57:07.908 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:57:07.909 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:57:07.910 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
-Apr-28 18:57:07.945 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:57:07.945 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:57:07.950 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_mapping -- maxForks: 28
-Apr-28 18:57:07.951 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
-Apr-28 18:57:07.951 [main] DEBUG nextflow.Session - Session await
-Apr-28 18:57:07.990 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [ce/a827a3] Cached process > fix_strain_names_bulk (1)
-Apr-28 18:57:08.842 [Actor Thread 8] INFO  nextflow.processor.TaskProcessor - [88/3c1474] Cached process > vcf_to_geno_matrix (1)
-Apr-28 18:57:08.846 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [a6/efc832] Cached process > prepare_gcta_files (1)
-Apr-28 18:57:08.855 [Actor Thread 8] DEBUG n.util.BlockingThreadExecutorFactory - Thread pool name=FileTransfer; maxThreads=84; maxQueueSize=252; keepAlive=1m
-Apr-28 18:57:09.262 [Actor Thread 2] INFO  nextflow.processor.TaskProcessor - [41/c8c3e9] Cached process > chrom_eigen_variants (II)
-Apr-28 18:57:09.321 [Actor Thread 5] INFO  nextflow.processor.TaskProcessor - [c0/7bfc5f] Cached process > chrom_eigen_variants (I)
-Apr-28 18:57:09.329 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [48/21003e] Cached process > chrom_eigen_variants (V)
-Apr-28 18:57:09.334 [Actor Thread 14] INFO  nextflow.processor.TaskProcessor - [49/7b712d] Cached process > chrom_eigen_variants (X)
-Apr-28 18:57:09.345 [Actor Thread 11] INFO  nextflow.processor.TaskProcessor - [c5/cd3c74] Cached process > chrom_eigen_variants (IV)
-Apr-28 18:57:09.350 [Actor Thread 10] INFO  nextflow.processor.TaskProcessor - [97/f5daf9] Cached process > chrom_eigen_variants (III)
-Apr-28 18:57:09.371 [Actor Thread 10] INFO  nextflow.processor.TaskProcessor - [e5/9a34ed] Cached process > collect_eigen_variants
-Apr-28 18:57:11.131 [Actor Thread 4] DEBUG nextflow.processor.TaskProcessor - Process `gcta_grm (1)` is unable to find [UnixPath]: `/projects/b1042/AndersenLab/work/stefan/50/7d6cce7316426e635f034f0d78c273/PC1_gcta_grm_inbred.bin` (pattern: `PC1_gcta_grm_inbred.bin`)
-Apr-28 18:57:12.635 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process gcta_grm (1) > jobId: 9853175; workDir: /projects/b1042/AndersenLab/work/stefan/4f/415d80b49b568a1704b92e60321d6f
-Apr-28 18:57:12.644 [Task submitter] INFO  nextflow.Session - [4f/415d80] Submitted process > gcta_grm (1)
-Apr-28 18:57:17.824 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9853175; id: 10; name: gcta_grm (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/4f/415d80b49b568a1704b92e60321d6f started: 1588118237809; exited: 2020-04-28T23:57:17.444587Z; ]
-Apr-28 18:57:17.881 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Process `gcta_grm (1)` is unable to find [UnixPath]: `/projects/b1042/AndersenLab/work/stefan/4f/415d80b49b568a1704b92e60321d6f/PC1_gcta_grm_inbred.bin` (pattern: `PC1_gcta_grm_inbred.bin`)
-Apr-28 18:57:17.930 [Task monitor] ERROR nextflow.processor.TaskProcessor - Error executing process > 'gcta_grm (1)'
+Apr-29 11:01:06.238 [main] INFO  nextflow.Nextflow - 
+Apr-29 11:01:06.240 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-29 11:01:06.240 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-29 11:01:06.240 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-29 11:01:06.240 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-29 11:01:06.241 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-29 11:01:06.241 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-29 11:01:06.241 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-29 11:01:06.241 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-29 11:01:06.241 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-29 11:01:06.242 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-29 11:01:06.245 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-29 11:01:06.245 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200429
+Apr-29 11:01:06.245 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-29 11:01:06.245 [main] INFO  nextflow.Nextflow - 
+Apr-29 11:01:06.383 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:06.383 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:06.387 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Apr-29 11:01:06.391 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
+Apr-29 11:01:06.428 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
+Apr-29 11:01:06.466 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:06.466 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:06.467 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
+Apr-29 11:01:06.486 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:06.486 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:06.497 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
+Apr-29 11:01:06.504 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
+Apr-29 11:01:06.507 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
+Apr-29 11:01:06.518 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
+Apr-29 11:01:06.532 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
+Apr-29 11:01:06.556 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:06.557 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:06.560 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
+Apr-29 11:01:06.634 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:06.634 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:06.637 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > prepare_gcta_files -- maxForks: 28
+Apr-29 11:01:06.653 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:06.653 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:06.655 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
+Apr-29 11:01:06.667 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:06.667 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:06.669 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_lmm_exact_mapping -- maxForks: 28
+Apr-29 11:01:06.677 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:06.677 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:06.678 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_lmm_mapping -- maxForks: 28
+Apr-29 11:01:06.686 [main] DEBUG nextflow.Session - Session aborted -- Cause: Channel `lmm_exact_output` has been used twice as an output by process `gcta_lmm_mapping` and process `gcta_lmm_exact_mapping`
+Apr-29 11:01:06.720 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [ce/a827a3] Cached process > fix_strain_names_bulk (1)
+Apr-29 11:01:06.723 [main] DEBUG nextflow.Session - The following nodes are still active:
+[process] fix_strain_names_bulk
+  status=ACTIVE
+  port 0: (queue) closed; channel: phenotypes
+  port 1: (cntrl) -     ; channel: $
 
-Caused by:
-  Missing output file(s) `PC1_gcta_grm_inbred.bin` expected by process `gcta_grm (1)`
+[process] vcf_to_geno_matrix
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (queue) OPEN  ; channel: strains
+  port 2: (cntrl) -     ; channel: $
 
-Command executed:
+[process] chrom_eigen_variants
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: genotypes
+  port 1: (value) bound ; channel: __$eachinparam<1>
+  port 2: (cntrl) -     ; channel: $
 
-  gcta64 --bfile PC1 --autosome --maf 0.05 --make-grm --out PC1_gcta_grm --thread-num 10
-  gcta64 --bfile PC1 --autosome --maf 0.05 --make-grm-inbred --out PC1_gcta_grm_inbred --thread-num 10 
-  
-  gcta64 --grm PC1_gcta_grm --pheno plink_formated_trats.tsv --reml --out PC1_heritability --thread-num 10
-  gcta64 --grm PC1_gcta_grm_inbred --pheno plink_formated_trats.tsv --reml --out PC1_heritability_inbred --thread-num 10
+[process] collect_eigen_variants
+  status=ACTIVE
+  port 0: (value) OPEN  ; channel: chrom_tests
+  port 1: (cntrl) -     ; channel: $
 
-Command exit status:
-  0
+[process] prepare_gcta_files
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: num_chroms
+  port 1: (queue) OPEN  ; channel: -
+  port 2: (cntrl) -     ; channel: $
 
-Command output:
-  Note: the program will be running on 10 threads.
-  
-  Reading IDs of the GRM from [PC1_gcta_grm_inbred.grm.id].
-  86 IDs read from [PC1_gcta_grm_inbred.grm.id].
-  Reading the GRM from [PC1_gcta_grm_inbred.grm.bin].
-  GRM for 86 individuals are included from [PC1_gcta_grm_inbred.grm.bin].
-  Reading phenotypes from [plink_formated_trats.tsv].
-  Non-missing phenotypes of 86 individuals are included from [plink_formated_trats.tsv].
-  
-  86 individuals are in common in these files.
-  
-  Performing  REML analysis ... (Note: may take hours depending on sample size).
-  86 observations, 1 fixed effect(s), and 2 variance component(s)(including residual variance).
-  Calculating prior values of variance components by EM-REML ...
-  Updated prior values: 23.3934 24.9166
-  logL: -206.326
-  Running AI-REML algorithm ...
-  Iter.	logL	V(G)	V(e)	
-  1	-206.19	21.00352	26.65951	
-  2	-206.05	16.13898	30.49718	
-  3	-205.93	16.51201	30.46399	
-  4	-205.93	16.50545	30.47104	
-  5	-205.93	16.50575	30.47081	
-  Log-likelihood ratio converged.
-  
-  Calculating the logLikelihood for the reduced model ...
-  (variance component 1 is dropped from the model)
-  Calculating prior values of variance components by EM-REML ...
-  Updated prior values: 46.84980
-  logL: -208.22241
-  Running AI-REML algorithm ...
-  Iter.	logL	V(e)	
-  1	-208.22	46.84980	
-  Log-likelihood ratio converged.
-  
-  Summary result of REML analysis:
-  Source	Variance	SE
-  V(G)	16.505752	10.271086
-  V(e)	30.470812	8.696312
-  Vp	46.976564	7.667636
-  V(G)/Vp	0.351361	0.192294
-  
-  Sampling variance/covariance of the estimates of variance components:
-  1.054952e+02	-6.116420e+01	
-  -6.116420e+01	7.562585e+01	
-  
-  Summary result of REML analysis has been saved in the file [PC1_heritability_inbred.hsq].
-  
-  Analysis finished at 23:57:17 UTC on Tue Apr 28 2020
-  Overall computational time: 0.03 sec.
+[process] gcta_grm
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
 
-Work dir:
-  /projects/b1042/AndersenLab/work/stefan/4f/415d80b49b568a1704b92e60321d6f
+[process] gcta_lmm_exact_mapping
+  status=ACTIVE
+  port 0: (queue) OPEN  ; channel: -
+  port 1: (cntrl) -     ; channel: $
 
-Tip: when you have fixed the problem you can continue the execution adding the option `-resume` to the run command line
-Apr-28 18:57:17.951 [Task monitor] DEBUG nextflow.Session - Session aborted -- Cause: Missing output file(s) `PC1_gcta_grm_inbred.bin` expected by process `gcta_grm (1)`
-Apr-28 18:57:17.952 [main] DEBUG nextflow.Session - Session await > all process finished
-Apr-28 18:57:17.988 [main] DEBUG nextflow.Session - Session await > all barriers passed
-Apr-28 18:57:18.000 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=0; failedCount=1; ignoredCount=0; cachedCount=10; succeedDuration=0ms; failedDuration=2.5s; cachedDuration=2h 29m 48s]
-Apr-28 18:57:18.000 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
-Apr-28 18:57:18.106 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
-  {"vcf_to_geno_matrix":{"cpu":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"mem":{"mean":18120704,"min":18120704,"q1":18120704,"q2":18120704,"q3":18120704,"max":18120704,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"vmem":{"mean":38675202048,"min":38675202048,"q1":38675202048,"q2":38675202048,"q3":38675202048,"max":38675202048,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"time":{"mean":319572,"min":319572,"q1":319572,"q2":319572,"q3":319572,"max":319572,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"reads":{"mean":2197708206,"min":2197708206,"q1":2197708206,"q2":2197708206,"q3":2197708206,"max":2197708206,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"writes":{"mean":1539510642,"min":1539510642,"q1":1539510642,"q2":1539510642,"q3":1539510642,"max":1539510642,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"cpuUsage":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"memUsage":{"mean":0.03,"min":0.03,"q1":0.03,"q2":0.03,"q3":0.03,"max":0.03,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"timeUsage":null},"fix_strain_names_bulk":{"cpu":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"mem":{"mean":133984256,"min":133984256,"q1":133984256,"q2":133984256,"q3":133984256,"max":133984256,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"vmem":{"mean":492855296,"min":492855296,"q1":492855296,"q2":492855296,"q3":492855296,"max":492855296,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"time":{"mean":11513,"min":11513,"q1":11513,"q2":11513,"q3":11513,"max":11513,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"reads":{"mean":67416833,"min":67416833,"q1":67416833,"q2":67416833,"q3":67416833,"max":67416833,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"writes":{"mean":4922,"min":4922,"q1":4922,"q2":4922,"q3":4922,"max":4922,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"cpuUsage":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"memUsage":{"mean":0.19,"min":0.19,"q1":0.19,"q2":0.19,"q3":0.19,"max":0.19,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"timeUsage":null},"chrom_eigen_variants":{"cpu":{"mean":98.33,"min":96,"q1":98.6,"q2":98.6,"q3":98.68,"max":99.5,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (V)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (IV)"},"mem":{"mean":1977262080,"min":678428672,"q1":1046376448,"q2":2003412992,"q3":2534995968,"max":3738763264,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"vmem":{"mean":2340723370.67,"min":1042550784,"q1":1409954816,"q2":2365677568,"q3":2899749888,"max":4101279744,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"time":{"mean":220529.5,"min":79200,"q1":159842.5,"q2":232717.5,"q3":264084.5,"max":368451,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"reads":{"mean":47520821.67,"min":47520806,"q1":47520819.25,"q2":47520823.5,"q3":47520824.75,"max":47520834,"minLabel":"chrom_eigen_variants (IV)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (I)","q3Label":"chrom_eigen_variants (V)"},"writes":{"mean":19537421.83,"min":18314363,"q1":18620183.5,"q2":19672694.5,"q3":20173513.75,"max":20954979,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"cpuUsage":{"mean":16.39,"min":16,"q1":16.43,"q2":16.43,"q3":16.45,"max":16.58,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (V)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (IV)"},"memUsage":{"mean":1.84,"min":0.63,"q1":0.97,"q2":1.87,"q3":2.36,"max":3.48,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"timeUsage":null},"gcta_grm":{"cpu":{"mean":183.7,"min":183.7,"q1":183.7,"q2":183.7,"q3":183.7,"max":183.7,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"mem":{"mean":15089664,"min":15089664,"q1":15089664,"q2":15089664,"q3":15089664,"max":15089664,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"vmem":{"mean":171376640,"min":171376640,"q1":171376640,"q2":171376640,"q3":171376640,"max":171376640,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"time":{"mean":624,"min":624,"q1":624,"q2":624,"q3":624,"max":624,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"reads":{"mean":8246049,"min":8246049,"q1":8246049,"q2":8246049,"q3":8246049,"max":8246049,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"writes":{"mean":78566,"min":78566,"q1":78566,"q2":78566,"q3":78566,"max":78566,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"cpuUsage":{"mean":45.93,"min":45.93,"q1":45.93,"q2":45.93,"q3":45.93,"max":45.93,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"memUsage":{"mean":0.02,"min":0.02,"q1":0.02,"q2":0.02,"q3":0.02,"max":0.02,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"timeUsage":null},"prepare_gcta_files":{"cpu":{"mean":210.9,"min":210.9,"q1":210.9,"q2":210.9,"q3":210.9,"max":210.9,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"mem":{"mean":30384128,"min":30384128,"q1":30384128,"q2":30384128,"q3":30384128,"max":30384128,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"vmem":{"mean":67797737472,"min":67797737472,"q1":67797737472,"q2":67797737472,"q3":67797737472,"max":67797737472,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"time":{"mean":179457,"min":179457,"q1":179457,"q2":179457,"q3":179457,"max":179457,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"reads":{"mean":5757366608,"min":5757366608,"q1":5757366608,"q2":5757366608,"q3":5757366608,"max":5757366608,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"writes":{"mean":5334371506,"min":5334371506,"q1":5334371506,"q2":5334371506,"q3":5334371506,"max":5334371506,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"cpuUsage":{"mean":52.73,"min":52.73,"q1":52.73,"q2":52.73,"q3":52.73,"max":52.73,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"memUsage":{"mean":0.04,"min":0.04,"q1":0.04,"q2":0.04,"q3":0.04,"max":0.04,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"timeUsage":null},"collect_eigen_variants":{"cpu":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"mem":null,"vmem":null,"time":{"mean":9,"min":9,"q1":9,"q2":9,"q3":9,"max":9,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"reads":{"mean":63659,"min":63659,"q1":63659,"q2":63659,"q3":63659,"max":63659,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"writes":{"mean":544,"min":544,"q1":544,"q2":544,"q3":544,"max":544,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"cpuUsage":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"memUsage":null,"timeUsage":null}}
-Apr-28 18:57:19.194 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
-Apr-28 18:57:19.206 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
+Apr-29 11:01:06.814 [main] ERROR nextflow.cli.Launcher - @unknown
+nextflow.dag.MultipleOutputChannelException: Channel `lmm_exact_output` has been used twice as an output by process `gcta_lmm_mapping` and process `gcta_lmm_exact_mapping`
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+	at org.codehaus.groovy.reflection.CachedConstructor.invoke(CachedConstructor.java:80)
+	at org.codehaus.groovy.runtime.callsite.ConstructorSite$ConstructorSiteNoUnwrapNoCoerce.callConstructor(ConstructorSite.java:105)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallConstructor(CallSiteArray.java:59)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:237)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callConstructor(AbstractCallSite.java:265)
+	at nextflow.dag.DAG.outbound(DAG.groovy:216)
+	at sun.reflect.GeneratedMethodAccessor30.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.runtime.callsite.PlainObjectMetaMethodSite.doInvoke(PlainObjectMetaMethodSite.java:43)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite$PogoCachedMethodSiteNoUnwrapNoCoerce.invoke(PogoMetaMethodSite.java:190)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite.callCurrent(PogoMetaMethodSite.java:58)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:176)
+	at nextflow.dag.DAG.addVertex(DAG.groovy:133)
+	at sun.reflect.GeneratedMethodAccessor48.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.runtime.callsite.PlainObjectMetaMethodSite.doInvoke(PlainObjectMetaMethodSite.java:43)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite$PogoCachedMethodSiteNoUnwrapNoCoerce.invoke(PogoMetaMethodSite.java:190)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite.callCurrent(PogoMetaMethodSite.java:58)
+	at nextflow.dag.DAG.addProcessNode(DAG.groovy:87)
+	at nextflow.dag.NodeMarker.addProcessNode(NodeMarker.groovy:50)
+	at nextflow.dag.NodeMarker$addProcessNode$0.call(Unknown Source)
+	at nextflow.processor.TaskProcessor.createOperator(TaskProcessor.groovy:484)
+	at nextflow.processor.TaskProcessor.run(TaskProcessor.groovy:382)
+	at nextflow.processor.TaskProcessor$run.call(Unknown Source)
+	at nextflow.script.BaseScript.process(BaseScript.groovy:106)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.codehaus.groovy.runtime.callsite.PlainObjectMetaMethodSite.doInvoke(PlainObjectMetaMethodSite.java:43)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite$PogoCachedMethodSiteNoUnwrapNoCoerce.invoke(PogoMetaMethodSite.java:190)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaMethodSite.callCurrent(PogoMetaMethodSite.java:58)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:156)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:176)
+	at Script_4f94bbe8.runScript(Script_4f94bbe8:564)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:151)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:189)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:287)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:132)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:246)
+	at nextflow.cli.Launcher.run(Launcher.groovy:451)
+	at nextflow.cli.Launcher.main(Launcher.groovy:633)
