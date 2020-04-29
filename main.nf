@@ -432,6 +432,71 @@ independent_tests
     .into{mapping_data_emma;
           mapping_data_gcta}
 
+
+/*
+======================================
+~ > *                            * < ~
+~ ~ > *                        * < ~ ~
+~ ~ ~ > *  GWAS SIMULATIONS  * < ~ ~ ~
+~ ~ > *                        * < ~ ~
+~ > *                            * < ~
+======================================
+*/
+
+
+strain_list_gcta_grml
+    .spread(traits_to_gcta_grm)
+    .spread(vcf_to_whole_gcta_grm)
+    .set{gcta_prep_inputs}
+
+
+process prepare_gcta_files {
+
+    cpus 4
+
+    input:
+    file(num_chroms) from rename_chroms
+    set file(strains), val(TRAIT), file(traits), file(vcf), file(index) from gcta_prep_inputs
+
+    output:
+    set val(TRAIT), file("plink_formated_trats.tsv"), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped"), file("${TRAIT}.log") into gcta_grm_inputs
+
+    """
+
+    bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
+    bcftools view -S ${strains} |\\
+    bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
+
+    tabix -p vcf renamed_chroms.vcf.gz
+
+    plink --vcf renamed_chroms.vcf.gz \\
+    --snps-only \\
+    --biallelic-only \\
+    --maf 0.05 \\
+    --set-missing-var-ids @:# \\
+    --indep-pairwise 50 10 0.8 \\
+    --geno \\
+    --not-chr MtDNA \\
+    --allow-extra-chr
+
+    tail -n +2 ${traits} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_formated_trats.tsv
+
+    plink --vcf renamed_chroms.vcf.gz \\
+    --make-bed \\
+    --snps-only \\
+    --biallelic-only \\
+    --maf 0.05 \\
+    --set-missing-var-ids @:# \\
+    --extract plink.prune.in \\
+    --geno \\
+    --recode \\
+    --out ${TRAIT} \\
+    --allow-extra-chr \\
+    --pheno plink_formated_trats.tsv
+
+    """
+}
+
 /*
 ======================================
 ~ > *                            * < ~
@@ -538,25 +603,28 @@ process gcta_lmm_exact_mapping {
     output:
     set val(TRAIT), file(traits), file("${TRAIT}_lmm-exact.fastGWA"), file("${TRAIT}_lmm-exact_inbred.fastGWA") into lmm_exact_output
 
+    when:
+      params.lmm_exact
+
     """
 
-    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm
+    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm
 
     gcta64 --fastGWA-lmm-exact \\
         --grm-sparse ${TRAIT}_sparse_grm \\
         --bfile ${TRAIT} \\
         --out ${TRAIT}_lmm-exact \\
         --pheno ${traits} \\
-        --maf 0.01
+        --maf ${params.maf}
 
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm_inbred
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm_inbred
 
     gcta64 --fastGWA-lmm-exact \\
         --grm-sparse ${TRAIT}_sparse_grm \\
         --bfile ${TRAIT} \\
         --out ${TRAIT}_lmm-exact_inbred \\
         --pheno ${traits} \\
-        --maf 0.01
+        --maf ${params.maf}
 
     """
 }
@@ -574,25 +642,28 @@ process gcta_lmm_mapping {
     output:
     set val(TRAIT), file(traits), file("${TRAIT}_lmm.fastGWA"), file("${TRAIT}_lmm_inbred.fastGWA") into lmm_output
 
+    when:
+      params.lmm    
+
     """
 
-    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm
+    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm
 
     gcta64 --fastGWA-lmm \\
         --grm-sparse ${TRAIT}_sparse_grm \\
         --bfile ${TRAIT} \\
         --out ${TRAIT}_lmm \\
         --pheno ${traits} \\
-        --maf 0.01
+        --maf ${params.lmm_maf}
 
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm_inbred
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm_inbred
 
     gcta64 --fastGWA-lmm \\
         --grm-sparse ${TRAIT}_sparse_grm \\
         --bfile ${TRAIT} \\
         --out ${TRAIT}_lmm_inbred \\
         --pheno ${traits} \\
-        --maf 0.01
+        --maf ${params.lmm_maf}
 
     """
 }
