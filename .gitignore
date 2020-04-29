@@ -1,0 +1,4 @@
+*.nextflow.log*
+*.nextflow
+report.html.*
+Analysis_Results-*
