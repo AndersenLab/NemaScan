@@ -1,27 +1,27 @@
-Apr-28 18:59:13.638 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -resume
-Apr-28 18:59:13.849 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
-Apr-28 18:59:13.868 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [stoic_picasso] - revision: a019555866
-Apr-28 18:59:13.879 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
-Apr-28 18:59:13.879 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-28 18:59:13.880 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
-Apr-28 18:59:13.880 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
-Apr-28 18:59:13.912 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-28 18:59:14.442 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-28 18:59:14.543 [main] DEBUG nextflow.Session - Session uuid: 4ab1a6c7-f2c7-4bcd-90b7-2c67ca54de9d
-Apr-28 18:59:14.543 [main] DEBUG nextflow.Session - Run name: stoic_picasso
-Apr-28 18:59:14.543 [main] DEBUG nextflow.Session - Executor pool size: 28
-Apr-28 18:59:14.556 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-29 11:01:28.746 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -resume
+Apr-29 11:01:28.975 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 19.07.0
+Apr-29 11:01:29.009 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [crazy_gates] - revision: 87af73541b
+Apr-29 11:01:29.030 [main] DEBUG nextflow.config.ConfigBuilder - Found config home: /home/szs315/.nextflow/config
+Apr-29 11:01:29.031 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-29 11:01:29.032 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/szs315/.nextflow/config
+Apr-29 11:01:29.032 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /projects/b1059/projects/Stefan/NemaScan/nextflow.config
+Apr-29 11:01:29.091 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-29 11:01:29.666 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-29 11:01:29.862 [main] DEBUG nextflow.Session - Session uuid: 4ab1a6c7-f2c7-4bcd-90b7-2c67ca54de9d
+Apr-29 11:01:29.862 [main] DEBUG nextflow.Session - Run name: crazy_gates
+Apr-29 11:01:29.863 [main] DEBUG nextflow.Session - Executor pool size: 28
+Apr-29 11:01:29.879 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 19.07.0 build 5106
   Created: 27-07-2019 13:22 UTC (08:22 CDT)
   System: Linux 3.10.0-862.el7.x86_64
   Runtime: Groovy 2.5.6 on OpenJDK 64-Bit Server VM 1.8.0_242-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 4618@quser23 [172.20.4.23]
-  CPUs: 28 - Mem: 124.1 GB (17.9 GB) - Swap: 0 (0)
-Apr-28 18:59:14.598 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
-Apr-28 18:59:15.108 [main] DEBUG nextflow.Session - Session start invoked
-Apr-28 18:59:15.623 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-28 18:59:15.723 [main] INFO  nextflow.Nextflow -                     
+  Process: 22444@quser22 [172.20.4.22]
+  CPUs: 28 - Mem: 124.1 GB (1.3 GB) - Swap: 0 (0)
+Apr-29 11:01:29.928 [main] DEBUG nextflow.Session - Work-dir: /projects/b1042/AndersenLab/work/stefan [gpfs]
+Apr-29 11:01:30.468 [main] DEBUG nextflow.Session - Session start invoked
+Apr-29 11:01:30.990 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-29 11:01:31.076 [main] INFO  nextflow.Nextflow -                     
 
 
 O~~~     O~~                                   O~~ ~~                            
@@ -35,70 +35,160 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 
 
     
-Apr-28 18:59:15.724 [main] INFO  nextflow.Nextflow - 
-Apr-28 18:59:15.725 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
-Apr-28 18:59:15.726 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
-Apr-28 18:59:15.726 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
-Apr-28 18:59:15.726 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
-Apr-28 18:59:15.726 [main] INFO  nextflow.Nextflow - P3D                                     = null
-Apr-28 18:59:15.726 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-28 18:59:15.727 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
-Apr-28 18:59:15.727 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
-Apr-28 18:59:15.727 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
-Apr-28 18:59:15.727 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
-Apr-28 18:59:15.730 [main] INFO  nextflow.Nextflow - Gene File                               = null
-Apr-28 18:59:15.730 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200428
-Apr-28 18:59:15.730 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
-Apr-28 18:59:15.730 [main] INFO  nextflow.Nextflow - 
-Apr-28 18:59:15.857 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:59:15.857 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:59:15.861 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
-Apr-28 18:59:15.865 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
-Apr-28 18:59:15.901 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
-Apr-28 18:59:15.933 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:59:15.934 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:59:15.934 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
-Apr-28 18:59:15.967 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:59:15.968 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:59:15.978 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
-Apr-28 18:59:15.983 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
-Apr-28 18:59:15.985 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
-Apr-28 18:59:15.996 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
-Apr-28 18:59:16.009 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
-Apr-28 18:59:16.032 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
-Apr-28 18:59:16.032 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-28 18:59:16.040 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
-Apr-28 18:59:16.076 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:59:16.076 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:59:16.079 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > prepare_gcta_files -- maxForks: 28
-Apr-28 18:59:16.096 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:59:16.096 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:59:16.097 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
-Apr-28 18:59:16.105 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
-Apr-28 18:59:16.105 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
-Apr-28 18:59:16.112 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_mapping -- maxForks: 28
-Apr-28 18:59:16.114 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
-Apr-28 18:59:16.114 [main] DEBUG nextflow.Session - Session await
-Apr-28 18:59:16.150 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [ce/a827a3] Cached process > fix_strain_names_bulk (1)
-Apr-28 18:59:16.782 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [88/3c1474] Cached process > vcf_to_geno_matrix (1)
-Apr-28 18:59:16.794 [Actor Thread 1] DEBUG n.util.BlockingThreadExecutorFactory - Thread pool name=FileTransfer; maxThreads=84; maxQueueSize=252; keepAlive=1m
-Apr-28 18:59:17.146 [Actor Thread 4] INFO  nextflow.processor.TaskProcessor - [a6/efc832] Cached process > prepare_gcta_files (1)
-Apr-28 18:59:17.155 [Actor Thread 2] INFO  nextflow.processor.TaskProcessor - [41/c8c3e9] Cached process > chrom_eigen_variants (II)
-Apr-28 18:59:17.156 [Actor Thread 11] INFO  nextflow.processor.TaskProcessor - [97/f5daf9] Cached process > chrom_eigen_variants (III)
-Apr-28 18:59:17.224 [Actor Thread 7] INFO  nextflow.processor.TaskProcessor - [c0/7bfc5f] Cached process > chrom_eigen_variants (I)
-Apr-28 18:59:17.230 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [c5/cd3c74] Cached process > chrom_eigen_variants (IV)
-Apr-28 18:59:17.242 [Actor Thread 14] INFO  nextflow.processor.TaskProcessor - [49/7b712d] Cached process > chrom_eigen_variants (X)
-Apr-28 18:59:17.252 [Actor Thread 13] INFO  nextflow.processor.TaskProcessor - [48/21003e] Cached process > chrom_eigen_variants (V)
-Apr-28 18:59:17.268 [Actor Thread 16] INFO  nextflow.processor.TaskProcessor - [e5/9a34ed] Cached process > collect_eigen_variants
-Apr-28 18:59:18.994 [Actor Thread 4] INFO  nextflow.processor.TaskProcessor - [50/7d6cce] Cached process > gcta_grm (1)
-Apr-28 18:59:19.529 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process gcta_mapping (1) > jobId: 9853185; workDir: /projects/b1042/AndersenLab/work/stefan/67/1c7db6454fb2dd9f57583ad6bfb397
-Apr-28 18:59:19.537 [Task submitter] INFO  nextflow.Session - [67/1c7db6] Submitted process > gcta_mapping (1)
-Apr-28 18:59:26.017 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9853185; id: 12; name: gcta_mapping (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/67/1c7db6454fb2dd9f57583ad6bfb397 started: 1588118365998; exited: 2020-04-28T23:59:23.467463Z; ]
-Apr-28 18:59:26.026 [main] DEBUG nextflow.Session - Session await > all process finished
-Apr-28 18:59:26.033 [main] DEBUG nextflow.Session - Session await > all barriers passed
-Apr-28 18:59:26.045 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=1; failedCount=0; ignoredCount=0; cachedCount=11; succeedDuration=28ms; failedDuration=0ms; cachedDuration=2h 29m 51s]
-Apr-28 18:59:26.045 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
-Apr-28 18:59:26.168 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
-  {"gcta_mapping":{"cpu":{"mean":106.7,"min":106.7,"q1":106.7,"q2":106.7,"q3":106.7,"max":106.7,"minLabel":"gcta_mapping (1)","maxLabel":"gcta_mapping (1)","q1Label":"gcta_mapping (1)","q2Label":"gcta_mapping (1)","q3Label":"gcta_mapping (1)"},"mem":null,"vmem":null,"time":{"mean":7,"min":7,"q1":7,"q2":7,"q3":7,"max":7,"minLabel":"gcta_mapping (1)","maxLabel":"gcta_mapping (1)","q1Label":"gcta_mapping (1)","q2Label":"gcta_mapping (1)","q3Label":"gcta_mapping (1)"},"reads":{"mean":51023,"min":51023,"q1":51023,"q2":51023,"q3":51023,"max":51023,"minLabel":"gcta_mapping (1)","maxLabel":"gcta_mapping (1)","q1Label":"gcta_mapping (1)","q2Label":"gcta_mapping (1)","q3Label":"gcta_mapping (1)"},"writes":{"mean":213,"min":213,"q1":213,"q2":213,"q3":213,"max":213,"minLabel":"gcta_mapping (1)","maxLabel":"gcta_mapping (1)","q1Label":"gcta_mapping (1)","q2Label":"gcta_mapping (1)","q3Label":"gcta_mapping (1)"},"cpuUsage":{"mean":26.68,"min":26.68,"q1":26.68,"q2":26.68,"q3":26.68,"max":26.68,"minLabel":"gcta_mapping (1)","maxLabel":"gcta_mapping (1)","q1Label":"gcta_mapping (1)","q2Label":"gcta_mapping (1)","q3Label":"gcta_mapping (1)"},"memUsage":null,"timeUsage":null},"prepare_gcta_files":{"cpu":{"mean":210.9,"min":210.9,"q1":210.9,"q2":210.9,"q3":210.9,"max":210.9,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"mem":{"mean":30384128,"min":30384128,"q1":30384128,"q2":30384128,"q3":30384128,"max":30384128,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"vmem":{"mean":67797737472,"min":67797737472,"q1":67797737472,"q2":67797737472,"q3":67797737472,"max":67797737472,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"time":{"mean":179457,"min":179457,"q1":179457,"q2":179457,"q3":179457,"max":179457,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"reads":{"mean":5757366608,"min":5757366608,"q1":5757366608,"q2":5757366608,"q3":5757366608,"max":5757366608,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"writes":{"mean":5334371506,"min":5334371506,"q1":5334371506,"q2":5334371506,"q3":5334371506,"max":5334371506,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"cpuUsage":{"mean":52.73,"min":52.73,"q1":52.73,"q2":52.73,"q3":52.73,"max":52.73,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"memUsage":{"mean":0.04,"min":0.04,"q1":0.04,"q2":0.04,"q3":0.04,"max":0.04,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"timeUsage":null},"collect_eigen_variants":{"cpu":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"mem":null,"vmem":null,"time":{"mean":9,"min":9,"q1":9,"q2":9,"q3":9,"max":9,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"reads":{"mean":63659,"min":63659,"q1":63659,"q2":63659,"q3":63659,"max":63659,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"writes":{"mean":544,"min":544,"q1":544,"q2":544,"q3":544,"max":544,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"cpuUsage":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"memUsage":null,"timeUsage":null},"vcf_to_geno_matrix":{"cpu":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"mem":{"mean":18120704,"min":18120704,"q1":18120704,"q2":18120704,"q3":18120704,"max":18120704,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"vmem":{"mean":38675202048,"min":38675202048,"q1":38675202048,"q2":38675202048,"q3":38675202048,"max":38675202048,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"time":{"mean":319572,"min":319572,"q1":319572,"q2":319572,"q3":319572,"max":319572,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"reads":{"mean":2197708206,"min":2197708206,"q1":2197708206,"q2":2197708206,"q3":2197708206,"max":2197708206,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"writes":{"mean":1539510642,"min":1539510642,"q1":1539510642,"q2":1539510642,"q3":1539510642,"max":1539510642,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"cpuUsage":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"memUsage":{"mean":0.03,"min":0.03,"q1":0.03,"q2":0.03,"q3":0.03,"max":0.03,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"timeUsage":null},"fix_strain_names_bulk":{"cpu":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"mem":{"mean":133984256,"min":133984256,"q1":133984256,"q2":133984256,"q3":133984256,"max":133984256,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"vmem":{"mean":492855296,"min":492855296,"q1":492855296,"q2":492855296,"q3":492855296,"max":492855296,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"time":{"mean":11513,"min":11513,"q1":11513,"q2":11513,"q3":11513,"max":11513,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"reads":{"mean":67416833,"min":67416833,"q1":67416833,"q2":67416833,"q3":67416833,"max":67416833,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"writes":{"mean":4922,"min":4922,"q1":4922,"q2":4922,"q3":4922,"max":4922,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"cpuUsage":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"memUsage":{"mean":0.19,"min":0.19,"q1":0.19,"q2":0.19,"q3":0.19,"max":0.19,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"timeUsage":null},"chrom_eigen_variants":{"cpu":{"mean":98.33,"min":96,"q1":98.6,"q2":98.6,"q3":98.68,"max":99.5,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (IV)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (V)"},"mem":{"mean":1977262080,"min":678428672,"q1":1046376448,"q2":2003412992,"q3":2534995968,"max":3738763264,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"vmem":{"mean":2340723370.67,"min":1042550784,"q1":1409954816,"q2":2365677568,"q3":2899749888,"max":4101279744,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"time":{"mean":220529.5,"min":79200,"q1":159842.5,"q2":232717.5,"q3":264084.5,"max":368451,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"reads":{"mean":47520821.67,"min":47520806,"q1":47520819.25,"q2":47520823.5,"q3":47520824.75,"max":47520834,"minLabel":"chrom_eigen_variants (IV)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (I)","q3Label":"chrom_eigen_variants (V)"},"writes":{"mean":19537421.83,"min":18314363,"q1":18620183.5,"q2":19672694.5,"q3":20173513.75,"max":20954979,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"cpuUsage":{"mean":16.39,"min":16,"q1":16.43,"q2":16.43,"q3":16.45,"max":16.58,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (IV)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (V)"},"memUsage":{"mean":1.84,"min":0.63,"q1":0.97,"q2":1.87,"q3":2.36,"max":3.48,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"timeUsage":null},"gcta_grm":{"cpu":{"mean":170,"min":170,"q1":170,"q2":170,"q3":170,"max":170,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"mem":{"mean":9187328,"min":9187328,"q1":9187328,"q2":9187328,"q3":9187328,"max":9187328,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"vmem":{"mean":167706624,"min":167706624,"q1":167706624,"q2":167706624,"q3":167706624,"max":167706624,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"time":{"mean":711,"min":711,"q1":711,"q2":711,"q3":711,"max":711,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"reads":{"mean":8246050,"min":8246050,"q1":8246050,"q2":8246050,"q3":8246050,"max":8246050,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"writes":{"mean":78566,"min":78566,"q1":78566,"q2":78566,"q3":78566,"max":78566,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"cpuUsage":{"mean":42.5,"min":42.5,"q1":42.5,"q2":42.5,"q3":42.5,"max":42.5,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"memUsage":{"mean":0.01,"min":0.01,"q1":0.01,"q2":0.01,"q3":0.01,"max":0.01,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"timeUsage":null}}
-Apr-28 18:59:27.291 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
-Apr-28 18:59:27.305 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
+Apr-29 11:01:31.076 [main] INFO  nextflow.Nextflow - 
+Apr-29 11:01:31.077 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `traitdir` -- Initialise it to a default value eg. `params.traitdir = some_value`
+Apr-29 11:01:31.078 [main] INFO  nextflow.Nextflow - Phenotype Directory                     = null
+Apr-29 11:01:31.078 [main] INFO  nextflow.Nextflow - VCF                                     = input_data/elegans/genotypes/WI.20180527.impute.vcf.gz
+Apr-29 11:01:31.078 [main] INFO  nextflow.Nextflow - CeNDR Release                           = 20180527
+Apr-29 11:01:31.079 [main] INFO  nextflow.Nextflow - P3D                                     = null
+Apr-29 11:01:31.079 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-29 11:01:31.079 [main] INFO  nextflow.Nextflow - Max AF for Burden Mapping               = 0.05
+Apr-29 11:01:31.079 [main] INFO  nextflow.Nextflow - Min Strains with Variant for Burden     = 2
+Apr-29 11:01:31.079 [main] INFO  nextflow.Nextflow - Significance Threshold                  = null
+Apr-29 11:01:31.079 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `genes` -- Initialise it to a default value eg. `params.genes = some_value`
+Apr-29 11:01:31.083 [main] INFO  nextflow.Nextflow - Gene File                               = null
+Apr-29 11:01:31.083 [main] INFO  nextflow.Nextflow - Result Directory                        = Analysis_Results-20200429
+Apr-29 11:01:31.083 [main] INFO  nextflow.Nextflow - Eigen Memory allocation                 = 100 GB
+Apr-29 11:01:31.083 [main] INFO  nextflow.Nextflow - 
+Apr-29 11:01:31.209 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:31.209 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:31.213 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
+Apr-29 11:01:31.217 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=28; memory=124.1 GB; capacity=28; pollInterval=100ms; dumpInterval=5m
+Apr-29 11:01:31.252 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > fix_strain_names_bulk -- maxForks: 28
+Apr-29 11:01:31.284 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:31.284 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:31.285 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > vcf_to_geno_matrix -- maxForks: 28
+Apr-29 11:01:31.317 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:31.317 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:31.322 [main] DEBUG nextflow.executor.Executor - [warm up] executor > slurm
+Apr-29 11:01:31.325 [main] DEBUG n.processor.TaskPollingMonitor - Creating task monitor for executor 'slurm' > capacity: 100; pollInterval: 5s; dumpInterval: 5m 
+Apr-29 11:01:31.326 [main] DEBUG n.executor.AbstractGridExecutor - Creating executor 'slurm' > queue-stat-interval: 1m
+Apr-29 11:01:31.332 [main] DEBUG nextflow.processor.TaskProcessor - Creating *combiner* operator for each param(s) at index(es): [1]
+Apr-29 11:01:31.339 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > chrom_eigen_variants -- maxForks: 28
+Apr-29 11:01:31.352 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: local
+Apr-29 11:01:31.352 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
+Apr-29 11:01:31.353 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > collect_eigen_variants -- maxForks: 28
+Apr-29 11:01:31.378 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:31.378 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:31.379 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > prepare_gcta_files -- maxForks: 28
+Apr-29 11:01:31.388 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:31.388 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:31.389 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_grm -- maxForks: 28
+Apr-29 11:01:31.395 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:31.395 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:31.396 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_lmm_exact_mapping -- maxForks: 28
+Apr-29 11:01:31.401 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: slurm
+Apr-29 11:01:31.401 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'slurm'
+Apr-29 11:01:31.402 [main] DEBUG nextflow.processor.TaskProcessor - Creating operator > gcta_lmm_mapping -- maxForks: 28
+Apr-29 11:01:31.402 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
+Apr-29 11:01:31.403 [main] DEBUG nextflow.Session - Session await
+Apr-29 11:01:31.595 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [ce/a827a3] Cached process > fix_strain_names_bulk (1)
+Apr-29 11:01:32.449 [Actor Thread 2] INFO  nextflow.processor.TaskProcessor - [a6/efc832] Cached process > prepare_gcta_files (1)
+Apr-29 11:01:32.500 [Actor Thread 5] INFO  nextflow.processor.TaskProcessor - [88/3c1474] Cached process > vcf_to_geno_matrix (1)
+Apr-29 11:01:32.513 [Actor Thread 5] DEBUG n.util.BlockingThreadExecutorFactory - Thread pool name=FileTransfer; maxThreads=84; maxQueueSize=252; keepAlive=1m
+Apr-29 11:01:32.888 [Actor Thread 10] INFO  nextflow.processor.TaskProcessor - [97/f5daf9] Cached process > chrom_eigen_variants (III)
+Apr-29 11:01:32.888 [Actor Thread 11] INFO  nextflow.processor.TaskProcessor - [c5/cd3c74] Cached process > chrom_eigen_variants (IV)
+Apr-29 11:01:32.896 [Actor Thread 2] INFO  nextflow.processor.TaskProcessor - [41/c8c3e9] Cached process > chrom_eigen_variants (II)
+Apr-29 11:01:32.909 [Actor Thread 13] INFO  nextflow.processor.TaskProcessor - [49/7b712d] Cached process > chrom_eigen_variants (X)
+Apr-29 11:01:32.911 [Actor Thread 1] INFO  nextflow.processor.TaskProcessor - [c0/7bfc5f] Cached process > chrom_eigen_variants (I)
+Apr-29 11:01:32.911 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [48/21003e] Cached process > chrom_eigen_variants (V)
+Apr-29 11:01:32.922 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [e5/9a34ed] Cached process > collect_eigen_variants
+Apr-29 11:01:34.818 [Actor Thread 6] INFO  nextflow.processor.TaskProcessor - [8a/868e5a] Cached process > gcta_grm (1)
+Apr-29 11:01:36.545 [Actor Thread 12] INFO  nextflow.processor.TaskProcessor - [ab/eba671] Cached process > gcta_lmm_exact_mapping (1)
+Apr-29 11:01:37.213 [Task submitter] DEBUG nextflow.executor.GridTaskHandler - [SLURM] submitted process gcta_lmm_mapping (1) > jobId: 9882589; workDir: /projects/b1042/AndersenLab/work/stefan/0a/c2edb186328679a2daed7417e3ce5e
+Apr-29 11:01:37.222 [Task submitter] INFO  nextflow.Session - [0a/c2edb1] Submitted process > gcta_lmm_mapping (1)
+Apr-29 11:01:41.356 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[jobId: 9882589; id: 13; name: gcta_lmm_mapping (1); status: COMPLETED; exit: 0; error: -; workDir: /projects/b1042/AndersenLab/work/stefan/0a/c2edb186328679a2daed7417e3ce5e started: 1588176101340; exited: 2020-04-29T16:01:40.521072Z; ]
+Apr-29 11:01:41.362 [Task monitor] DEBUG nextflow.processor.TaskProcessor - Process `gcta_lmm_mapping (1)` is unable to find [UnixPath]: `/projects/b1042/AndersenLab/work/stefan/0a/c2edb186328679a2daed7417e3ce5e/PC1_lmm.fastGWA` (pattern: `PC1_lmm.fastGWA`)
+Apr-29 11:01:41.415 [Task monitor] ERROR nextflow.processor.TaskProcessor - Error executing process > 'gcta_lmm_mapping (1)'
+
+Caused by:
+  Missing output file(s) `PC1_lmm.fastGWA` expected by process `gcta_lmm_mapping (1)`
+
+Command executed:
+
+  gcta64 --grm PC1_gcta_grm --make-bK-sparse 0.01 --out PC1_sparse_grm
+  
+  gcta64 --fastGWA-lmm \
+      --grm-sparse PC1_sparse_grm \
+      --bfile PC1 \
+      --out PC1_lmm-exact \
+      --pheno plink_formated_trats.tsv \
+      --maf 0.01
+  
+  gcta64 --grm PC1_gcta_grm_inbred --make-bK-sparse 0.01 --out PC1_sparse_grm_inbred
+  
+  gcta64 --fastGWA-lmm \
+      --grm-sparse PC1_sparse_grm \
+      --bfile PC1 \
+      --out PC1_lmm-exact_inbred \
+      --pheno plink_formated_trats.tsv \
+      --maf 0.01
+
+Command exit status:
+  0
+
+Command output:
+  
+  Reading PLINK FAM file from [PC1.fam]...
+  86 individuals to be included from FAM file.
+  Reading phenotype data from [plink_formated_trats.tsv]...
+  86 overlapping individuals with non-missing data to be included from the phenotype file.
+  Reading PLINK BIM file from [PC1.bim]...
+  66165 SNPs to be included from BIM file.
+  Reading the sparse GRM file from [PC1_sparse_grm]...
+  After matching all the files, 86 individuals to be included in the analysis.
+  Estimating the genetic variance (Vg) by fastGWA-REML (grid search)...
+  Iteration 1, step size: 0.749597, logL: -206.511. Vg: 8.24556, searching range: 7.49597 to 8.99516
+  Iteration 2, step size: 0.0999462, logL: -206.509. Vg: 8.59538, searching range: 8.49543 to 8.69532
+  Iteration 3, step size: 0.0133262, logL: -206.509. Vg: 8.60204, searching range: 8.58871 to 8.61537
+  Iteration 4, step size: 0.00177682, logL: -206.509. Vg: 8.60293, searching range: 8.60115 to 8.6047
+  Iteration 5, step size: 0.00023691, logL: -206.509. Vg: 8.60352, searching range: 8.60328 to 8.60376
+  Iteration 6, step size: 3.15879e-05, logL: -206.509. Vg: 8.60344, searching range: 8.60341 to 8.60347
+  Iteration 7, step size: 4.21173e-06, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60345
+  Iteration 8, step size: 5.61563e-07, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  Iteration 9, step size: 7.48751e-08, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  Iteration 10, step size: 9.98335e-09, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  Iteration 11, step size: 1.33111e-09, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  Iteration 12, step size: 8.87409e-11, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  Iteration 13, step size: 5.9161e-12, logL: -206.509. Vg: 8.60344, searching range: 8.60344 to 8.60344
+  fastGWA-REML converged.
+  logL: -206.509
+  Sampling variance/covariance of the estimates of Vg and Ve:
+   45.2265 -63.3313
+  -63.3313  163.215
+  
+  Source	Variance	SE
+  Vg	8.60344	6.72506
+  Ve	38.2464	12.7756
+  Vp	46.8498
+  
+  Heritability = 0.183639 (Pval = 0.200788)
+  fastGWA-REML runtime: 0.0734778 sec.
+  Warning: the estimate of Vg is not statistically significant. This is likely because the number of closely related individuals in the sample is not large enough. 
+  In this case, the program will use linear regression for association test.
+  Computing allele frequencies...
+  Reading PLINK BED file(s) in SNP-major format...
+    100% finished in 0.0 sec
+  66165 SNPs remain from --maf or --max-maf,  
+  
+  Performing fastGWA linear regression analysis...
+  Reading PLINK BED file(s) in SNP-major format...
+    100% finished in 0.1 sec
+  The association results have been saved in [PC1_lmm-exact_inbred.fastGWA].
+  
+  Analysis finished at 16:01:40 UTC on Wed Apr 29 2020
+  Overall computational time: 0.53 sec.
+
+Work dir:
+  /projects/b1042/AndersenLab/work/stefan/0a/c2edb186328679a2daed7417e3ce5e
+
+Tip: you can try to figure out what's wrong by changing to the process work dir and showing the script file named `.command.sh`
+Apr-29 11:01:41.435 [Task monitor] DEBUG nextflow.Session - Session aborted -- Cause: Missing output file(s) `PC1_lmm.fastGWA` expected by process `gcta_lmm_mapping (1)`
+Apr-29 11:01:41.435 [main] DEBUG nextflow.Session - Session await > all process finished
+Apr-29 11:01:41.476 [main] DEBUG nextflow.Session - Session await > all barriers passed
+Apr-29 11:01:41.487 [main] DEBUG nextflow.trace.StatsObserver - Workflow completed > WorkflowStats[succeedCount=0; failedCount=1; ignoredCount=0; cachedCount=12; succeedDuration=0ms; failedDuration=4.8s; cachedDuration=2h 29m 55s]
+Apr-29 11:01:41.488 [main] DEBUG nextflow.trace.ReportObserver - Flow completing -- rendering html report
+Apr-29 11:01:41.603 [main] DEBUG nextflow.trace.ReportObserver - Execution report summary data:
+  {"prepare_gcta_files":{"cpu":{"mean":210.9,"min":210.9,"q1":210.9,"q2":210.9,"q3":210.9,"max":210.9,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"mem":{"mean":30384128,"min":30384128,"q1":30384128,"q2":30384128,"q3":30384128,"max":30384128,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"vmem":{"mean":67797737472,"min":67797737472,"q1":67797737472,"q2":67797737472,"q3":67797737472,"max":67797737472,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"time":{"mean":179457,"min":179457,"q1":179457,"q2":179457,"q3":179457,"max":179457,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"reads":{"mean":5757366608,"min":5757366608,"q1":5757366608,"q2":5757366608,"q3":5757366608,"max":5757366608,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"writes":{"mean":5334371506,"min":5334371506,"q1":5334371506,"q2":5334371506,"q3":5334371506,"max":5334371506,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"cpuUsage":{"mean":52.73,"min":52.73,"q1":52.73,"q2":52.73,"q3":52.73,"max":52.73,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"memUsage":{"mean":0.04,"min":0.04,"q1":0.04,"q2":0.04,"q3":0.04,"max":0.04,"minLabel":"prepare_gcta_files (1)","maxLabel":"prepare_gcta_files (1)","q1Label":"prepare_gcta_files (1)","q2Label":"prepare_gcta_files (1)","q3Label":"prepare_gcta_files (1)"},"timeUsage":null},"collect_eigen_variants":{"cpu":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"mem":null,"vmem":null,"time":{"mean":9,"min":9,"q1":9,"q2":9,"q3":9,"max":9,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"reads":{"mean":63659,"min":63659,"q1":63659,"q2":63659,"q3":63659,"max":63659,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"writes":{"mean":544,"min":544,"q1":544,"q2":544,"q3":544,"max":544,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"cpuUsage":{"mean":103.7,"min":103.7,"q1":103.7,"q2":103.7,"q3":103.7,"max":103.7,"minLabel":"collect_eigen_variants","maxLabel":"collect_eigen_variants","q1Label":"collect_eigen_variants","q2Label":"collect_eigen_variants","q3Label":"collect_eigen_variants"},"memUsage":null,"timeUsage":null},"vcf_to_geno_matrix":{"cpu":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"mem":{"mean":18120704,"min":18120704,"q1":18120704,"q2":18120704,"q3":18120704,"max":18120704,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"vmem":{"mean":38675202048,"min":38675202048,"q1":38675202048,"q2":38675202048,"q3":38675202048,"max":38675202048,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"time":{"mean":319572,"min":319572,"q1":319572,"q2":319572,"q3":319572,"max":319572,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"reads":{"mean":2197708206,"min":2197708206,"q1":2197708206,"q2":2197708206,"q3":2197708206,"max":2197708206,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"writes":{"mean":1539510642,"min":1539510642,"q1":1539510642,"q2":1539510642,"q3":1539510642,"max":1539510642,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"cpuUsage":{"mean":132.2,"min":132.2,"q1":132.2,"q2":132.2,"q3":132.2,"max":132.2,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"memUsage":{"mean":0.03,"min":0.03,"q1":0.03,"q2":0.03,"q3":0.03,"max":0.03,"minLabel":"vcf_to_geno_matrix (1)","maxLabel":"vcf_to_geno_matrix (1)","q1Label":"vcf_to_geno_matrix (1)","q2Label":"vcf_to_geno_matrix (1)","q3Label":"vcf_to_geno_matrix (1)"},"timeUsage":null},"fix_strain_names_bulk":{"cpu":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"mem":{"mean":133984256,"min":133984256,"q1":133984256,"q2":133984256,"q3":133984256,"max":133984256,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"vmem":{"mean":492855296,"min":492855296,"q1":492855296,"q2":492855296,"q3":492855296,"max":492855296,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"time":{"mean":11513,"min":11513,"q1":11513,"q2":11513,"q3":11513,"max":11513,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"reads":{"mean":67416833,"min":67416833,"q1":67416833,"q2":67416833,"q3":67416833,"max":67416833,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"writes":{"mean":4922,"min":4922,"q1":4922,"q2":4922,"q3":4922,"max":4922,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"cpuUsage":{"mean":86.3,"min":86.3,"q1":86.3,"q2":86.3,"q3":86.3,"max":86.3,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"memUsage":{"mean":0.19,"min":0.19,"q1":0.19,"q2":0.19,"q3":0.19,"max":0.19,"minLabel":"fix_strain_names_bulk (1)","maxLabel":"fix_strain_names_bulk (1)","q1Label":"fix_strain_names_bulk (1)","q2Label":"fix_strain_names_bulk (1)","q3Label":"fix_strain_names_bulk (1)"},"timeUsage":null},"chrom_eigen_variants":{"cpu":{"mean":98.33,"min":96,"q1":98.6,"q2":98.6,"q3":98.68,"max":99.5,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (IV)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (V)"},"mem":{"mean":1977262080,"min":678428672,"q1":1046376448,"q2":2003412992,"q3":2534995968,"max":3738763264,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"vmem":{"mean":2340723370.67,"min":1042550784,"q1":1409954816,"q2":2365677568,"q3":2899749888,"max":4101279744,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"time":{"mean":220529.5,"min":79200,"q1":159842.5,"q2":232717.5,"q3":264084.5,"max":368451,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"reads":{"mean":47520821.67,"min":47520806,"q1":47520819.25,"q2":47520823.5,"q3":47520824.75,"max":47520834,"minLabel":"chrom_eigen_variants (IV)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (I)","q3Label":"chrom_eigen_variants (V)"},"writes":{"mean":19537421.83,"min":18314363,"q1":18620183.5,"q2":19672694.5,"q3":20173513.75,"max":20954979,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"cpuUsage":{"mean":16.39,"min":16,"q1":16.43,"q2":16.43,"q3":16.45,"max":16.58,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (IV)","q2Label":"chrom_eigen_variants (X)","q3Label":"chrom_eigen_variants (V)"},"memUsage":{"mean":1.84,"min":0.63,"q1":0.97,"q2":1.87,"q3":2.36,"max":3.48,"minLabel":"chrom_eigen_variants (I)","maxLabel":"chrom_eigen_variants (II)","q1Label":"chrom_eigen_variants (X)","q2Label":"chrom_eigen_variants (IV)","q3Label":"chrom_eigen_variants (III)"},"timeUsage":null},"gcta_grm":{"cpu":{"mean":166.3,"min":166.3,"q1":166.3,"q2":166.3,"q3":166.3,"max":166.3,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"mem":{"mean":9216000,"min":9216000,"q1":9216000,"q2":9216000,"q3":9216000,"max":9216000,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"vmem":{"mean":167706624,"min":167706624,"q1":167706624,"q2":167706624,"q3":167706624,"max":167706624,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"time":{"mean":683,"min":683,"q1":683,"q2":683,"q3":683,"max":683,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"reads":{"mean":8246047,"min":8246047,"q1":8246047,"q2":8246047,"q3":8246047,"max":8246047,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"writes":{"mean":78566,"min":78566,"q1":78566,"q2":78566,"q3":78566,"max":78566,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"cpuUsage":{"mean":41.58,"min":41.58,"q1":41.58,"q2":41.58,"q3":41.58,"max":41.58,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"memUsage":{"mean":0.01,"min":0.01,"q1":0.01,"q2":0.01,"q3":0.01,"max":0.01,"minLabel":"gcta_grm (1)","maxLabel":"gcta_grm (1)","q1Label":"gcta_grm (1)","q2Label":"gcta_grm (1)","q3Label":"gcta_grm (1)"},"timeUsage":null},"gcta_lmm_exact_mapping":{"cpu":{"mean":101.5,"min":101.5,"q1":101.5,"q2":101.5,"q3":101.5,"max":101.5,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"mem":{"mean":1458176,"min":1458176,"q1":1458176,"q2":1458176,"q3":1458176,"max":1458176,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"vmem":{"mean":115970048,"min":115970048,"q1":115970048,"q2":115970048,"q3":115970048,"max":115970048,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"time":{"mean":1120,"min":1120,"q1":1120,"q2":1120,"q3":1120,"max":1120,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"reads":{"mean":9670609,"min":9670609,"q1":9670609,"q2":9670609,"q3":9670609,"max":9670609,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"writes":{"mean":8483083,"min":8483083,"q1":8483083,"q2":8483083,"q3":8483083,"max":8483083,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"cpuUsage":{"mean":25.38,"min":25.38,"q1":25.38,"q2":25.38,"q3":25.38,"max":25.38,"minLabel":"gcta_lmm_exact_mapping (1)","maxLabel":"gcta_lmm_exact_mapping (1)","q1Label":"gcta_lmm_exact_mapping (1)","q2Label":"gcta_lmm_exact_mapping (1)","q3Label":"gcta_lmm_exact_mapping (1)"},"memUsage":null,"timeUsage":null},"gcta_lmm_mapping":{"cpu":{"mean":95.5,"min":95.5,"q1":95.5,"q2":95.5,"q3":95.5,"max":95.5,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"mem":{"mean":1462272,"min":1462272,"q1":1462272,"q2":1462272,"q3":1462272,"max":1462272,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"vmem":{"mean":115970048,"min":115970048,"q1":115970048,"q2":115970048,"q3":115970048,"max":115970048,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"time":{"mean":1204,"min":1204,"q1":1204,"q2":1204,"q3":1204,"max":1204,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"reads":{"mean":9670573,"min":9670573,"q1":9670573,"q2":9670573,"q3":9670573,"max":9670573,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"writes":{"mean":8483058,"min":8483058,"q1":8483058,"q2":8483058,"q3":8483058,"max":8483058,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"cpuUsage":{"mean":23.88,"min":23.88,"q1":23.88,"q2":23.88,"q3":23.88,"max":23.88,"minLabel":"gcta_lmm_mapping (1)","maxLabel":"gcta_lmm_mapping (1)","q1Label":"gcta_lmm_mapping (1)","q2Label":"gcta_lmm_mapping (1)","q3Label":"gcta_lmm_mapping (1)"},"memUsage":null,"timeUsage":null}}
+Apr-29 11:01:42.679 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
+Apr-29 11:01:42.691 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye

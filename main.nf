@@ -560,3 +560,39 @@ process gcta_lmm_exact_mapping {
 
     """
 }
+
+process gcta_lmm_mapping {
+
+    cpus 4
+
+    publishDir "${params.out}/Mapping/lmm/Data", mode: 'copy', pattern: "*_lmm.fastGWA"
+    publishDir "${params.out}/Mapping/lmm/Data", mode: 'copy', pattern: "*_lmm_inbred.fastGWA"
+
+    input:
+    set val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), file(h2_inbred), file(h2log_inbred) from gcta_lmm
+
+    output:
+    set val(TRAIT), file(traits), file("${TRAIT}_lmm.fastGWA"), file("${TRAIT}_lmm_inbred.fastGWA") into lmm_output
+
+    """
+
+    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm
+
+    gcta64 --fastGWA-lmm \\
+        --grm-sparse ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm \\
+        --pheno ${traits} \\
+        --maf 0.01
+
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse 0.01 --out ${TRAIT}_sparse_grm_inbred
+
+    gcta64 --fastGWA-lmm \\
+        --grm-sparse ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm_inbred \\
+        --pheno ${traits} \\
+        --maf 0.01
+
+    """
+}
