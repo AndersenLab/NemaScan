@@ -14,11 +14,17 @@ params.eigen_mem = params.e_mem + " GB"
 params.cendr_v   = "20180527"
 params.fix_names = "fix"
 
+/*
+~ ~ ~ > * Parameters: for simulations
+*/
+
+nqtl = Channel.fromPath("${params.simulate_nqtl}")
+              .splitCsv()
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping 
 */
-params.refflat   = "${params.data_dir}/${params.species}_${params.wbb}_refFlat.txt"
+params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
 
@@ -125,7 +131,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 log.info ""
 log.info "Phenotype Directory                     = ${params.maps}"
 log.info "VCF                                     = ${params.simulate}"
-log.info "CeNDR Release                           = ${params.cendr_v}"
+log.info "CeNDR Release                           = ${params.refflat}"
 log.info "P3D                                     = ${params.p3d}"
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Max AF for Burden Mapping               = ${params.freqUpper}"
@@ -560,26 +566,33 @@ process prepare_simulation_files {
     """
 }
 
+sim_inputs
+    .spread(nqtl)
+    .set{sim_nqtl_inputs}
 
-process simulate_phenotypes {
+process simulate_effects {
+
+    tag {NQTL}
 
     cpus 4
 
     input:
-        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log) from sim_inputs
+        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL) from sim_nqtl_inputs
 
     output:
-        
+        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), file("causal.variants.sim.${NQTL}.txt") into sim_phen_inputs
 
     when:
-        params.simulate == "RUN"
+        params.simulate
 
     """
 
-    echo hello
+     Rscript --vanilla `which create_causal_QTLs.R` ${bim} ${NQTL}
 
     """
 }
+
+
 
 if (params.simulate) {
 
