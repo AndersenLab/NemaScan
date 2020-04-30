@@ -244,6 +244,8 @@ Channel
     .into{ rename_chroms_gcta;
            rename_chroms_sims }
 
+simulation_replicates = Channel.from(1..params.simulate_reps)
+
 /*
 ==============================================================
 ~ > *                                                    * < ~
@@ -578,9 +580,10 @@ process simulate_effects {
 
     input:
         set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL) from sim_nqtl_inputs
+        each SIMREP from simulation_replicates
 
     output:
-        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), file("causal.variants.sim.${NQTL}.txt") into sim_phen_inputs
+        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
 
     when:
         params.simulate
@@ -589,10 +592,32 @@ process simulate_effects {
 
      Rscript --vanilla `which create_causal_QTLs.R` ${bim} ${NQTL}
 
+     mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+
     """
 }
 
+process simulate_phenotypes {
 
+    tag {NQTL}
+
+    cpus 4
+
+    input:
+        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file(loci) from sim_phen_inputs
+
+    output:
+
+
+    when:
+        params.simulate
+
+    """
+
+     gcta64  --bfile TO_SIMS  --simu-qt  --simu-causal-loci ${loci}  --simu-hsq 0.5 --simu-rep 1 --out ${NQTL}_${SIMREP}_sims
+
+    """
+}
 
 if (params.simulate) {
 
