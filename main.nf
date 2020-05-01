@@ -18,7 +18,16 @@ params.fix_names = "fix"
 ~ ~ ~ > * Parameters: for simulations
 */
 
+/*
+~ ~ ~ > * number of qtl
+*/
 nqtl = Channel.fromPath("${params.simulate_nqtl}")
+              .splitCsv()
+
+/*
+~ ~ ~ > * heritability
+*/
+sim_h2 = Channel.fromPath("${params.simulate_h2}")
               .splitCsv()
 
 /*
@@ -597,18 +606,26 @@ process simulate_effects {
     """
 }
 
+sim_phen_inputs
+    .spread(sim_h2)
+    .set{sim_phen_h2_input}
+
 process simulate_map_phenotypes {
 
-    tag {NQTL}
+    tag {"${NQTL} - ${SIMREP} - ${H2}"}
+
+    publishDir "${params.out}/Simulations/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA"
+    publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "${NQTL}_${SIMREP}_${H2}_sims.phen"
+    publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "${NQTL}_${SIMREP}_${H2}_sims.par"
 
     cpus 4
 
     input:
-        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file(loci) from sim_phen_inputs
+        set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file(loci), val(H2) from sim_phen_h2_input
 
     output:
-        set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_sims.phen"), file("${NQTL}_${SIMREP}_sims.par") into sim_phen_output
-        set file("${NQTL}_${SIMREP}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_lmm-exact.log"), file("${NQTL}_${SIMREP}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
+        set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
+        set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
 
     when:
         params.simulate
@@ -618,9 +635,9 @@ process simulate_map_phenotypes {
     gcta64 --bfile TO_SIMS \\
          --simu-qt \\
          --simu-causal-loci ${loci} \\
-         --simu-hsq 0.5 \\
+         --simu-hsq ${H2} \\
          --simu-rep 1 \\
-         --out ${NQTL}_${SIMREP}_sims
+         --out ${NQTL}_${SIMREP}_${H2}_sims
 
     plink --bfile TO_SIMS \\
         --make-bed \\
@@ -632,40 +649,39 @@ process simulate_map_phenotypes {
         --recode \\
         --out TO_SIMS_${NQTL}_${SIMREP} \\
         --allow-extra-chr \\
-        --pheno ${NQTL}_${SIMREP}_sims.phen
+        --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen
 
-    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_gcta_grm --thread-num 10
-    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_gcta_grm_inbred --thread-num 10
+    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm --thread-num 10
+    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --thread-num 10
 
 
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_sims.phen --reml --out check_vp --thread-num 10
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen --reml --out check_vp --thread-num 10
 
     vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
 
-
     if (( \$(bc <<< "\$vp==0") > 0 )); 
     then
-    awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_sims.phen > temp.phen;
-    rm ${NQTL}_${SIMREP}_sims.phen
-    mv temp.phen ${NQTL}_${SIMREP}_sims.phen
+    awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_sims.phen > temp.phen;
+    rm ${NQTL}_${SIMREP}_${H2}_sims.phen
+    mv temp.phen ${NQTL}_${SIMREP}_${H2}_sims.phen
     fi
 
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_sparse_grm
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_sparse_grm
 
     gcta64 --fastGWA-lmm-exact \\
-        --grm-sparse ${NQTL}_${SIMREP}_sparse_grm \\
+        --grm-sparse ${NQTL}_${SIMREP}_${H2}_sparse_grm \\
         --bfile TO_SIMS_${NQTL}_${SIMREP} \\
-        --out ${NQTL}_${SIMREP}_lmm-exact \\
-        --pheno ${NQTL}_${SIMREP}_sims.phen \\
+        --out ${NQTL}_${SIMREP}_${H2}_lmm-exact \\
+        --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen \\
         --maf ${params.simulate_maf}
 
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_sparse_grm_inbred
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_sparse_grm_inbred
 
     gcta64 --fastGWA-lmm-exact \\
-        --grm-sparse ${NQTL}_${SIMREP}_sparse_grm_inbred \\
+        --grm-sparse ${NQTL}_${SIMREP}_${H2}_sparse_grm_inbred \\
         --bfile TO_SIMS_${NQTL}_${SIMREP} \\
-        --out ${NQTL}_${SIMREP}_lmm-exact_inbred \\
-        --pheno ${NQTL}_${SIMREP}_sims.phen \\
+        --out ${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred \\
+        --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen \\
         --maf ${params.simulate_maf}
 
     """
