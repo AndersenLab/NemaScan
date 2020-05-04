@@ -84,7 +84,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "                      USAGE                                     "
     log.info "----------------------------------------------------------------"
     log.info ""
-    log.info "nextflow main.nf --traitfile=test_bulk --vcf=bin/WI.20180527.impute.vcf.gz --p3d=TRUE --sthresh=EIGEN # run all traits from a single file"
     log.info "nextflow main.nf --traitdir=test_bulk --p3d=TRUE --sthresh=BF # download VCF from CeNDR"
     log.info ""
     log.info "Profiles available:"
@@ -92,7 +91,11 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "simulations           Profile                Perform phenotype simulations with GCTA"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
-    log.info "----------------------------------------------------------------"    
+    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------"   
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings --p3d TRUE" 
+prepare_simulation_files    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------" 
     log.info "Mandatory arguments:"
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
     log.info "--vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR"
@@ -569,6 +572,7 @@ if(params.simulate){
 
         output:
             set file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log") into sim_inputs
+            file("Genotype_Matrix.tsv") into sim_geno_matrix
 
         when:
             params.simulate
@@ -602,6 +606,30 @@ if(params.simulate){
         --recode \\
         --out TO_SIMS \\
         --allow-extra-chr 
+
+        awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
+        sort -k1,1d -k2,2n > markers.txt
+
+        bcftools query -l renamed_chroms.vcf.gz |\\
+        sort > sorted_samples.txt 
+
+        bcftools view -v snps \\
+        -S sorted_samples.txt \\
+        -R markers.txt \\
+        renamed_chroms.vcf.gz |\\
+        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
+        sed 's/[[# 0-9]*]//g' |\\
+        sed 's/:GT//g' |\\
+        sed 's/0|0/-1/g' |\\
+        sed 's/1|1/1/g' |\\
+        sed 's/0|1/NA/g' |\\
+        sed 's/1|0/NA/g' |\\
+        sed 's/.|./NA/g'  |\\
+        sed 's/0\\/0/-1/g' |\\
+        sed 's/1\\/1/1/g'  |\\
+        sed 's/0\\/1/NA/g' |\\
+        sed 's/1\\/0/NA/g' |\\
+        sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
 
         """
     }
