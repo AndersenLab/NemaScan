@@ -163,7 +163,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 
     '''
 log.info ""
-log.info "Phenotype Directory                     = ${params.maps}"
+log.info "Trait File                              = ${params.maps}"
 log.info "VCF                                     = ${params.simulate}"
 log.info "CeNDR Release                           = ${params.refflat}"
 log.info "P3D                                     = ${params.p3d}"
@@ -895,7 +895,41 @@ if (params.maps) {
         """
     }
 
-} 
+    /*
+    ------------ EMMA
+    */
+
+    process rrblup_maps {
+
+        cpus 4
+
+        tag { TRAIT }
+
+        publishDir "${params.out}/Mapping/EMMA/Data", mode: 'copy', pattern: "*processed_mapping.tsv"
+
+        input:
+        set file("independent_snvs.csv"), file(geno), val(TRAIT), file(pheno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size) from mapping_data_emma
+
+        output:
+        file("*raw_mapping.tsv") into raw_map
+        set val(TRAIT), file(geno), file(pheno) into processed_map_to_ld
+        file("*processed_mapping.tsv") into processed_map_to_summary_plot
+        set val(TRAIT), file("*processed_mapping.tsv") into pr_maps_trait
+
+        """
+
+        tests=`cat independent_snvs.csv | grep -v inde`
+
+        Rscript --vanilla `which Run_Mappings.R` ${geno} ${pheno} ${task.cpus} ${P3D} \$tests ${sig_thresh} ${qtl_grouping_size} ${qtl_ci_size}
+
+        if [ -e Rplots.pdf ]; then
+        rm Rplots.pdf
+        fi
+        
+        """
+    }
+
+}
 
 
 
