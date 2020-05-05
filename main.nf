@@ -682,6 +682,10 @@ if(params.simulate){
             set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
             set val(NQTL), val(SIMREP), val(H2), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_nalyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.phen") into simphen_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.par") into simgen_nalyze_sims
 
         when:
             params.simulate
@@ -768,6 +772,7 @@ if(params.simulate){
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
+        file("*processed_mapping.tsv") into emma_analyze_sims
 
         """
 
@@ -775,6 +780,28 @@ if(params.simulate){
         
         """
     }
+
+
+    process assess_sims {
+
+    cpus 4
+
+    input:
+    file(emma) from emma_analyze_sims.collect()
+    file(lmm_exact) from lmm_exact_analyze_sims.collect()
+    file(lmm_exact_inbred) from lmm_exact_inbred_nalyze_sims.collect()
+    file(simphenos) from simphen_analyze_sims.collect()
+    file(simgenos) from simgen_nalyze_sims.collect()
+
+    output:
+    
+
+    """
+
+    echo hello
+    
+    """
+}
 
 }
 
