@@ -7,7 +7,6 @@ date = new Date().format( 'yyyyMMdd' )
 */
 params.traitfile = null
 params.vcf 		 = null
-params.sthresh   = null
 params.help 	 = null
 params.e_mem 	 = "100"
 params.eigen_mem = params.e_mem + " GB"
@@ -41,11 +40,6 @@ if (params.simulate){
 params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
-
-/*
-~ ~ ~ > * Parameters: for EMMA mapping 
-*/
-params.p3d 		 = null
 
 /*
 ~ ~ ~ > * Parameters: for GCTA mapping 
@@ -92,7 +86,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------" 
     log.info "----------------------------------------------------------------"   
     log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings --p3d TRUE" 
-prepare_simulation_files    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------" 
     log.info "----------------------------------------------------------------" 
     log.info "Mandatory arguments:"
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
@@ -687,7 +681,7 @@ if(params.simulate){
         output:
             set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
-            set val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
+            set val(NQTL), val(SIMREP), val(H2), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
 
         when:
             params.simulate
@@ -754,26 +748,30 @@ if(params.simulate){
         .spread(qtl_snv_grouping_sims)
         .spread(qtl_ci_size_sim)
         .spread(p3d_full_sim)
+        .spread(sig_threshold_full_sim)
         .into{sim_emma_inputs;
               sim_emma_fine_inputs}
 
-
+/*
+------------ For simulations, i want to separate mapping and defining threshold, so we can look at various threshold after the long mapping step
+------------ further optimization can be made by making kinship matrix outside of mapping process
+*/
 
     process sim_emmma_maps {
 
         cpus 4
 
-        publishDir "${params.out}/Mapping/EMMA/Data", mode: 'copy', pattern: "*processed_mapping.tsv"
+        publishDir "${params.out}/Simulations/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_mapping.tsv"
 
         input:
-        set val(NQTL), val(SIMREP), file(loci), file(pheno), file(sim_params), file(geno), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D) from sim_phen_to_emma
+        set val(NQTL), val(SIMREP), val(H2), file(loci), file(pheno), file(sim_params), file(geno), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D), val(THRESHOLD) from sim_emma_inputs
 
         output:
-
+        set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
 
         """
 
-        echo hello
+        Rscript --vanilla `which Run_Sims_EMMA.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
         
         """
     }
