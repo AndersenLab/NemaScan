@@ -46,8 +46,6 @@ params.minburden = 2
 ~ ~ ~ > * Parameters: for EMMA mapping 
 */
 params.p3d 		 = null
-params.group_qtl = 1000
-params.ci_size   = 150
 
 /*
 ~ ~ ~ > * Parameters: for GCTA mapping 
@@ -236,7 +234,8 @@ if (params.vcf) {
 
 Channel
     .from("${params.ci_size}")
-    .set{qtl_ci_size}
+    .into{qtl_ci_size;
+          qtl_ci_size_sim}
 
 /*
 ~ ~ ~ > * INITIATE MAPPING QTL CONFIDENCE INTERVAL SIZE PARAMETER
@@ -244,7 +243,8 @@ Channel
 
 Channel
     .from("${params.group_qtl}")
-    .set{qtl_snv_groupinng}
+    .into{qtl_snv_grouping_maps;
+          qtl_snv_grouping_sims}
 
 /*
 ~ ~ ~ > * INITIATE MAPPING METHOD CHANNEL
@@ -253,7 +253,9 @@ Channel
 Channel
     .from("${params.p3d}")
     .into{p3d_full;
-          p3d_fine}
+          p3d_fine;
+          p3d_full_sim;
+          p3d_fine_sim}
 
 /*
 ~ ~ ~ > * INITIATE THRESHOLD CHANNEL
@@ -262,7 +264,9 @@ Channel
 Channel
     .from("${params.sthresh}")
     .into{sig_threshold_full;
-          sig_threshold_fine}
+          sig_threshold_fine;
+          sig_threshold_full_sim;
+          sig_threshold_fine_sim}
 
 /*
 ~ ~ ~ > * INITIATE PHENOTYPE CHANNEL
@@ -526,7 +530,7 @@ if(params.maps){
     .spread(traits_to_map)
     .spread(p3d_full)
     .spread(sig_threshold_full)
-    .spread(qtl_snv_groupinng)
+    .spread(qtl_snv_grouping_maps)
     .spread(qtl_ci_size)
     .into{mapping_data_emma;
           mapping_data_gcta}
@@ -683,6 +687,7 @@ if(params.simulate){
         output:
             set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
+            set val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
 
         when:
             params.simulate
@@ -741,6 +746,35 @@ if(params.simulate){
             --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen \\
             --maf ${params.simulate_maf}
 
+        """
+    }
+
+    sim_phen_to_emma
+        .spread(sim_geno_matrix)
+        .spread(qtl_snv_grouping_sims)
+        .spread(qtl_ci_size_sim)
+        .spread(p3d_full_sim)
+        .into{sim_emma_inputs;
+              sim_emma_fine_inputs}
+
+
+
+    process sim_emmma_maps {
+
+        cpus 4
+
+        publishDir "${params.out}/Mapping/EMMA/Data", mode: 'copy', pattern: "*processed_mapping.tsv"
+
+        input:
+        set val(NQTL), val(SIMREP), file(loci), file(pheno), file(sim_params), file(geno), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D) from sim_phen_to_emma
+
+        output:
+
+
+        """
+
+        echo hello
+        
         """
     }
 
