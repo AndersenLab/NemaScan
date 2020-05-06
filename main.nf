@@ -771,7 +771,7 @@ if(params.simulate){
 
         """
 
-        Rscript --vanilla `which Run_Sims_EMMA.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
+        Rscript --vanilla `which Run_Sims_EMMA_SJW.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
         
         """
     }
