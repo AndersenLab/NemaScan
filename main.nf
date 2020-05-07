@@ -41,13 +41,9 @@ params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wb
 params.freqUpper = 0.05
 params.minburden = 2
 
-/*
-~ ~ ~ > * Parameters: for GCTA mapping 
-*/
-
 Channel
-	.from("${params.refflat}")
-	.set{genes_to_burden}
+    .from("${params.refflat}")
+    .set{genes_to_burden}
 
 
 /*
@@ -1015,6 +1011,72 @@ if (params.maps) {
         
         """
     }
+
+/*
+====================================
+~ > *                          * < ~
+~ ~ > *                      * < ~ ~
+~ ~ ~ > *  BURDEN MAPPING  * < ~ ~ ~
+~ ~ > *                      * < ~ ~
+~ > *                          * < ~
+====================================
+*/
+
+traits_to_burden
+    .spread(vcf_to_burden)
+    .spread(genes_to_burden)
+    .set{burden_input}
+
+process burden_mapping {
+
+    tag {TRAIT}
+
+    publishDir "${params.out}/BURDEN/SKAT/Data", mode: 'copy', pattern: "*.Skat.assoc"
+    publishDir "${params.out}/BURDEN/VT/Data", mode: 'copy', pattern: "*.VariableThresholdPrice.assoc"
+
+    input:
+        set val(TRAIT), file(trait_df), file(vcf), file(index), file(refflat) from burden_input
+
+    output:
+        set val(TRAIT), file("*.Skat.assoc"), file("*.VariableThresholdPrice.assoc") into burden_results
+
+    """
+        Rscript --vanilla `which makeped.R` ${trait_df}
+
+        n_strains=`wc -l ${trait_df} | cut -f1 -d" "`
+        min_af=`bc -l <<< "${params.minburden}/(\$n_strains-1)"`
+
+        rvtest \\
+        --pheno ${TRAIT}.ped \\
+        --out ${TRAIT} \\
+        --inVcf ${vcf} \\
+        --freqUpper ${params.freqUpper} \\
+        --freqLower \$min_af \\
+        --geneFile ${refflat} \\
+        --vt price \\
+        --kernel skat
+    """
+}
+
+process plot_burden {
+
+    executor 'local'
+
+    tag {TRAIT}
+
+    publishDir "${params.out}/BURDEN/SKAT/Plots", mode: 'copy', pattern: "*SKAT.pdf"
+    publishDir "${params.out}/BURDEN/VT/Plots", mode: 'copy', pattern: "*VTprice.pdf"
+
+    input:
+        set val(TRAIT), file(skat), file(vt) from burden_results
+
+    output:
+        set file("*SKAT.pdf"), file("*VTprice.pdf") into burden_plots
+
+    """
+        Rscript --vanilla `which plot_burden.R` ${TRAIT} ${skat} ${vt}
+    """
+}
 
 }
 
