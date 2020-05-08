@@ -6,8 +6,8 @@ library(tidyverse)
 # 2 - species: (supported options: c_elegans, c_briggsae, c_tropicalis)
 
 # # # example args
-# args <- c("WS245", "c_elegans")
- 
+# args <- c("WS270", "c_tropicalis")
+
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -67,6 +67,7 @@ get_os <- function(){
   return(tolower(os))
 }
 
+print(glue::glue("Converting the {sname} GTF file to refFlat format"))
 if(get_os() == "osx"){
   system(glue::glue("{args[3]}/gtfToGenePred_mac {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
 } else if (get_os() == "linux") {
@@ -77,7 +78,17 @@ if(get_os() == "osx"){
 
 # append WBGeneID names to refFlat file
 
-system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+
+print(glue::glue("Extracting gene names from the {sname} GTF file"))
+if(sname == "c_elegans"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else if (sname == "c_briggsae"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else if (sname == "c_tropicalis"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,3 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else {
+  print("Species name is not in the proper format, please choose one of the following: c_elegans, c_briggsae, c_tropicalis")
+}
 
 gene_transcript_conversion <- data.table::fread("gene_transcripts.tsv", header = F) %>%
   dplyr::rename(transcript = V2)
