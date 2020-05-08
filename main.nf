@@ -274,6 +274,45 @@ Channel
     .into{ rename_chroms_gcta;
            rename_chroms_sims }
 
+
+/*
+==============================================
+~ > *                                    * < ~
+~ ~ > *                                * < ~ ~
+~ ~ ~ > *  UPDATE ANNOTATION INPUTS  * < ~ ~ ~
+~ ~ > *                                * < ~ ~
+~ > *                                    * < ~
+==============================================
+*/
+
+if (params.annotate) {
+    
+Channel
+    .fromPath("${params.script_loc}")
+    .set{path_to_converter}
+
+    process update_annotations {
+
+    executor 'local'
+
+    publishDir "${params.save_dir}", mode: 'copy'
+
+    input:
+        val(gtf_to_refflat) from path_to_converter
+
+    output:
+        set file("${params.species}.PRJNA13758.${params.wb_build}.canonical_geneset.gtf.gz"), file("${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
+
+    when:
+        params.annotate
+
+    """
+        Rscript --vanilla `which update_annotations.R` ${params.wb_build} ${params.species} ${gtf_to_refflat}
+    """
+
+    }
+}
+
 /*
 ==============================================================
 ~ > *                                                    * < ~
@@ -372,149 +411,150 @@ phenotyped_strains_to_analyze
 ===================================================================
 */
 
-process vcf_to_geno_matrix {
+if (params.maps) { 
 
-    executor 'local'
+    process vcf_to_geno_matrix {
 
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+        executor 'local'
 
-    cpus 1
+        publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
-    input:
-        set file(vcf), file(index) from vcf_to_whole_genome
-        file(strains) from strain_list_genome
+        cpus 1
 
-    output:
-        file("Genotype_Matrix.tsv") into geno_matrix
+        input:
+            set file(vcf), file(index) from vcf_to_whole_genome
+            file(strains) from strain_list_genome
 
-    when:
-        params.maps
+        output:
+            file("Genotype_Matrix.tsv") into geno_matrix
 
-    """
+        when:
+            params.maps
 
-        bcftools view -S ${strains} ${vcf} |\\
-        bcftools filter -i N_MISSING=0 -Oz -o Phenotyped_Strain_VCF.vcf.gz
+        """
 
-        tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
+            bcftools view -S ${strains} ${vcf} |\\
+            bcftools filter -i N_MISSING=0 -Oz -o Phenotyped_Strain_VCF.vcf.gz
 
-        plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
-            --snps-only \\
-            --biallelic-only \\
-            --maf 0.05 \\
-            --set-missing-var-ids @:# \\
-            --indep-pairwise 50 10 0.8 \\
-            --geno \\
-            --allow-extra-chr
+            tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
 
-        awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
-        sort -k1,1d -k2,2n > markers.txt
+            plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
+                --snps-only \\
+                --biallelic-only \\
+                --maf 0.05 \\
+                --set-missing-var-ids @:# \\
+                --indep-pairwise 50 10 0.8 \\
+                --geno \\
+                --allow-extra-chr
 
-        bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
-        sort > sorted_samples.txt 
+            awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
+            sort -k1,1d -k2,2n > markers.txt
 
-        bcftools view -v snps \\
-        -S sorted_samples.txt \\
-        -R markers.txt \\
-        Phenotyped_Strain_VCF.vcf.gz |\\
-        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
-        sed 's/[[# 0-9]*]//g' |\\
-        sed 's/:GT//g' |\\
-        sed 's/0|0/-1/g' |\\
-        sed 's/1|1/1/g' |\\
-        sed 's/0|1/NA/g' |\\
-        sed 's/1|0/NA/g' |\\
-        sed 's/.|./NA/g'  |\\
-        sed 's/0\\/0/-1/g' |\\
-        sed 's/1\\/1/1/g'  |\\
-        sed 's/0\\/1/NA/g' |\\
-        sed 's/1\\/0/NA/g' |\\
-        sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
+            bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
+            sort > sorted_samples.txt 
 
-    """
+            bcftools view -v snps \\
+            -S sorted_samples.txt \\
+            -R markers.txt \\
+            Phenotyped_Strain_VCF.vcf.gz |\\
+            bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
+            sed 's/[[# 0-9]*]//g' |\\
+            sed 's/:GT//g' |\\
+            sed 's/0|0/-1/g' |\\
+            sed 's/1|1/1/g' |\\
+            sed 's/0|1/NA/g' |\\
+            sed 's/1|0/NA/g' |\\
+            sed 's/.|./NA/g'  |\\
+            sed 's/0\\/0/-1/g' |\\
+            sed 's/1\\/1/1/g'  |\\
+            sed 's/0\\/1/NA/g' |\\
+            sed 's/1\\/0/NA/g' |\\
+            sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
 
-}
+        """
 
-geno_matrix
-    .into{eigen_gm;
-          mapping_gm}
+    }
 
-
-/*
-============================================================
-~ > *                                                  * < ~
-~ ~ > *                                              * < ~ ~
-~ ~ ~ > *  EIGEN DECOMPOSITION OF GENOTYPE MATRIX  * < ~ ~ ~
-~ ~ > *                                              * < ~ ~
-~ > *                                                  * < ~
-============================================================
-*/
-
-CONTIG_LIST = ["I", "II", "III", "IV", "V", "X"]
-contigs = Channel.from(CONTIG_LIST)
-
-/*
------------- Decomposition per chromosome
-*/
-
-process chrom_eigen_variants {
-
-    tag { CHROM }
-
-    cpus 6
-    memory params.eigen_mem
-
-    input:
-        file(genotypes) from eigen_gm
-        each CHROM from contigs
-
-    output:
-        file("${CHROM}_independent_snvs.csv") into sig_snps_geno_matrix
-        file(genotypes) into concat_geno
-
-    when:
-        params.maps
+    geno_matrix
+        .into{eigen_gm;
+              mapping_gm}
 
 
-    """
-        cat Genotype_Matrix.tsv |\\
-        awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
-    """
+    /*
+    ============================================================
+    ~ > *                                                  * < ~
+    ~ ~ > *                                              * < ~ ~
+    ~ ~ ~ > *  EIGEN DECOMPOSITION OF GENOTYPE MATRIX  * < ~ ~ ~
+    ~ ~ > *                                              * < ~ ~
+    ~ > *                                                  * < ~
+    ============================================================
+    */
 
-}
+    CONTIG_LIST = ["I", "II", "III", "IV", "V", "X"]
+    contigs = Channel.from(CONTIG_LIST)
 
-/*
------------- Sum independent tests for all chromosomes
-*/
+    /*
+    ------------ Decomposition per chromosome
+    */
 
-process collect_eigen_variants {
+    process chrom_eigen_variants {
 
-    executor 'local'
+        tag { CHROM }
 
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+        cpus 6
+        memory params.eigen_mem
 
-    cpus 1
+        input:
+            file(genotypes) from eigen_gm
+            each CHROM from contigs
 
-    input:
-        file(chrom_tests) from sig_snps_geno_matrix.collect()
+        output:
+            file("${CHROM}_independent_snvs.csv") into sig_snps_geno_matrix
+            file(genotypes) into concat_geno
 
-    output:
-        file("total_independent_tests.txt") into independent_tests
-
-    when:
-        params.maps
-
-    """
-        cat *independent_snvs.csv |\\
-        grep -v inde |\\
-        awk '{s+=\$1}END{print s}' > total_independent_tests.txt
-    """
-
-}
+        when:
+            params.maps
 
 
-if(params.maps){
-    independent_tests
+        """
+            cat Genotype_Matrix.tsv |\\
+            awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+            Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
+        """
+
+    }
+
+    /*
+    ------------ Sum independent tests for all chromosomes
+    */
+
+    process collect_eigen_variants {
+
+        executor 'local'
+
+        publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+
+        cpus 1
+
+        input:
+            file(chrom_tests) from sig_snps_geno_matrix.collect()
+
+        output:
+            file("total_independent_tests.txt") into independent_tests
+
+        when:
+            params.maps
+
+        """
+            cat *independent_snvs.csv |\\
+            grep -v inde |\\
+            awk '{s+=\$1}END{print s}' > total_independent_tests.txt
+        """
+
+    }
+
+
+independent_tests
     .spread(mapping_gm)
     .spread(traits_to_map)
     .spread(p3d_full)
@@ -525,6 +565,7 @@ if(params.maps){
           mapping_data_gcta}
 
 }
+
 
 
 /*
