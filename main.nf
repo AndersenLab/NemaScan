@@ -37,12 +37,11 @@ if (params.simulate){
 /*
 ~ ~ ~ > * Parameters: for burden mapping 
 */
-params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
+params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
 
-Channel
-    .from("${params.refflat}")
+Channel.fromPath("${params.refflat}")
     .set{genes_to_burden}
 
 
@@ -1022,7 +1021,39 @@ if (params.maps) {
 ====================================
 */
 
+    traits_to_burden
+        .spread(vcf_to_burden)
+        .spread(genes_to_burden)
+        .set{burden_input}
 
+    process burden_mapping {
+
+        publishDir "${params.out}/BURDEN/SKAT", mode: 'copy', pattern: "*.Skat.assoc"
+        publishDir "${params.out}/BURDEN/VT", mode: 'copy', pattern: "*.VariableThresholdPrice.assoc"
+
+        input:
+            set val(TRAIT), file(trait_df), file(vcf), file(index), file(refflat) from burden_input
+
+        output:
+            set val(TRAIT), file("*.Skat.assoc"), file("*.VariableThresholdPrice.assoc") into burden_results
+
+        """
+            Rscript --vanilla `which makeped.R` ${trait_df}
+
+            n_strains=`wc -l ${trait_df} | cut -f1 -d" "`
+            min_af=`bc -l <<< "${params.minburden}/(\$n_strains-1)"`
+
+            rvtest \\
+            --pheno ${TRAIT}.ped \\
+            --out ${TRAIT} \\
+            --inVcf ${vcf} \\
+            --freqUpper ${params.freqUpper} \\
+            --freqLower \$min_af \\
+            --geneFile ${refflat} \\
+            --vt price \\
+            --kernel skat
+        """
+    }
 
 }
 
