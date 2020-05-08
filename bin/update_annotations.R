@@ -6,13 +6,13 @@ library(tidyverse)
 # 2 - species: (supported options: c_elegans, c_briggsae, c_tropicalis)
 
 # # # example args
-# args <- c("WS270", "c_tropicalis")
+# args <- c("WS270", "tropicalis")
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
 
 wbb <- args[1]
-sname <- args[2]
+sname <- glue::glue("c_{args[2]}")
 
 # check wormbase build format
 wbb_vec <- strsplit(wbb,split = "")[[1]]
