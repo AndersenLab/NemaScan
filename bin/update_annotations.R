@@ -6,13 +6,13 @@ library(tidyverse)
 # 2 - species: (supported options: c_elegans, c_briggsae, c_tropicalis)
 
 # # # example args
-# args <- c("WS276", "c_elegans")
- 
+# args <- c("WS270", "tropicalis")
+
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
 
 wbb <- args[1]
-sname <- args[2]
+sname <- glue::glue("c_{args[2]}")
 
 # check wormbase build format
 wbb_vec <- strsplit(wbb,split = "")[[1]]
@@ -28,7 +28,17 @@ if(wbb_vec[1] == "W" & wbb_vec[2] == "S" & as.numeric(paste(wbb_vec[3:5], collap
     # system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/PRJNA13758/{sname}.PRJNA13758.{wbb}.annotations.gff3.gz"))
     
     print(glue::glue("Downloading {wbb} {sname} GTF file from WormBase"))
-    system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/PRJNA13758/{sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz"))
+    if(sname == "c_elegans"){
+      prj_name <- "PRJNA13758"
+    } else if (sname == "c_briggsae"){
+      prj_name <- "PRJNA10731"
+    } else if (sname == "c_tropicalis"){
+      prj_name <- "PRJNA53597"
+    } else {
+      print("Species name is not in the proper format, please choose one of the following: c_elegans, c_briggsae, c_tropicalis")
+    }
+    
+    system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/{prj_name}/{sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz"))
     
   } else {
     print("Species name is not in the proper format, please choose one of the following: c_elegans, c_briggsae, c_tropicalis")
@@ -57,17 +67,28 @@ get_os <- function(){
   return(tolower(os))
 }
 
+print(glue::glue("Converting the {sname} GTF file to refFlat format"))
 if(get_os() == "osx"){
-  system(glue::glue("./gtfToGenePred_mac {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
+  system(glue::glue("{args[3]}/gtfToGenePred_mac {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
 } else if (get_os() == "linux") {
-  system(glue::glue("./gtfToGenePred {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
+  system(glue::glue("{args[3]}/gtfToGenePred {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
 } else {
   print("Your operating system is not supported")
 }
 
 # append WBGeneID names to refFlat file
 
-system(glue::glue("gunzip -c {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+
+print(glue::glue("Extracting gene names from the {sname} GTF file"))
+if(sname == "c_elegans"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else if (sname == "c_briggsae"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else if (sname == "c_tropicalis"){
+  system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,3 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+} else {
+  print("Species name is not in the proper format, please choose one of the following: c_elegans, c_briggsae, c_tropicalis")
+}
 
 gene_transcript_conversion <- data.table::fread("gene_transcripts.tsv", header = F) %>%
   dplyr::rename(transcript = V2)
