@@ -15,6 +15,16 @@ GWA mapping with _C. elegans, C. tropicalis, and C. briggsae_
 1. [R-RSpectra-v0.13-1](https://github.com/yixuan/RSpectra)
 1. [R-ggbeeswarm-v0.6](https://github.com/eclarke/ggbeeswarm)
 
+## Pipeline Execution:
+
+### annotations profile
+
+`nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species briggsae --wb_build WS270`
+
+* `--species` - specifies what species information to download from WormBase (options: elegans, briggsae, tropicalis).
+
+* `--wb_build` - specifies what WormBase build to download annotation information from (format: WSXXX, where XXX is a number greater than 270 and less than 277).
+
 ## Execution of pipeline using Nextflow
 ```
 git clone https://github.com/AndersenLab/cegwas2-nf.git
