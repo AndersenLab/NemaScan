@@ -80,7 +80,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile annotations USAGE"
     log.info "----------------------------------------------------------------" 
     log.info "----------------------------------------------------------------"   
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species c_elegans --sp_save elegans" 
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species elegans" 
     log.info "----------------------------------------------------------------" 
     log.info "Mandatory arguments:"
     log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
