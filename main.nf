@@ -84,13 +84,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------" 
     log.info "Mandatory arguments:"
     log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
-    log.info "--species                String                What species to download information for (c_elegans, c_briggsae, or c_tropicalis)"
-    log.info "--sp_save                String                What species to download information for (elegans, briggsae, or tropicalis)"
-    log.info "Optional arguments:"
-    log.info "--maf                    String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
-    log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
-    log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
-    log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
+    log.info "--species                String                What species to download information for (elegans, briggsae, or tropicalis)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------" 
@@ -302,7 +296,7 @@ Channel
 
 if (params.annotate) {
 
-save_dir = "${params.input_data}/${params.sp_save}/annotations"
+save_dir = "${params.input_data}/${params.species}/annotations"
 
 Channel
     .fromPath("${params.script_loc}")
@@ -319,7 +313,7 @@ Channel
         val(save_dir)
 
     output:
-        set file("*canonical_geneset.gtf.gz"), file("${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
+        set file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
 
     when:
         params.annotate
