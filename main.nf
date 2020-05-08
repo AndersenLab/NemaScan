@@ -77,6 +77,21 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
     log.info "simulations           Profile                Perform phenotype simulations with GCTA"
     log.info "----------------------------------------------------------------"
+    log.info "             -profile annotations USAGE"
+    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------"   
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species c_elegans --sp_save elegans" 
+    log.info "----------------------------------------------------------------" 
+    log.info "Mandatory arguments:"
+    log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
+    log.info "--species                String                What species to download information for (c_elegans, c_briggsae, or c_tropicalis)"
+    log.info "--sp_save                String                What species to download information for (elegans, briggsae, or tropicalis)"
+    log.info "Optional arguments:"
+    log.info "--maf                    String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
+    log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
+    log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
+    log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
+    log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------" 
     log.info "----------------------------------------------------------------"   
@@ -286,7 +301,9 @@ Channel
 */
 
 if (params.annotate) {
-    
+
+save_dir = "${params.input_data}/${params.sp_save}/annotations"
+
 Channel
     .fromPath("${params.script_loc}")
     .set{path_to_converter}
@@ -295,13 +312,14 @@ Channel
 
     executor 'local'
 
-    publishDir "${params.save_dir}", mode: 'copy'
+    publishDir "${save_dir}", mode: 'copy'
 
     input:
         val(gtf_to_refflat) from path_to_converter
+        val(save_dir)
 
     output:
-        set file("${params.species}.PRJNA13758.${params.wb_build}.canonical_geneset.gtf.gz"), file("${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
+        set file("*canonical_geneset.gtf.gz"), file("${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
 
     when:
         params.annotate
