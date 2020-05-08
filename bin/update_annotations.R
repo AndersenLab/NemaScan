@@ -6,7 +6,7 @@ library(tidyverse)
 # 2 - species: (supported options: c_elegans, c_briggsae, c_tropicalis)
 
 # # # example args
-# args <- c("WS276", "c_elegans")
+# args <- c("WS245", "c_elegans")
  
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -58,9 +58,9 @@ get_os <- function(){
 }
 
 if(get_os() == "osx"){
-  system(glue::glue("./gtfToGenePred_mac {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
+  system(glue::glue("{args[3]}/gtfToGenePred_mac {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
 } else if (get_os() == "linux") {
-  system(glue::glue("./gtfToGenePred {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
+  system(glue::glue("{args[3]}/gtfToGenePred {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz {sname}_{wbb}_refFlat.txt"))
 } else {
   print("Your operating system is not supported")
 }
