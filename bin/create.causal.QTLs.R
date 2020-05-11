@@ -4,7 +4,8 @@ variants <- read.table(args[1]) %>%
   dplyr::filter(V1 != "MtDNA")
 simulate_QTL_effects <- function(n_causal_variants){
   options(scipen = 999)
-  effects <- rgamma(n = n_causal_variants, shape = 0.4, scale = 1.66)
+  # effects <- rgamma(n = n_causal_variants, shape = 0.4, scale = 1.66) # GAMMA distribution
+  effects <- runif(n = n_causal_variants, min = 1, max = 3)
   causal_variants <- sample(variants$V2, 
                             size = n_causal_variants, 
                             replace = F)

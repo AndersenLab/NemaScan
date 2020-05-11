@@ -1,7 +1,6 @@
 #!/usr/bin/env Rscript
 require(tidyverse)
 require(tidymodels)
-require(RColorBrewer)
 # setwd("~/Documents/AndersenLab/NemaScan/Simulations/")
 args <- commandArgs(trailingOnly = TRUE)
 setwd(paste(args[1],"Simulations",sep = "/"))
@@ -13,6 +12,7 @@ effects <- list.files(pattern = ".par",recursive = T)
 iterations <- purrr::map(effects, .f = function(x){
    paste(strsplit(strsplit(x,split = "/")[[1]][3],split = "_")[[1]][1:3], collapse = "_")
 })
+
 # Define Assessments
 fastGWA.assessment <- function(x){
    
@@ -172,90 +172,18 @@ EMMA.assessment <- function(x){
       dplyr::mutate(trait = x)
    
 }
-
+# Conduct Assessments
 simulation.metrics <- purrr::map(iterations, fastGWA.assessment)
 fastGWA.assessment.dat <- do.call(rbind, simulation.metrics) %>%
    dplyr::mutate(method = "fastGWA")
-
 simulation.metrics <- purrr::map(iterations, fastGWA.inbred.assessment)
 fastGWA.inbred.assessment.dat <- do.call(rbind, simulation.metrics) %>%
    dplyr::mutate(method = "fastGWA.inbred")
-
 simulation.metrics <- purrr::map(iterations, EMMA.assessment) 
 EMMA.assessment.dat <- do.call(rbind, simulation.metrics) %>%
    dplyr::mutate(method = "EMMA")
-
 
 save(fastGWA.assessment.dat,
      fastGWA.inbred.assessment.dat,
      EMMA.assessment.dat,
      file = "Simulation.Performance.RData")
-
-# print("Creating Final Data Frames and Plotting")
-# 
-# # Plotting fastGWA Performance
-# ggplot(roc, mapping = aes(x = 1-specificity, y = sensitivity, group = rep)) +
-#    theme_bw() +
-#    geom_line(alpha = 0.5) +
-#    geom_abline(slope = 1, intercept = 0) +
-#    facet_grid(h2 ~ nQTL) +    
-#    xlab("1 - Specificity") + 
-#    ylab("Sensitivity") + 
-#    theme(legend.position = "none") +
-#    ggtitle("fastGWA ROC Curve")
-# ggsave("fastGWA.ROC.pdf", width = 10, height = 8)
-# 
-# auc <- fast.GWA.performance %>%
-#    dplyr::group_by(h2, nQTL, rep) %>%
-#    yardstick::roc_auc(truth, log10p)
-# auc$nQTL <- factor(auc$nQTL, levels = c("5","10","20","50","100","250"))
-# ggplot(auc, mapping = aes(x = nQTL, y = .estimate, fill = h2)) +
-#    theme_bw() +
-#    geom_boxplot() +
-#    ylim(0,1) +
-#    ylab("Area Under ROC Curve") +
-#    geom_hline(yintercept = 0.5, linetype = 3) +
-#    scale_fill_brewer(type = "seq",palette = "Greens") +
-#    theme(legend.position = "none") +
-#    ggtitle("fastGWA AUC Comparisons")
-# ggsave("fastGWA.AUC.pdf", width = 10, height = 8)
-# 
-# 
-# 
-# # Plotting fastGWA Performance
-# print("Plotting fastGWA Performance (Inbred)")
-# fast.GWA.inbred.performance <- do.call(rbind, temp.2)
-# roc <- fast.GWA.inbred.performance %>%
-#    dplyr::group_by(h2, nQTL, rep) %>%
-#    yardstick::roc_curve(truth, log10p)
-# roc$nQTL <- factor(roc$nQTL, levels = c("5","10","20","50","100","250"))
-# ggplot(roc, mapping = aes(x = 1-specificity, y = sensitivity, group = rep)) +
-#    theme_bw() +
-#    geom_line(alpha = 0.5) +
-#    geom_abline(slope = 1, intercept = 0) +
-#    facet_grid(h2 ~ nQTL) + 
-#    theme(legend.position = "none") +
-#    xlab("1 - Specificity") + 
-#    ylab("Sensitivity") + 
-#    ggtitle("fastGWA Inbred ROC Curve")
-# ggsave("fastGWA.inbred.ROC.pdf", width = 10, height = 8)
-# 
-# auc <- fast.GWA.inbred.performance %>%
-#    dplyr::group_by(h2, nQTL, rep) %>%
-#    yardstick::roc_auc(truth, log10p)
-# auc$nQTL <- factor(auc$nQTL, levels = c("5","10","20","50","100","250"))
-# ggplot(auc, mapping = aes(x = nQTL, y = .estimate, fill = h2)) +
-#    theme_bw() +
-#    geom_boxplot() +
-#    ylim(0,1) +
-#    ylab("Area Under ROC Curve") +
-#    geom_hline(yintercept = 0.5, linetype = 3) +
-#    scale_fill_brewer(type = "seq",palette = "Greens") +
-#    theme(legend.position = "none") +
-#    ggtitle("fastGWA Inbred AUC Comparisons")
-# ggsave("fastGWA.inbred.AUC.pdf", width = 10, height = 8)
-# print("Saving Results")
-
-
-
-
