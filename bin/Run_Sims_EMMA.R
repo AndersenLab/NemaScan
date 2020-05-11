@@ -23,7 +23,7 @@ library(ggbeeswarm)
 args <- commandArgs(trailingOnly = TRUE)
 
 # define the trait name
-trait_name <- gsub("\\.", "pt", glue::glue("{args[5]}_{args[6]}_{args[9]}"))
+trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
 
 # Define number of cores available for parallel processing
 cores_avail <- as.numeric(args[3])

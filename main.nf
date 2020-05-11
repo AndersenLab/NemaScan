@@ -37,17 +37,12 @@ if (params.simulate){
 /*
 ~ ~ ~ > * Parameters: for burden mapping 
 */
-params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
+params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
 
-/*
-~ ~ ~ > * Parameters: for GCTA mapping 
-*/
-
-Channel
-	.from("${params.refflat}")
-	.set{genes_to_burden}
+Channel.fromPath("${params.refflat}")
+    .set{genes_to_burden}
 
 
 /*
@@ -81,6 +76,15 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "Profiles available:"
     log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
     log.info "simulations           Profile                Perform phenotype simulations with GCTA"
+    log.info "----------------------------------------------------------------"
+    log.info "             -profile annotations USAGE"
+    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------"   
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species elegans" 
+    log.info "----------------------------------------------------------------" 
+    log.info "Mandatory arguments:"
+    log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
+    log.info "--species                String                What species to download information for (elegans, briggsae, or tropicalis)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------" 
@@ -279,6 +283,48 @@ Channel
     .into{ rename_chroms_gcta;
            rename_chroms_sims }
 
+
+/*
+==============================================
+~ > *                                    * < ~
+~ ~ > *                                * < ~ ~
+~ ~ ~ > *  UPDATE ANNOTATION INPUTS  * < ~ ~ ~
+~ ~ > *                                * < ~ ~
+~ > *                                    * < ~
+==============================================
+*/
+
+if (params.annotate) {
+
+save_dir = "${params.input_data}/${params.species}/annotations"
+
+Channel
+    .fromPath("${params.script_loc}")
+    .set{path_to_converter}
+
+    process update_annotations {
+
+    executor 'local'
+
+    publishDir "${save_dir}", mode: 'copy'
+
+    input:
+        val(gtf_to_refflat) from path_to_converter
+        val(save_dir)
+
+    output:
+        set file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wb_build}_refFlat.txt") into updated_annotations
+
+    when:
+        params.annotate
+
+    """
+        Rscript --vanilla `which update_annotations.R` ${params.wb_build} ${params.species} ${gtf_to_refflat}
+    """
+
+    }
+}
+
 /*
 ==============================================================
 ~ > *                                                    * < ~
@@ -377,149 +423,150 @@ phenotyped_strains_to_analyze
 ===================================================================
 */
 
-process vcf_to_geno_matrix {
+if (params.maps) { 
 
-    executor 'local'
+    process vcf_to_geno_matrix {
 
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+        executor 'local'
 
-    cpus 1
+        publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
-    input:
-        set file(vcf), file(index) from vcf_to_whole_genome
-        file(strains) from strain_list_genome
+        cpus 1
 
-    output:
-        file("Genotype_Matrix.tsv") into geno_matrix
+        input:
+            set file(vcf), file(index) from vcf_to_whole_genome
+            file(strains) from strain_list_genome
 
-    when:
-        params.maps
+        output:
+            file("Genotype_Matrix.tsv") into geno_matrix
 
-    """
+        when:
+            params.maps
 
-        bcftools view -S ${strains} ${vcf} |\\
-        bcftools filter -i N_MISSING=0 -Oz -o Phenotyped_Strain_VCF.vcf.gz
+        """
 
-        tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
+            bcftools view -S ${strains} ${vcf} |\\
+            bcftools filter -i N_MISSING=0 -Oz -o Phenotyped_Strain_VCF.vcf.gz
 
-        plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
-            --snps-only \\
-            --biallelic-only \\
-            --maf 0.05 \\
-            --set-missing-var-ids @:# \\
-            --indep-pairwise 50 10 0.8 \\
-            --geno \\
-            --allow-extra-chr
+            tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
 
-        awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
-        sort -k1,1d -k2,2n > markers.txt
+            plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
+                --snps-only \\
+                --biallelic-only \\
+                --maf 0.05 \\
+                --set-missing-var-ids @:# \\
+                --indep-pairwise 50 10 0.8 \\
+                --geno \\
+                --allow-extra-chr
 
-        bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
-        sort > sorted_samples.txt 
+            awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
+            sort -k1,1d -k2,2n > markers.txt
 
-        bcftools view -v snps \\
-        -S sorted_samples.txt \\
-        -R markers.txt \\
-        Phenotyped_Strain_VCF.vcf.gz |\\
-        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
-        sed 's/[[# 0-9]*]//g' |\\
-        sed 's/:GT//g' |\\
-        sed 's/0|0/-1/g' |\\
-        sed 's/1|1/1/g' |\\
-        sed 's/0|1/NA/g' |\\
-        sed 's/1|0/NA/g' |\\
-        sed 's/.|./NA/g'  |\\
-        sed 's/0\\/0/-1/g' |\\
-        sed 's/1\\/1/1/g'  |\\
-        sed 's/0\\/1/NA/g' |\\
-        sed 's/1\\/0/NA/g' |\\
-        sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
+            bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
+            sort > sorted_samples.txt 
 
-    """
+            bcftools view -v snps \\
+            -S sorted_samples.txt \\
+            -R markers.txt \\
+            Phenotyped_Strain_VCF.vcf.gz |\\
+            bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
+            sed 's/[[# 0-9]*]//g' |\\
+            sed 's/:GT//g' |\\
+            sed 's/0|0/-1/g' |\\
+            sed 's/1|1/1/g' |\\
+            sed 's/0|1/NA/g' |\\
+            sed 's/1|0/NA/g' |\\
+            sed 's/.|./NA/g'  |\\
+            sed 's/0\\/0/-1/g' |\\
+            sed 's/1\\/1/1/g'  |\\
+            sed 's/0\\/1/NA/g' |\\
+            sed 's/1\\/0/NA/g' |\\
+            sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
 
-}
+        """
 
-geno_matrix
-    .into{eigen_gm;
-          mapping_gm}
+    }
 
-
-/*
-============================================================
-~ > *                                                  * < ~
-~ ~ > *                                              * < ~ ~
-~ ~ ~ > *  EIGEN DECOMPOSITION OF GENOTYPE MATRIX  * < ~ ~ ~
-~ ~ > *                                              * < ~ ~
-~ > *                                                  * < ~
-============================================================
-*/
-
-CONTIG_LIST = ["I", "II", "III", "IV", "V", "X"]
-contigs = Channel.from(CONTIG_LIST)
-
-/*
------------- Decomposition per chromosome
-*/
-
-process chrom_eigen_variants {
-
-    tag { CHROM }
-
-    cpus 6
-    memory params.eigen_mem
-
-    input:
-        file(genotypes) from eigen_gm
-        each CHROM from contigs
-
-    output:
-        file("${CHROM}_independent_snvs.csv") into sig_snps_geno_matrix
-        file(genotypes) into concat_geno
-
-    when:
-        params.maps
+    geno_matrix
+        .into{eigen_gm;
+              mapping_gm}
 
 
-    """
-        cat Genotype_Matrix.tsv |\\
-        awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
-    """
+    /*
+    ============================================================
+    ~ > *                                                  * < ~
+    ~ ~ > *                                              * < ~ ~
+    ~ ~ ~ > *  EIGEN DECOMPOSITION OF GENOTYPE MATRIX  * < ~ ~ ~
+    ~ ~ > *                                              * < ~ ~
+    ~ > *                                                  * < ~
+    ============================================================
+    */
 
-}
+    CONTIG_LIST = ["I", "II", "III", "IV", "V", "X"]
+    contigs = Channel.from(CONTIG_LIST)
 
-/*
------------- Sum independent tests for all chromosomes
-*/
+    /*
+    ------------ Decomposition per chromosome
+    */
 
-process collect_eigen_variants {
+    process chrom_eigen_variants {
 
-    executor 'local'
+        tag { CHROM }
 
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+        cpus 6
+        memory params.eigen_mem
 
-    cpus 1
+        input:
+            file(genotypes) from eigen_gm
+            each CHROM from contigs
 
-    input:
-        file(chrom_tests) from sig_snps_geno_matrix.collect()
+        output:
+            file("${CHROM}_independent_snvs.csv") into sig_snps_geno_matrix
+            file(genotypes) into concat_geno
 
-    output:
-        file("total_independent_tests.txt") into independent_tests
-
-    when:
-        params.maps
-
-    """
-        cat *independent_snvs.csv |\\
-        grep -v inde |\\
-        awk '{s+=\$1}END{print s}' > total_independent_tests.txt
-    """
-
-}
+        when:
+            params.maps
 
 
-if(params.maps){
-    independent_tests
+        """
+            cat Genotype_Matrix.tsv |\\
+            awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+            Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
+        """
+
+    }
+
+    /*
+    ------------ Sum independent tests for all chromosomes
+    */
+
+    process collect_eigen_variants {
+
+        executor 'local'
+
+        publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+
+        cpus 1
+
+        input:
+            file(chrom_tests) from sig_snps_geno_matrix.collect()
+
+        output:
+            file("total_independent_tests.txt") into independent_tests
+
+        when:
+            params.maps
+
+        """
+            cat *independent_snvs.csv |\\
+            grep -v inde |\\
+            awk '{s+=\$1}END{print s}' > total_independent_tests.txt
+        """
+
+    }
+
+
+independent_tests
     .spread(mapping_gm)
     .spread(traits_to_map)
     .spread(p3d_full)
@@ -530,6 +577,7 @@ if(params.maps){
           mapping_data_gcta}
 
 }
+
 
 
 /*
@@ -682,6 +730,10 @@ if(params.simulate){
             set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
             set val(NQTL), val(SIMREP), val(H2), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_nalyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.phen") into simphen_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.par") into simgen_nalyze_sims
 
         when:
             params.simulate
@@ -768,6 +820,7 @@ if(params.simulate){
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
+        file("*processed_mapping.tsv") into emma_analyze_sims
 
         """
 
@@ -775,6 +828,28 @@ if(params.simulate){
         
         """
     }
+
+
+    process assess_sims {
+
+    cpus 4
+
+    input:
+    file(emma) from emma_analyze_sims.collect()
+    file(lmm_exact) from lmm_exact_analyze_sims.collect()
+    file(lmm_exact_inbred) from lmm_exact_inbred_nalyze_sims.collect()
+    file(simphenos) from simphen_analyze_sims.collect()
+    file(simgenos) from simgen_nalyze_sims.collect()
+
+    output:
+    
+
+    """
+
+    echo hello
+    
+    """
+}
 
 }
 
@@ -986,6 +1061,50 @@ if (params.maps) {
         rm Rplots.pdf
         fi
         
+        """
+    }
+
+/*
+====================================
+~ > *                          * < ~
+~ ~ > *                      * < ~ ~
+~ ~ ~ > *  BURDEN MAPPING  * < ~ ~ ~
+~ ~ > *                      * < ~ ~
+~ > *                          * < ~
+====================================
+*/
+
+    traits_to_burden
+        .spread(vcf_to_burden)
+        .spread(genes_to_burden)
+        .set{burden_input}
+
+    process burden_mapping {
+
+        publishDir "${params.out}/BURDEN/SKAT", mode: 'copy', pattern: "*.Skat.assoc"
+        publishDir "${params.out}/BURDEN/VT", mode: 'copy', pattern: "*.VariableThresholdPrice.assoc"
+
+        input:
+            set val(TRAIT), file(trait_df), file(vcf), file(index), file(refflat) from burden_input
+
+        output:
+            set val(TRAIT), file("*.Skat.assoc"), file("*.VariableThresholdPrice.assoc") into burden_results
+
+        """
+            Rscript --vanilla `which makeped.R` ${trait_df}
+
+            n_strains=`wc -l ${trait_df} | cut -f1 -d" "`
+            min_af=`bc -l <<< "${params.minburden}/(\$n_strains-1)"`
+
+            rvtest \\
+            --pheno ${TRAIT}.ped \\
+            --out ${TRAIT} \\
+            --inVcf ${vcf} \\
+            --freqUpper ${params.freqUpper} \\
+            --freqLower \$min_af \\
+            --geneFile ${refflat} \\
+            --vt price \\
+            --kernel skat
         """
     }
 
