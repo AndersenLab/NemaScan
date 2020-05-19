@@ -23,7 +23,7 @@ library(ggbeeswarm)
 args <- commandArgs(trailingOnly = TRUE)
 
 # define the trait name
-trait_name <- gsub("\\.", "pt", glue::glue("{args[5]}_{args[6]}_{args[9]}"))
+trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
 
 # Define number of cores available for parallel processing
 cores_avail <- as.numeric(args[3])
@@ -62,13 +62,13 @@ gwa_mapping <- function (data,
                          min.MAF = args[10],
                          p3d = args[4]) {
   x <- data
-
+  
   y <- snpset %>% dplyr::mutate(marker = paste0(CHROM, "_", POS)) %>% 
     dplyr::select(marker, everything(), -REF, -ALT) %>% 
     as.data.frame()
-
+  
   kin <- as.matrix(kin_matrix)
-
+  
   pmap <- rrBLUP::GWAS(pheno = x, 
                        geno = y, 
                        K = kin, 
@@ -76,7 +76,7 @@ gwa_mapping <- function (data,
                        n.core = cores, 
                        P3D = as.logical(p3d), 
                        plot = FALSE)
-
+  
   return(pmap)
 }
 
@@ -270,8 +270,8 @@ system("echo begin mapping")
 
 # run mapping
 raw_mapping <- gwa_mapping(data = phenotype_data,
-                        snpset = genotype_matrix,
-                        kin_matrix = kinship_matrix)
+                           snpset = genotype_matrix,
+                           kin_matrix = kinship_matrix)
 
 # save mapping data set
 readr::write_tsv(raw_mapping, 

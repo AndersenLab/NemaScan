@@ -85,7 +85,7 @@ combined.results %>%
        y = expression(-log[10](italic(p)))) +
   theme(legend.position = "none") + 
   facet_grid(algo~CHR, scales = "free_x", space = "free") + 
-  ggsave(paste("Plots/",x,".manhattan.plot.pdf",sep = ""), width = 10, height = 7)
+  ggsave(paste("Plots/",x,".manhattan.plot.png",sep = ""), width = 10, height = 7)
 
 }
 purrr::map(iterations, man.plot)
