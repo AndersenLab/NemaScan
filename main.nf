@@ -3,7 +3,7 @@
 date = new Date().format( 'yyyyMMdd' )
 
 /*
-~ ~ ~ > * Parameters: common to all analyses 
+~ ~ ~ > * Parameters: common to all analyses
 */
 params.traitfile = null
 params.vcf 		 = null
@@ -35,14 +35,14 @@ if (params.simulate){
 
 
 /*
-~ ~ ~ > * Parameters: for burden mapping 
+~ ~ ~ > * Parameters: for burden mapping
 */
 params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
 
 /*
-~ ~ ~ > * Parameters: for GCTA mapping 
+~ ~ ~ > * Parameters: for GCTA mapping
 */
 
 Channel
@@ -51,24 +51,24 @@ Channel
 
 
 /*
-~ ~ ~ > * OUTPUT DIRECTORY 
+~ ~ ~ > * OUTPUT DIRECTORY
 */
 
 params.out = "Analysis_Results-${date}"
 
 
 if (params.help) {
-	log.info '''                    
+	log.info '''
 
 
-O~~~     O~~                                   O~~ ~~                            
-O~ O~~   O~~                                 O~~    O~~                          
-O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~~     O~~                                   O~~ ~~
+O~ O~~   O~~                                 O~~    O~~
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
 O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
 O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
 O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
 O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
-                                                                                    
+
 
 
     '''
@@ -83,11 +83,11 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "simulations           Profile                Perform phenotype simulations with GCTA"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
-    log.info "----------------------------------------------------------------" 
-    log.info "----------------------------------------------------------------"   
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings --p3d TRUE" 
-    log.info "----------------------------------------------------------------" 
-    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings --p3d TRUE"
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
     log.info "--vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR"
@@ -99,7 +99,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile simulations USAGE"
-    log.info "----------------------------------------------------------------"    
+    log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--simulate_nqtl          String                A CSV file with the number of QTL to simulate per phenotype, one value per line (Default is located: input_data/all_species/simulate_nqtl.csv)"
     log.info "--simulate_h2            String                A CSV file with phenotype heritability, one value per line (Default is located: input_data/all_species/simulate_h2.csv)"
@@ -140,20 +140,20 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "R-sommer               v3.5"
     log.info "R-RSpectra             v0.13-1"
     log.info "R-ggbeeswarm           v0.6.0"
-    log.info "--------------------------------------------------------"    
+    log.info "--------------------------------------------------------"
     exit 1
 } else {
-	log.info '''                    
+	log.info '''
 
 
-O~~~     O~~                                   O~~ ~~                            
-O~ O~~   O~~                                 O~~    O~~                          
-O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~  
+O~~~     O~~                                   O~~ ~~
+O~ O~~   O~~                                 O~~    O~~
+O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
 O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
 O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
 O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
 O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
-                                                                                    
+
 
 
     '''
@@ -176,7 +176,7 @@ log.info ""
 */
 
 if (params.vcf) {
-    
+
     vcf = Channel.fromPath("${params.vcf}")
 
     vcf_index = Channel.fromPath("${params.vcf}" + ".tbi")
@@ -271,7 +271,7 @@ Channel
     .set{ traits_to_strainlist }
 
 /*
-~ ~ ~ > * INITIATE CHROMOSOME RENAME CHANNEL 
+~ ~ ~ > * INITIATE CHROMOSOME RENAME CHANNEL
 */
 
 Channel
@@ -295,7 +295,7 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 
 if (params.maps) {
-    
+
     process fix_strain_names_bulk {
 
     executor 'local'
@@ -351,7 +351,7 @@ phenotyped_strains_to_analyze
 
         """
         bcftools query -l ${vcf} |\\
-        sort > sorted_samples.txt 
+        sort > sorted_samples.txt
         """
     }
 
@@ -415,7 +415,7 @@ process vcf_to_geno_matrix {
         sort -k1,1d -k2,2n > markers.txt
 
         bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
-        sort > sorted_samples.txt 
+        sort > sorted_samples.txt
 
         bcftools view -v snps \\
         -S sorted_samples.txt \\
@@ -603,13 +603,13 @@ if(params.simulate){
         --geno \\
         --recode \\
         --out TO_SIMS \\
-        --allow-extra-chr 
+        --allow-extra-chr
 
         awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
         sort -k1,1d -k2,2n > markers.txt
 
         bcftools query -l renamed_chroms.vcf.gz |\\
-        sort > sorted_samples.txt 
+        sort > sorted_samples.txt
 
         bcftools view -v snps \\
         -S sorted_samples.txt \\
@@ -715,7 +715,7 @@ if(params.simulate){
 
         vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
 
-        if (( \$(bc <<< "\$vp==0") > 0 )); 
+        if (( \$(bc <<< "\$vp==0") > 0 ));
         then
         awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_sims.phen > temp.phen;
         rm ${NQTL}_${SIMREP}_${H2}_sims.phen
@@ -772,7 +772,7 @@ if(params.simulate){
         """
 
         Rscript --vanilla `which Run_Sims_EMMA_SJW.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
-        
+
         """
     }
 
@@ -930,7 +930,7 @@ if (params.maps) {
         set val(TRAIT), file(traits), file("${TRAIT}_lmm.fastGWA"), file("${TRAIT}_lmm_inbred.fastGWA") into lmm_output
 
         when:
-          params.lmm    
+          params.lmm
 
         """
 
@@ -985,12 +985,8 @@ if (params.maps) {
         if [ -e Rplots.pdf ]; then
         rm Rplots.pdf
         fi
-        
+
         """
     }
 
 }
-
-
-
-
