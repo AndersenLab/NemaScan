@@ -31,6 +31,23 @@ if (params.simulate){
     */
     sim_h2 = Channel.fromPath("${params.simulate_h2}")
                   .splitCsv()
+
+    /*
+    ~ ~ ~ > * effect size
+    */
+    sim_eff = Channel.fromPath("${params.simulate_eff}")
+                  .splitCsv()
+
+    /*
+    ~ ~ ~ > * strain set
+    */
+
+    File pop_file = new File(params.simulate_strains);
+
+    sim_strains = Channel.from(pop_file.collect { it.tokenize( ' ' ) })
+                 .map { SM, STRAINS -> [SM, STRAINS] }
+
+
 }
 
 
@@ -382,12 +399,13 @@ phenotyped_strains_to_analyze
 
     simulation_replicates = Channel.from(1..params.simulate_reps)
 
+/*
     process simulate_strain_names {
 
         executor 'local'
 
         input:
-            set file(vcf), file(index) from vcf_to_names
+            set file(vcf), file(index), val(strain_set) from vcf_to_names
 
         output:
             file("sorted_samples.txt") into phenotyped_strains_to_analyze
@@ -396,13 +414,15 @@ phenotyped_strains_to_analyze
             params.simulate
 
         """
-        bcftools query -l ${vcf} |\\
+        bcftools view -s ${strains} ${vcf} |\\
+        bcftools query -l |\\
         sort > sorted_samples.txt 
         """
     }
+*/
 
 
-phenotyped_strains_to_analyze
+sim_strains
     .into{strain_list_genome;
           strain_list_emma;
           strain_list_simulate;
@@ -595,12 +615,14 @@ if(params.maps){
     strain_list_emma
         .spread(traits_to_gcta_grm)
         .spread(vcf_to_whole_gcta_grm)
+        .spread(rename_chroms_gcta)
         .into{gcta_prep_inputs;
               print_inputs}
 
 } else if (params.simulate){
     strain_list_simulate
     .spread(vcf_to_simulations)
+    .spread(rename_chroms_sims)
     .into{simulation_prep_inputs;
           print_inputs}
 }
@@ -613,20 +635,20 @@ if(params.simulate){
         cpus 4
 
         input:
-            file(num_chroms) from rename_chroms_sims
-            set file(strains), file(vcf), file(index) from simulation_prep_inputs
+            set val(strain_set), val(strains), file(vcf), file(index), file(num_chroms) from simulation_prep_inputs
 
         output:
-            set file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log") into sim_inputs
-            file("Genotype_Matrix.tsv") into sim_geno_matrix
+            set val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("Genotype_Matrix.tsv") into sim_inputs
 
         when:
             params.simulate
 
         """
 
+
+
         bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
-        bcftools view -S ${strains} |\\
+        bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
         bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
 
         tabix -p vcf renamed_chroms.vcf.gz
@@ -691,11 +713,11 @@ if(params.simulate){
         cpus 4
 
         input:
-            set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL) from sim_nqtl_inputs
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(NQTL) from sim_nqtl_inputs
             each SIMREP from simulation_replicates
 
         output:
-            set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(NQTL), val(SIMREP), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
 
         when:
             params.simulate
@@ -718,22 +740,22 @@ if(params.simulate){
         tag {"${NQTL} - ${SIMREP} - ${H2}"}
 
         publishDir "${params.out}/Simulations/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA"
-        publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "${NQTL}_${SIMREP}_${H2}_sims.phen"
-        publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "${NQTL}_${SIMREP}_${H2}_sims.par"
+        publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.phen"
+        publishDir "${params.out}/Simulations/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.par"
 
         cpus 4
 
         input:
-            set file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), val(NQTL), val(SIMREP), file(loci), val(H2) from sim_phen_h2_input
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(NQTL), val(SIMREP), file(loci), val(H2) from sim_phen_h2_input
 
         output:
-            set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
-            set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
-            set val(NQTL), val(SIMREP), val(H2), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
-            file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
-            file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_nalyze_sims
-            file("${NQTL}_${SIMREP}_${H2}_sims.phen") into simphen_analyze_sims
-            file("${NQTL}_${SIMREP}_${H2}_sims.par") into simgen_nalyze_sims
+            set file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.map"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}_${strain_set}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.par") into sim_phen_output
+            set file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
+            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.par") into sim_phen_to_emma
+            file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen") into simphen_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.par") into simgen_analyze_sims
 
         when:
             params.simulate
@@ -745,7 +767,7 @@ if(params.simulate){
              --simu-causal-loci ${loci} \\
              --simu-hsq ${H2} \\
              --simu-rep 1 \\
-             --out ${NQTL}_${SIMREP}_${H2}_sims
+             --out ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims
 
         plink --bfile TO_SIMS \\
             --make-bed \\
@@ -755,48 +777,47 @@ if(params.simulate){
             --set-missing-var-ids @:# \\
             --geno \\
             --recode \\
-            --out TO_SIMS_${NQTL}_${SIMREP} \\
+            --out TO_SIMS_${NQTL}_${SIMREP}_${strain_set} \\
             --allow-extra-chr \\
-            --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen
+            --pheno ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen
 
-        gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm --thread-num 10
-        gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP} --autosome --maf ${params.simulate_maf} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --thread-num 10
+        gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${strain_set} --autosome --maf ${params.simulate_maf} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${strain_set}_gcta_grm --thread-num 10
+        gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${strain_set} --autosome --maf ${params.simulate_maf} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${strain_set}_gcta_grm_inbred --thread-num 10
 
 
-        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen --reml --out check_vp --thread-num 10
+        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${strain_set}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen --reml --out check_vp --thread-num 10
 
         vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
 
         if (( \$(bc <<< "\$vp==0") > 0 )); 
         then
-        awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_sims.phen > temp.phen;
-        rm ${NQTL}_${SIMREP}_${H2}_sims.phen
-        mv temp.phen ${NQTL}_${SIMREP}_${H2}_sims.phen
+        awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen > temp.phen;
+        rm ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen
+        mv temp.phen ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen
         fi
 
-        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_sparse_grm
+        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${strain_set}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${strain_set}_sparse_grm
 
         gcta64 --fastGWA-lmm-exact \\
-            --grm-sparse ${NQTL}_${SIMREP}_${H2}_sparse_grm \\
-            --bfile TO_SIMS_${NQTL}_${SIMREP} \\
-            --out ${NQTL}_${SIMREP}_${H2}_lmm-exact \\
-            --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen \\
+            --grm-sparse ${NQTL}_${SIMREP}_${H2}_${strain_set}_sparse_grm \\
+            --bfile TO_SIMS_${NQTL}_${SIMREP}_${strain_set} \\
+            --out ${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact \\
+            --pheno ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen \\
             --maf ${params.simulate_maf}
 
-        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_sparse_grm_inbred
+        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${strain_set}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${strain_set}_sparse_grm_inbred
 
         gcta64 --fastGWA-lmm-exact \\
-            --grm-sparse ${NQTL}_${SIMREP}_${H2}_sparse_grm_inbred \\
-            --bfile TO_SIMS_${NQTL}_${SIMREP} \\
-            --out ${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred \\
-            --pheno ${NQTL}_${SIMREP}_${H2}_sims.phen \\
+            --grm-sparse ${NQTL}_${SIMREP}_${H2}_${strain_set}_sparse_grm_inbred \\
+            --bfile TO_SIMS_${NQTL}_${SIMREP}_${strain_set} \\
+            --out ${NQTL}_${SIMREP}_${H2}_${strain_set}_lmm-exact_inbred \\
+            --pheno ${NQTL}_${SIMREP}_${H2}_${strain_set}_sims.phen \\
             --maf ${params.simulate_maf}
 
         """
     }
 
     sim_phen_to_emma
-        .spread(sim_geno_matrix)
         .spread(qtl_snv_grouping_sims)
         .spread(qtl_ci_size_sim)
         .spread(p3d_full_sim)
@@ -816,7 +837,7 @@ if(params.simulate){
         publishDir "${params.out}/Simulations/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_mapping.tsv"
 
         input:
-        set val(NQTL), val(SIMREP), val(H2), file(loci), file(pheno), file(sim_params), file(geno), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D), val(THRESHOLD) from sim_emma_inputs
+        set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), file(pheno), file(sim_params), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D), val(THRESHOLD) from sim_emma_inputs
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
@@ -824,7 +845,7 @@ if(params.simulate){
 
         """
 
-        Rscript --vanilla `which Run_Sims_EMMA.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
+        Rscript --vanilla `which Run_Sims_EMMA.R` ${gm} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set}
         
         """
     }
@@ -837,9 +858,9 @@ if(params.simulate){
     input:
     file(emma) from emma_analyze_sims.collect()
     file(lmm_exact) from lmm_exact_analyze_sims.collect()
-    file(lmm_exact_inbred) from lmm_exact_inbred_nalyze_sims.collect()
+    file(lmm_exact_inbred) from lmm_exact_inbred_analyze_sims.collect()
     file(simphenos) from simphen_analyze_sims.collect()
-    file(simgenos) from simgen_nalyze_sims.collect()
+    file(simgenos) from simgen_analyze_sims.collect()
 
     output:
     
@@ -878,8 +899,7 @@ if (params.maps) {
         cpus 4
 
         input:
-            file(num_chroms) from rename_chroms_gcta
-            set file(strains), val(TRAIT), file(traits), file(vcf), file(index) from gcta_prep_inputs
+            set file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms) from gcta_prep_inputs
 
         output:
             set val(TRAIT), file("plink_formated_trats.tsv"), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped"), file("${TRAIT}.log") into gcta_grm_inputs
