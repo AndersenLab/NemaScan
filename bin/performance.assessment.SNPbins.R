@@ -21,22 +21,22 @@ levels(arms.centers$CHR) <- c(1,2,3,4,5,6)
 
 # Assessing Bin Performance
 summarize.by.marker.bins <- function(x,y){
-   n.markers.per.bin <- markers
    
+   n.markers.per.bin <- markers
    bins <- length(levels(as.factor(
       as.numeric(
          as.factor(rep(1:nrow(x)/n.markers.per.bin, each = n.markers.per.bin)[1:nrow(x)])
-         )
-      )))
+      )
+   )))
    
-   x %>%
+   test <- x %>%
       dplyr::mutate(SNP.bin = as.numeric(as.factor(rep(1:nrow(x)/n.markers.per.bin, each = n.markers.per.bin)[1:nrow(x)]))) %>%
       dplyr::group_by(SNP.bin) %>%
       dplyr::mutate(CHR = y) %>%
       dplyr::summarise(median(POS),
                        max(log10p),
                        TRUE %in% truth,
-                       max(log10p) > -log(0.05/(bins*6)),
+                       max(log10p) > thresh, # thresh defined when all data read in, before chrs split
                        median(abs(BETA)),
                        median(AF1),
                        n(),
@@ -61,10 +61,15 @@ fastGWA.inbred.SNP.bin.assessment <- function(x){
    
    
    # mapping <- read.table("25_1_0.8_lmm-exact_inbred.fastGWA",header = T) %>%
-      mapping <- read.table(paste(paste(strsplit(x, split = "_")[[1]][1],
+   mapping <- read.table(paste(paste(strsplit(x, split = "_")[[1]][1],
                                    "Mappings", sep = "/"),
                                   paste(x,"lmm-exact_inbred.fastGWA",sep = "_"), sep = "/"),
-                            header = T) %>%
+                            header = T)
+         
+   bins <- length(levels(as.factor(as.numeric(as.factor(rep(1:nrow(mapping)/markers, 
+                                                                  each = markers)[1:nrow(mapping)])))))
+   thresh <<- -log(0.05/(bins))
+   mapping <- mapping %>%
       dplyr::mutate(log10p = -log(P)) %>%
       dplyr::mutate(truth = as.factor(SNP %in% effects$QTL)) %>%
       dplyr::filter(CHR != 7) %>%
@@ -84,7 +89,8 @@ fastGWA.inbred.SNP.bin.assessment <- function(x){
                                             predicted = binned.mapping.df$DETECTED.HIT,
                                             med.effect = binned.mapping.df$median.SNP.effect,
                                             MAF = binned.mapping.df$bin.median.MAF,
-                                            marker.density = binned.mapping.df$marker.density)
+                                            marker.density = binned.mapping.df$marker.density,
+                                            bin.width = binned.mapping.df$bin.width.bp)
    
    arms.centers.gr <-  GenomicRanges::GRanges(seqnames = arms.centers$CHR,
                                               ranges = IRanges(start = arms.centers$START,
@@ -95,11 +101,11 @@ fastGWA.inbred.SNP.bin.assessment <- function(x){
       as.data.frame() %>%
       dplyr::select(first.X.seqnames, first.X.POS, first.X.log10p,
                     first.X.truth, first.X.predicted,
-                    first.X.med.effect, first.X.MAF, first.X.marker.density,
+                    first.X.med.effect, first.X.MAF, first.X.marker.density, first.X.bin.width,
                     second.X.type, first.X.start, first.X.end) %>%
       `colnames<-`(c("CHR","POS","log10p",
                      "truth","predicted",
-                     "median.effect","median.MAF","marker.density",
+                     "median.effect","median.MAF","marker.density","bin.width.bp",
                      "type","bin.start","bin.end"))
    
    # For Later: Output Mappings and Bin Metrics
