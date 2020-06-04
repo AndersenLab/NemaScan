@@ -9,21 +9,6 @@ iterations <- purrr::map(effect.files, .f = function(x){
   paste(strsplit(strsplit(x,split = "/")[[1]][3],split = "_")[[1]][1:3], collapse = "_")
   # paste(strsplit(x,split = "_")[[1]][1:3], collapse = "_")
 })
-x <- iterations[[1]]
-bin.genome <- function(z,w){
-  z %>%
-    dplyr::mutate(pos.bin = ntile(as.numeric(POS), 100)) %>%
-    dplyr::group_by(pos.bin) %>%
-    dplyr::summarise(
-      median(log10p),
-      (TRUE %in% true.QTL),
-      (TRUE %in% sig),
-      min(POS),
-      max(POS)) %>%
-    dplyr::mutate(CHR = w) %>%
-    `colnames<-`(c("bin","median_log10p","bin.contains.true.QTL","bin.contains.predicted.QTL","start","stop","CHR"))
-  
-}
 extract.effect.metrics <- function(x){
   print(x)
   effects <- read.table(paste(paste(strsplit(x, split = "_")[[1]][1],
