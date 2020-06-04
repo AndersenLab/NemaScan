@@ -759,7 +759,7 @@ if(params.simulate){
 
     process sim_emmma_maps {
 
-        cpus 4
+        cpus 16
 
         publishDir "${params.out}/Simulations/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_mapping.tsv"
 
@@ -771,7 +771,7 @@ if(params.simulate){
 
         """
 
-        Rscript --vanilla `which Run_Sims_EMMA_SJW.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD}
+        Rscript --vanilla `which Run_Sims_EMMA_SJW.R` ${geno} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.simulate_maf} ${THRESHOLD}
 
         """
     }
