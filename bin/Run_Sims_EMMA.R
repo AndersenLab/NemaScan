@@ -18,6 +18,8 @@ library(ggbeeswarm)
 #       BF = Bonferroni, 
 #       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix, 
 #       or a user defined number
+#12 - strain set name (string)
+#13 - MAF (numeric)
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -288,5 +290,5 @@ processed_mapping <- process_mapping_df(raw_mapping,
 
 # save processed mapping data
 readr::write_tsv(processed_mapping, 
-                 path = glue::glue("{trait_name}_processed_mapping.tsv"),
+                 path = glue::glue("{trait_name}_{args[13]}_{args[12]}_processed_mapping.tsv"),
                  col_names = T)
