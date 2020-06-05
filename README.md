@@ -15,6 +15,30 @@ GWA mapping with _C. elegans, C. tropicalis, and C. briggsae_
 1. [R-RSpectra-v0.13-1](https://github.com/yixuan/RSpectra)
 1. [R-ggbeeswarm-v0.6](https://github.com/eclarke/ggbeeswarm)
 
+## Pipeline Execution:
+
+### annotations profile
+
+`nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species briggsae --wb_build WS270`
+
+* `--species` - specifies what species information to download from WormBase (options: elegans, briggsae, tropicalis).
+
+* `--wb_build` - specifies what WormBase build to download annotation information from (format: WSXXX, where XXX is a number greater than 270 and less than 277).
+
+### simulations profile
+
+`nextflow main.nf -profile simulations --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz`
+
+* `--vcf` - a VCF file with variant data. There should also abe a tabix-generated index file (.tbi) in the same folder as the specified VCF file that has the same name as the VCF except for the addition of the `.tbi` extension. (generated using `tabix -p vcf vcfname.vcf.gz`). If this flag is not used a VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+
+* `--simulate_maf` - a minor allele frequency threshold used to filter the VCF prior to simulations (Default: 0.05).
+
+* `--simulate_nqtl` - a single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header)   (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
+
+* `--simulate_reps` - The number of replicates to simulate per number of QTL and heritability (Default: 2).
+
+* `--simulate_h2` - A CSV file with phenotype heritability (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_h2.csv).
+
 ## Execution of pipeline using Nextflow
 ```
 git clone https://github.com/AndersenLab/cegwas2-nf.git
