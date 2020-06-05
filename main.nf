@@ -37,9 +37,10 @@ if (params.simulate){
 /*
 ~ ~ ~ > * Parameters: for burden mapping
 */
-params.refflat   = "${params.data_dir}/annotations/${params.species}_${params.wbb}_refFlat.txt"
+params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
+
 
 /*
 ~ ~ ~ > * Parameters: for GCTA mapping
@@ -682,6 +683,10 @@ if(params.simulate){
             set file("TO_SIMS_${NQTL}_${SIMREP}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}.map"), file("TO_SIMS_${NQTL}_${SIMREP}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
             set val(NQTL), val(SIMREP), val(H2), file(loci), file("${NQTL}_${SIMREP}_${H2}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_sims.par") into sim_phen_to_emma
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_nalyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.phen") into simphen_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_sims.par") into simgen_nalyze_sims
 
         when:
             params.simulate
@@ -768,6 +773,7 @@ if(params.simulate){
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
+        file("*processed_mapping.tsv") into emma_analyze_sims
 
         """
 
@@ -775,6 +781,28 @@ if(params.simulate){
 
         """
     }
+
+
+    process assess_sims {
+
+    cpus 4
+
+    input:
+    file(emma) from emma_analyze_sims.collect()
+    file(lmm_exact) from lmm_exact_analyze_sims.collect()
+    file(lmm_exact_inbred) from lmm_exact_inbred_nalyze_sims.collect()
+    file(simphenos) from simphen_analyze_sims.collect()
+    file(simgenos) from simgen_nalyze_sims.collect()
+
+    output:
+    
+
+    """
+
+    echo hello
+    
+    """
+}
 
 }
 
@@ -986,6 +1014,50 @@ if (params.maps) {
         rm Rplots.pdf
         fi
 
+        """
+    }
+
+/*
+====================================
+~ > *                          * < ~
+~ ~ > *                      * < ~ ~
+~ ~ ~ > *  BURDEN MAPPING  * < ~ ~ ~
+~ ~ > *                      * < ~ ~
+~ > *                          * < ~
+====================================
+*/
+
+    traits_to_burden
+        .spread(vcf_to_burden)
+        .spread(genes_to_burden)
+        .set{burden_input}
+
+    process burden_mapping {
+
+        publishDir "${params.out}/BURDEN/SKAT", mode: 'copy', pattern: "*.Skat.assoc"
+        publishDir "${params.out}/BURDEN/VT", mode: 'copy', pattern: "*.VariableThresholdPrice.assoc"
+
+        input:
+            set val(TRAIT), file(trait_df), file(vcf), file(index), file(refflat) from burden_input
+
+        output:
+            set val(TRAIT), file("*.Skat.assoc"), file("*.VariableThresholdPrice.assoc") into burden_results
+
+        """
+            Rscript --vanilla `which makeped.R` ${trait_df}
+
+            n_strains=`wc -l ${trait_df} | cut -f1 -d" "`
+            min_af=`bc -l <<< "${params.minburden}/(\$n_strains-1)"`
+
+            rvtest \\
+            --pheno ${TRAIT}.ped \\
+            --out ${TRAIT} \\
+            --inVcf ${vcf} \\
+            --freqUpper ${params.freqUpper} \\
+            --freqLower \$min_af \\
+            --geneFile ${refflat} \\
+            --vt price \\
+            --kernel skat
         """
     }
 
