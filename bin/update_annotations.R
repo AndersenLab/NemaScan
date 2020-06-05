@@ -77,8 +77,6 @@ if(get_os() == "osx"){
 }
 
 # append WBGeneID names to refFlat file
-
-
 print(glue::glue("Extracting gene names from the {sname} GTF file"))
 if(sname == "c_elegans"){
   system(glue::glue("gunzip -c {sname}.{prj_name}.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
