@@ -24,8 +24,8 @@ if(wbb_vec[1] == "W" & wbb_vec[2] == "S" & as.numeric(paste(wbb_vec[3:5], collap
   if(sname %in% c("c_elegans", "c_briggsae", "c_tropicalis")){
     print(glue::glue("Input species name is supported"))
     
-    print(glue::glue("Downloading {wbb} {sname} GFF3 file from WormBase"))
-    system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/PRJNA13758/{sname}.PRJNA13758.{wbb}.annotations.gff3.gz"))
+    # print(glue::glue("Downloading {wbb} {sname} GFF3 file from WormBase"))
+    # system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/PRJNA13758/{sname}.PRJNA13758.{wbb}.annotations.gff3.gz"))
     
     print(glue::glue("Downloading {wbb} {sname} GTF file from WormBase"))
     system(glue::glue("wget ftp://ftp.wormbase.org/pub/wormbase/releases/{wbb}/species/{sname}/PRJNA13758/{sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz"))
@@ -65,5 +65,18 @@ if(get_os() == "osx"){
   print("Your operating system is not supported")
 }
 
+# append WBGeneID names to refFlat file
 
+system(glue::glue("gunzip -c {sname}.PRJNA13758.{wbb}.canonical_geneset.gtf.gz | awk '$3==\"transcript\" {{print}}' | cut -f1,2 -d\";\" | cut -f2,4 -d\" \" | sed 's/\"//g' | sed 's/;//g' | tr ' ' '\t' > gene_transcripts.tsv" ))
+
+gene_transcript_conversion <- data.table::fread("gene_transcripts.tsv", header = F) %>%
+  dplyr::rename(transcript = V2)
+
+refflat_file <- data.table::fread(glue::glue("{sname}_{wbb}_refFlat.txt")) %>%
+  dplyr::rename(transcript = V1)%>%
+  dplyr::left_join(gene_transcript_conversion, ., by = "transcript")
+
+system(glue::glue("rm {sname}_{wbb}_refFlat.txt"))
+
+write.table(refflat_file, file = glue::glue("{sname}_{wbb}_refFlat.txt"), quote = F, col.names = F, row.names = F, sep = "\t")
 
