@@ -107,10 +107,10 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "simulations           Profile                Perform phenotype simulations with GCTA"
     log.info "----------------------------------------------------------------"
     log.info "             -profile annotations USAGE"
-    log.info "----------------------------------------------------------------" 
-    log.info "----------------------------------------------------------------"   
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species elegans" 
-    log.info "----------------------------------------------------------------" 
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species elegans"
+    log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
     log.info "--species                String                What species to download information for (elegans, briggsae, or tropicalis)"
@@ -133,14 +133,14 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------"
     log.info "             -profile simulations USAGE"
     log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"   
-    log.info "----------------------------------------------------------------" 
-    log.info "----------------------------------------------------------------"   
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
     log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
     log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations" 
-    log.info "----------------------------------------------------------------" 
-    log.info "----------------------------------------------------------------" 
+    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--simulate_nqtl          File.                 A CSV file with the number of QTL to simulate per phenotype, one value per line (Default is located: input_data/all_species/simulate_nqtl.csv)"
     log.info "--simulate_h2            File                  A CSV file with phenotype heritability, one value per line (Default is located: input_data/all_species/simulate_h2.csv)"
@@ -439,7 +439,7 @@ phenotyped_strains_to_analyze
         """
         bcftools view -s ${strains} ${vcf} |\\
         bcftools query -l |\\
-        sort > sorted_samples.txt 
+        sort > sorted_samples.txt
         """
     }
 */
@@ -466,7 +466,7 @@ sim_strains
 ===================================================================
 */
 
-if (params.maps) { 
+if (params.maps) {
 
     process vcf_to_geno_matrix {
 
@@ -506,7 +506,7 @@ if (params.maps) {
             sort -k1,1d -k2,2n > markers.txt
 
             bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
-            sort > sorted_samples.txt 
+            sort > sorted_samples.txt
 
             bcftools view -v snps \\
             -S sorted_samples.txt \\
@@ -779,7 +779,7 @@ if(params.simulate_qtlloc){
         cpus 4
 
         input:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(effect_range) from sim_nqtl_inputs
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(effect_range) from sim_nqtl_inputs_with_effects
             each SIMREP from simulation_replicates
 
         output:
@@ -859,7 +859,7 @@ if(params.simulate_qtlloc){
 
         vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
 
-        if (( \$(echo "0.00001 > \$vp" |bc -l) )); 
+        if (( \$(echo "0.00001 > \$vp" |bc -l) ));
         then
         awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen > temp.phen;
         rm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
@@ -914,7 +914,7 @@ if(params.simulate_qtlloc){
         file("*processed_mapping.tsv") into emma_analyze_sims
 
         """
-        
+
         Rscript --vanilla `which Run_Sims_EMMA.R` ${gm} ${pheno} ${task.cpus} ${P3D} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range}
 
         """
@@ -933,12 +933,12 @@ if(params.simulate_qtlloc){
     file(simgenos) from simgen_analyze_sims.collect()
 
     output:
-    
+
 
     """
 
     echo hello
-    
+
     """
 }
 
