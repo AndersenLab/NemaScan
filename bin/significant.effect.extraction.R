@@ -5,26 +5,27 @@ setwd(paste(args[1],"Simulations",sep = "/"))
 # setwd("~/Dropbox/AndersenLab/LabFolders/Sam/projects/NemaScan/")
 effect.files <- list.files(pattern = ".par",recursive = T)
 iterations <- purrr::map(effect.files, .f = function(x){
-  paste(strsplit(strsplit(x,split = "/")[[1]][3],split = "_")[[1]][1:5], collapse = "_")
-  # paste(strsplit(x,split = "_")[[1]][1:3], collapse = "_")
+  paste(strsplit(strsplit(x,split = "/")[[1]][4],split = "_")[[1]][1:6], collapse = "_")
 })
 extract.effect.metrics <- function(x){
   print(x)
-  effects <- read.table(paste(paste(strsplit(x, split = "_")[[1]][1],
+  effects <- read.table(paste(paste(strsplit(x, split = "_")[[1]][5],
+                                    strsplit(x, split = "_")[[1]][1],
                                     "Phenotypes", sep = "/"),
                               paste(x,"sims.par",sep = "_"), sep = "/"),
                         header = T) %>%
-  # effects <- read.table(paste(x,"sims.par",sep = "_"), header = T) %>%
     tidyr::separate(col = QTL,
                     into = c("CHR","POS"),
                     remove = FALSE) %>%
     dplyr::mutate(SNP = QTL)
 
   
-  fastGWA.inbred <- read.table(paste(paste(strsplit(x, split = "_")[[1]][1],
-                                           "Mappings", sep = "/"),
-                                     paste(x,"lmm-exact_inbred.fastGWA",sep = "_"), sep = "/"),
-                               header = T)
+  fastGWA.inbred <-   read.table(paste(paste(strsplit(x, split = "_")[[1]][5],
+                                             strsplit(x, split = "_")[[1]][1],
+                                             "Mappings", sep = "/"),
+                                       paste(x,"lmm-exact_inbred.fastGWA",sep = "_"), sep = "/"),
+                                 header = T)
+
   thresh <- 0.05/nrow(fastGWA.inbred)
   # fastGWA.inbred <- read.table(paste(x,"lmm-exact_inbred.fastGWA",sep = "_"),
   #                                header = T) %>%
@@ -40,7 +41,7 @@ extract.effect.metrics <- function(x){
   merge(effects, fastGWA.inbred, "SNP") %>%
     dplyr::select(SNP, Frequency, Effect, CHR.x, POS.x, BETA, log10p, sig) %>%
     dplyr::mutate(trait = x) %>%
-    tidyr::separate(trait, into = c("nQTL","rep","h2","MAF","sample.population"), sep = "_")
+    tidyr::separate(trait, into = c("nQTL","rep","h2","MAF","effect.range","sample.population"), sep = "_")
 
 }
 effects <- purrr::map(iterations, extract.effect.metrics)
