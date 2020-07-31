@@ -273,7 +273,8 @@ if (params.vcf) {
 Channel
     .from("${params.ci_size}")
     .into{qtl_ci_size;
-          qtl_ci_size_sim}
+          qtl_ci_size_sim;
+          qtl_ci_size_sim_gcta}
 
 /*
 ~ ~ ~ > * INITIATE MAPPING QTL CONFIDENCE INTERVAL SIZE PARAMETER
@@ -282,7 +283,8 @@ Channel
 Channel
     .from("${params.group_qtl}")
     .into{qtl_snv_grouping_maps;
-          qtl_snv_grouping_sims}
+          qtl_snv_grouping_sims;
+          qtl_snv_grouping_sims_gcta}
 
 /*
 ~ ~ ~ > * INITIATE MAPPING METHOD CHANNEL
@@ -304,7 +306,8 @@ Channel
     .into{sig_threshold_full;
           sig_threshold_fine;
           sig_threshold_full_sim;
-          sig_threshold_fine_sim}
+          sig_threshold_fine_sim;
+          sig_threshold_gcta_sim}
 
 /*
 ~ ~ ~ > * INITIATE PHENOTYPE CHANNEL
@@ -662,14 +665,12 @@ if(params.simulate){
             set val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF) from simulation_prep_inputs
 
         output:
-            set val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("Genotype_Matrix.tsv"), val(MAF) into sim_inputs
+            set val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("${strain_set}_${MAF}_Genotype_Matrix.tsv"), val(MAF) into sim_geno
 
         when:
             params.simulate
 
         """
-
-
 
         bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
         bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
@@ -721,10 +722,90 @@ if(params.simulate){
         sed 's/1\\/1/1/g'  |\\
         sed 's/0\\/1/NA/g' |\\
         sed 's/1\\/0/NA/g' |\\
-        sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
+        sed 's/.\\/./NA/g' > ${strain_set}_${MAF}_Genotype_Matrix.tsv
 
         """
     }
+
+
+    /*
+    ============================================================
+    ~ > *                                                  * < ~
+    ~ ~ > *                                              * < ~ ~
+    ~ ~ ~ > *  EIGEN DECOMPOSITION OF GENOTYPE MATRIX  * < ~ ~ ~
+    ~ ~ > *                                              * < ~ ~
+    ~ > *                                                  * < ~
+    ============================================================
+    */
+
+    CONTIG_LIST = ["1", "2", "3", "4", "5", "6"]
+    contigs = Channel.from(CONTIG_LIST)
+
+    /*
+    ------------ Decomposition per chromosome
+    */
+
+    process chrom_eigen_variants_sims {
+
+        tag { CHROM }
+
+        cpus 6
+        memory params.eigen_mem
+
+        input:
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF) from sim_geno
+            each CHROM from contigs
+
+        output:
+            set val(strain_set), val(strains), val(MAF), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno) into sim_geno_meta
+            set val(strain_set), val(strains), val(MAF), file("${CHROM}_${strain_set}_${MAF}_independent_snvs.csv") into sim_geno_eigen_join
+
+        when:
+            params.simulate
+
+
+        """
+            cat ${geno} |\\
+            awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+            Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
+
+            mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
+        """
+
+    }
+
+    /*
+    ------------ Sum independent tests for all chromosomes
+    */
+
+    sim_geno_eigen_join.groupTuple(by:[0,1,2]).join(sim_geno_meta, by:[0,1,2]).into{combine_independent_tests;combine_independent_tests_print}
+
+    process collect_eigen_variants_sims {
+
+        executor 'local'
+
+        publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+
+        cpus 1
+
+        input:
+            set val(strain_set), val(strains), val(MAF), file(tests), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno) from combine_independent_tests
+
+
+        output:
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file("${strain_set}_${MAF}_total_independent_tests.txt") into sim_inputs
+
+        when:
+            params.simulate
+
+        """
+            cat *independent_snvs.csv |\\
+            grep -v inde |\\
+            awk '{s+=\$1}END{print s}' > ${strain_set}_${MAF}_total_independent_tests.txt
+        """
+
+    }
+
 
     sim_inputs
         .spread(nqtl)
@@ -747,11 +828,11 @@ if(params.simulate_qtlloc){
         cpus 4
 
         input:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), file(qtl_loc_bed), val(effect_range) from sim_nqtl_inputs_qtl_locations
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range) from sim_nqtl_inputs_qtl_locations
             each SIMREP from simulation_replicates
 
         output:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
 
         when:
             params.simulate
@@ -779,11 +860,11 @@ if(params.simulate_qtlloc){
         cpus 4
 
         input:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(effect_range) from sim_nqtl_inputs_with_effects
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range) from sim_nqtl_inputs_with_effects
             each SIMREP from simulation_replicates
 
         output:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt") into sim_phen_inputs
 
         when:
             params.simulate
@@ -816,16 +897,17 @@ if(params.simulate_qtlloc){
         cpus 4
 
         input:
-            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), val(NQTL), val(SIMREP), val(effect_range), file(loci), val(H2) from sim_phen_h2_input
+            set val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file(loci), val(H2) from sim_phen_h2_input
 
         output:
             set file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.map"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par") into sim_phen_output
             set file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
-            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par"), val(effect_range) into sim_phen_to_emma
+            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par"), val(effect_range), file(n_indep_tests) into sim_phen_to_emma
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen") into simphen_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par") into simgen_analyze_sims
+            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen") into gcta_intervals
 
         when:
             params.simulate
@@ -907,7 +989,7 @@ if(params.simulate_qtlloc){
         publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_mapping.tsv"
 
         input:
-        set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(MAF), file(pheno), file(sim_params), val(effect_range), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D), val(THRESHOLD) from sim_emma_inputs
+        set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(MAF), file(pheno), file(sim_params), val(effect_range), file(n_indep_tests), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), val(P3D), val(THRESHOLD) from sim_emma_inputs
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
@@ -920,24 +1002,30 @@ if(params.simulate_qtlloc){
         """
     }
 
+    gcta_intervals
+        .spread(sig_threshold_gcta_sim)
+        .spread(qtl_snv_grouping_sims_gcta)
+        .spread(qtl_ci_size_sim_gcta)
+        .into{find_gcta_intervals}
 
-    process assess_sims {
+    process get_gcta_intervals {
 
-    cpus 4
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
+
+    cpus 1
 
     input:
-    file(emma) from emma_analyze_sims.collect()
-    file(lmm_exact) from lmm_exact_analyze_sims.collect()
-    file(lmm_exact_inbred) from lmm_exact_inbred_analyze_sims.collect()
-    file(simphenos) from simphen_analyze_sims.collect()
-    file(simgenos) from simgen_analyze_sims.collect()
+    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact), file(lmmexact_inbred), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
 
     output:
-
+    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*LMM_EXACT_mapping.tsv"), file("*LMM_EXACT_INBRED_mapping.tsv") into processed_gcta
 
     """
 
-    echo hello
+    Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT
+
+    Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_INBRED
 
     """
 }
