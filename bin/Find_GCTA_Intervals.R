@@ -6,21 +6,22 @@ library(ggbeeswarm)
 # argument information
 # 1 - Genetoype matrix
 # 2 - Phenotype data 
-# 3 - Number of cores of parallel processing
-# 4 - P3D, Boolean, F = EMMA, T = EMMAx
+# 3 - Mapping data
+# 4 - independent tests - eigen
 # 5 - number of qtl simulated (numeric)
 # 6 - simulation replicate (numeric)
 # 7 - If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)
 # 8 - Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)
 # 9 - simulated heritability2
-#10 - minor allele frequency (numeric)
-#11 - - String, What significance threshold to use for defining QTL, 
+# 10 - minor allele frequency (numeric)
+# 11 - - String, What significance threshold to use for defining QTL, 
 #       BF = Bonferroni, 
 #       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix, 
 #       or a user defined number
-#12 - strain set name (string)
-#13 - MAF (numeric)
-#14 - effect size range (character)
+# 12 - strain set name (string)
+# 13 - MAF (numeric)
+# 14 - effect size range (character)
+# 15 - mapping label
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -28,21 +29,20 @@ args <- commandArgs(trailingOnly = TRUE)
 # define the trait name
 trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
 
-# Define number of cores available for parallel processing
-cores_avail <- as.numeric(args[3])
-
-# load genotype matrix
-genotype_matrix <- readr::read_tsv(args[1]) %>%
-  na.omit()
-
 # load phenotpe data
 phenotype_data <- data.table::fread(args[2], col.names = c("strain", "strain_drop", trait_name)) %>%
   na.omit() %>%
   dplyr::select(-strain_drop)%>%
   as.data.frame()
 
-# generate kinship matrix
-kinship_matrix <- rrBLUP::A.mat(t(genotype_matrix[,5:ncol(genotype_matrix)]), n.core = cores_avail)
+# load GCTA mapping data
+map_df <- data.table::fread(args[3]) %>% 
+  dplyr::rename(marker = SNP, CHROM = CHR) %>%
+  dplyr::mutate(log10p = -log10(P))
+
+# load genotype matrix
+genotype_matrix <- readr::read_tsv(args[1]) %>%
+  na.omit()
 
 # define method for setting significance threshold
 significance_threshold <- args[11]
@@ -51,37 +51,11 @@ significance_threshold <- args[11]
 if(significance_threshold == "BF"){
   QTL_cutoff <- NA
 } else if(significance_threshold == "EIGEN"){
-  QTL_cutoff <- independent_test_cutoff
+  QTL_cutoff <- data.table::fread(args[4]) %>% dplyr::pull(V1)
 } else {
   QTL_cutoff <- as.numeric(args[11])
 }
 
-
-# mapping function
-gwa_mapping <- function (data, 
-                         cores = cores_avail, 
-                         kin_matrix = kinship_matrix, 
-                         snpset = genotype_matrix, 
-                         min.MAF = args[10],
-                         p3d = args[4]) {
-  x <- data
-  
-  y <- snpset %>% dplyr::mutate(marker = paste0(CHROM, "_", POS)) %>% 
-    dplyr::select(marker, everything(), -REF, -ALT) %>% 
-    as.data.frame()
-  
-  kin <- as.matrix(kin_matrix)
-  
-  pmap <- rrBLUP::GWAS(pheno = x, 
-                       geno = y, 
-                       K = kin, 
-                       min.MAF = as.numeric(min.MAF), 
-                       n.core = cores, 
-                       P3D = as.logical(p3d), 
-                       plot = FALSE)
-  
-  return(pmap)
-}
 
 # process mapping function
 process_mapping_df <- function (mapping_df, 
@@ -101,7 +75,7 @@ process_mapping_df <- function (mapping_df,
     BF <- -log10(BF)
   }
   
-  colnames(mapping_df) <- c("marker", "CHROM", "POS", "log10p")
+  #colnames(mapping_df) <- c("CHROM", "marker", "POS", "A1", "A2", "N", "AF1", "BETA", "SE", "P", "log10p")
   
   mapping_df <- mapping_df %>% 
     dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
@@ -136,7 +110,7 @@ process_mapping_df <- function (mapping_df,
       dplyr::select(-REF, -ALT)
     
     gINFO <- snp_df %>% 
-      dplyr::mutate(marker = paste(CHROM, POS, sep = "_")) %>% 
+      dplyr::mutate(marker = paste(CHROM, POS, sep = ":")) %>% 
       dplyr::filter(marker %in% snpsForVE$marker) %>% 
       tidyr::gather(strain, allele, -marker, -CHROM, -POS)
     
@@ -269,20 +243,10 @@ process_mapping_df <- function (mapping_df,
   
   return(Processed)
 }
-system("echo begin mapping")
 
-# run mapping
-raw_mapping <- gwa_mapping(data = phenotype_data,
-                           snpset = genotype_matrix,
-                           kin_matrix = kinship_matrix)
-
-# save mapping data set
-readr::write_tsv(raw_mapping, 
-                 path = glue::glue("{trait_name}_raw_mapping.tsv"),
-                 col_names = T)
 
 # process mapping data, define QTL
-processed_mapping <- process_mapping_df(raw_mapping, 
+processed_mapping <- process_mapping_df(map_df, 
                                         phenotype_data, 
                                         CI_size = as.numeric(args[8]), 
                                         snp_grouping = as.numeric(args[7]), 
@@ -291,16 +255,17 @@ processed_mapping <- process_mapping_df(raw_mapping,
 
 # save processed mapping data
 readr::write_tsv(processed_mapping, 
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_mapping.tsv"),
+                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
                  col_names = T)
+
 
 # extract interval information
 qtl_region <- processed_mapping %>%
   na.omit() %>%
   dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id) %>%
-  dplyr::mutate(algorithm = "EMMA")
+  dplyr::mutate(algorithm = args[15])
 
 # save processed mapping data
 readr::write_tsv(qtl_region, 
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_emma_qtl_region.tsv"),
+                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
                  col_names = T)
