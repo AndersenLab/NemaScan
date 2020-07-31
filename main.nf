@@ -232,6 +232,7 @@ if (params.vcf) {
               vcf_to_whole_gcta_grm;
               vcf_to_whole_gcta_map;
               vcf_to_whole_genome;
+              vcf_to_extract_ld;
               vcf_to_fine_map;
               vcf_to_burden;
               vcf_to_query_vcf}
@@ -260,6 +261,7 @@ if (params.vcf) {
               vcf_to_whole_gcta_grm;
               vcf_to_whole_gcta_map;
               vcf_to_whole_genome;
+              vcf_to_extract_ld;
               vcf_to_fine_map;
               vcf_to_burden;
               vcf_to_query_vcf}
@@ -324,7 +326,8 @@ Channel
 Channel
     .fromPath("${params.numeric_chrom}")
     .into{ rename_chroms_gcta;
-           rename_chroms_sims }
+           rename_chroms_sims;
+           rename_chroms_sims_ld }
 
 
 /*
@@ -666,6 +669,7 @@ if(params.simulate){
 
         output:
             set val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("${strain_set}_${MAF}_Genotype_Matrix.tsv"), val(MAF) into sim_geno
+            set val(strain_set), val(strains), val(MAF), file("renamed_chroms.vcf.gz"), file("renamed_chroms.vcf.gz.tbi") into renamed_chrom_vcf_to_ld
 
         when:
             params.simulate
@@ -993,7 +997,7 @@ if(params.simulate_qtlloc){
 
         output:
         set val(NQTL), val(SIMREP), val(H2), file("*raw_mapping.tsv"), file("*processed_mapping.tsv") into pr_sim_emma_maps
-        file("*processed_mapping.tsv") into emma_analyze_sims
+        set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*_emma_qtl_region.tsv") into emmma_qtl_to_ld
 
         """
 
@@ -1020,12 +1024,128 @@ if(params.simulate_qtlloc){
 
     output:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*LMM_EXACT_mapping.tsv"), file("*LMM_EXACT_INBRED_mapping.tsv") into processed_gcta
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM_EXACT_qtl_region.tsv"), file("*LMM_EXACT_INBRED_qtl_region.tsv") into gcta_qtl_to_ld
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes) into simulated_phenotypes
 
     """
 
     Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT
 
     Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_INBRED
+
+    """
+}
+
+    gcta_qtl_to_ld
+        .combine(emmma_qtl_to_ld, by: [0,1,2,3,4,5,6])
+        .combine(simulated_phenotypes, by: [0,1,2,3,4,5,6])
+        .combine(renamed_chrom_vcf_to_ld, by: [0,1,2])
+        .into{peaks_to_ld}
+
+
+    process extract_qtl_ld {
+
+    cpus 1
+
+    input:
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex) from peaks_to_ld
+
+    output:
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex), file("*ROI_Genotype_Matrix.tsv"), file("*LD.tsv") into LD_files_to_finemap
+
+    """
+
+    cat *_qtl_region.tsv |\\
+    awk '\$0 !~ "CHROM" {print}' > QTL_peaks.tsv
+
+    filename='QTL_peaks.tsv'
+    echo Start
+    while read p; do 
+        chromosome=`echo \$p | cut -f1 -d' '`
+        trait=`echo \$p | cut -f3 -d' '`
+        start_pos=`echo \$p | cut -f4 -d' '`
+        peak_pos=`echo \$p | cut -f5 -d' '`
+        end_pos=`echo \$p | cut -f6 -d' '`
+        map_algo=`echo \$p | cut -f8 -d' '`
+
+    bcftools view --regions \$chromosome:\$start_pos-\$end_pos -s ${strains} ${vcf} |\\
+    bcftools filter -i N_MISSING=0 |\\
+    awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
+
+    bcftools view --regions \$chromosome:\$start_pos-\$end_pos -s ${strains} ${vcf} |\\
+    bcftools filter -i N_MISSING=0 -Oz -o finemap.vcf.gz
+
+    plink --vcf finemap.vcf.gz \\
+        --snps-only \\
+        --maf ${MAF} \\
+        --biallelic-only \\
+        --allow-extra-chr \\
+        --set-missing-var-ids @:# \\
+        --geno \\
+        --make-bed \\
+        --recode vcf-iid bgz \\
+        --extract \$trait.\$chromosome.\$start_pos.\$end_pos.txt \\
+        --out \$trait.\$chromosome.\$start_pos.\$end_pos
+
+    nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
+
+    plink --r2 with-freqs \\
+        --allow-extra-chr \\
+        --snps-only \\
+        --ld-window-r2 0 \\
+        --ld-snp \$chromosome:\$peak_pos \\
+        --ld-window \$nsnps \\
+        --ld-window-kb 6000 \\
+        --chr \$chromosome \\
+        --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
+        --set-missing-var-ids @:# \\
+        --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
+
+    sed 's/  */\\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
+    cut -f2-10 |\\
+    sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.\$map_algo.LD.tsv
+
+    bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
+        sed 's/[[# 0-9]*]//g' |\\
+        sed 's/:GT//g' |\\
+        sed 's/0|0/-1/g' |\\
+        sed 's/1|1/1/g' |\\
+        sed 's/0|1/NA/g' |\\
+        sed 's/1|0/NA/g' |\\
+        sed 's/.|./NA/g'  |\\
+        sed 's/0\\/0/-1/g' |\\
+        sed 's/1\\/1/1/g'  |\\
+        sed 's/0\\/1/NA/g' |\\
+        sed 's/1\\/0/NA/g' |\\
+        sed 's/.\\/./NA/g' |\\
+        sed 's/^23/X/g' > \$trait.\$chromosome:\$start_pos-\$end_pos.\$map_algo.ROI_Genotype_Matrix.tsv
+
+    done < \$filename
+
+    """
+}    
+
+
+/*
+------------ Run fine mapping
+*/
+
+process sim_fine_maps {
+
+    echo 'true'
+
+    input:
+        set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex), file(roi_geno_matrix), file(roi_ld) from LD_files_to_finemap
+
+
+    output:
+
+
+    """
+        for i in *ROI_Genotype_Matrix.tsv;
+        do
+            echo \$i
+        done   
 
     """
 }
