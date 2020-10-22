@@ -14,29 +14,36 @@ args <- commandArgs(trailingOnly = TRUE)
 setwd(args[7])
 file.prefix <- paste(args[1],args[2],args[3],args[4],args[5],args[6],sep = "_")
 mapping.dir <- paste("Simulations", args[5], args[1], "Mappings", sep = "/")
+real.effects <- data.table::fread(paste("Simulations", args[5], args[1], "Phenotypes", 
+                                        paste(file.prefix,"sims.par",sep = "_"), sep = "/"))
 
 gcta.inbred <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                        "_processed_LMM_EXACT_INBRED_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "LMM-EXACT-INBRED")
+  dplyr::mutate(algorithm = "LMM-EXACT-INBRED",
+                strain = as.character(strain))
 gcta <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                 "_processed_LMM_EXACT_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "LMM-EXACT")
+  dplyr::mutate(algorithm = "LMM-EXACT",
+                strain = as.character(strain))
 emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                 "_processed_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "EMMAx")
+  dplyr::mutate(algorithm = "EMMAx",
+                strain = as.character(strain),
+                marker = gsub(marker, pattern = "_", replacement = ":"))
 
 combined.fastGWA.results <- gcta.inbred %>%
   dplyr::full_join(., gcta) %>%
   dplyr::full_join(., emmax) %>%
-  dplyr::mutate(CHROM = as.factor(CHROM))
+  dplyr::mutate(CHROM = as.factor(CHROM),
+                Simulated = marker %in% real.effects$QTL)
 
 BF <- unique(combined.fastGWA.results$BF)[1]
-ggplot(data = combined.fastGWA.results,
-       aes(x = POS/1000000, 
-           y = log10p,
-           colour = as.factor(aboveBF),
-           fill = as.factor(aboveBF),
-           alpha = as.factor(aboveBF))) + 
+combined.fastGWA.results %>%
+  dplyr::arrange(Simulated) %>%
+  ggplot(.,aes(x = POS/1000000, 
+             y = log10p,
+             fill = as.factor(Simulated),
+             colour = as.factor(aboveBF))) + 
   theme_classic() + 
   geom_rect(aes(xmin = startPOS/1000000, 
                 xmax = endPOS/1000000, 
@@ -49,8 +56,7 @@ ggplot(data = combined.fastGWA.results,
             alpha=.3) + 
   geom_point(shape = 21) +
   scale_colour_manual(values = c("black","red")) + 
-  scale_fill_manual(values = c("black","red")) + 
-  scale_alpha_manual(values = c(0.1,1)) + 
+  scale_fill_manual(values = c("black","yellow")) + 
   scale_y_continuous(expand = c(0,0)) +
   geom_hline(yintercept = BF, linetype = 2) +
   labs(x = "Genomic position (Mb)",

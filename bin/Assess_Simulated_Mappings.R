@@ -13,20 +13,11 @@ setwd(paste(args[1],"Simulations",sep = "/"))
 today <- format(Sys.time(), '%Y%m%d')
 
 
-poopy
 # Simulated QTLs and Effects
 effects <- list.files(pattern = ".par",recursive = T)
 iterations <- purrr::map(effects, .f = function(x){
    paste(strsplit(strsplit(x,split = "/")[[1]][4],split = "_")[[1]][1:6], collapse = "_") # QUEST
 })
-
-# # Arms and Centers
-# arms.centers <- readr::read_tsv("/projects/b1059/projects/Sam/NemaScan/bin/ARMS_CENTERS.tsv",
-#                                 col_names = c("CHR","START","STOP","TYPE"),
-#                                 cols())
-# arms.centers$CHR <- as.factor(arms.centers$CHR)
-# levels(arms.centers$CHR) <- c(1,2,3,4,5,6)
-
 
 # Assessing Mapping Performance
 simulation.metrics <- function(x){
@@ -40,6 +31,7 @@ simulation.metrics <- function(x){
    
    print(x)
    
+   # Effects
    effects <- data.table::fread(paste(paste(effect.range,
                                      nQTL,
                                      "Phenotypes", sep = "/"),
@@ -47,6 +39,50 @@ simulation.metrics <- function(x){
                                 header = T)
    effects <- effects %>% 
       tidyr::separate(QTL, c("CHROM","POS"), sep = ":", remove = F)
+   
+   # Phenotypes
+   phenos <- data.table::fread(paste(paste(effect.range,
+                                            nQTL,
+                                            "Phenotypes", sep = "/"),
+                                      paste(x,"sims.phen",sep = "_"), sep = "/"),
+                                header = F)  %>%
+      `colnames<-`(c("strain","strain2","trait.value")) %>%
+      dplyr::select(-strain2)
+   
+   # Genotype Matrix
+   # ("-1" = "REF", "1" = "ALT")
+   genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+                                     args[1],
+                                     "/Genotype_Matrix/",
+                                     paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                              header = T) %>%
+      tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
+      dplyr::filter(QTL %in% effects$QTL) %>%
+      dplyr::select(-CHROM, -POS) %>%
+      tidyr::pivot_longer(cols = !c(QTL, REF, ALT), names_to = "strain", values_to = "allele") %>%
+      dplyr::full_join(.,effects) %>%
+      dplyr::full_join(.,phenos) %>%
+      dplyr::group_by(QTL) %>%
+      tidyr::nest()
+   
+   # Simulated Variance Explained
+   var.exp <- function(data,QTL){
+      aov.out <- summary(aov(data = data, trait.value ~ allele + 1))
+      SST <- sum(aov.out[[1]][[2]])
+      SSallele <- aov.out[[1]][[2]][[1]]
+      simulated.variance.exp <- SSallele/SST
+      data.frame(QTL, simulated.variance.exp)
+   }
+   simQTL.variance.explained <- purrr::map2(genos.effects$data, 
+              genos.effects$QTL, 
+              var.exp) %>%
+      Reduce(rbind,.)
+   
+   effects <- effects %>%
+      dplyr::full_join(.,simQTL.variance.explained) %>%
+      dplyr::rename(Simulated.QTL.VarExp = simulated.variance.exp)
+      
+   
    
    safe.lmm.exact.inbred <- purrr::safely(.f = function(x){data.table::fread(paste(paste(effect.range,nQTL,"Mappings", sep = "/"),
                                                                                    paste(x,"processed_LMM_EXACT_INBRED_mapping.tsv",sep = "_"), sep = "/"),header = T)}, 
@@ -74,15 +110,25 @@ simulation.metrics <- function(x){
       dplyr::filter(!duplicated(.)) %>%
       dplyr::mutate(detected.peak = marker)
    
+   simulated.mapping.results.scores <- mapping.lmm.exact.inbred$result %>%
+      dplyr::rename(QTL = marker) %>%
+      dplyr::filter(QTL %in% effects$QTL) %>%
+      dplyr::select(QTL, log10p)
+   
+   effects.scores <- effects %>%
+      dplyr::full_join(., simulated.mapping.results.scores) %>%
+      dplyr::filter(!duplicated(QTL))
+   
    peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
                                    ranges = IRanges::IRanges(start = peak.info$startPOS, 
                                                              end = peak.info$endPOS),
                                    peakPOS = peak.info$peakPOS,
                                    detected.peak = peak.info$detected.peak)
-   real.effects <- GenomicRanges::GRanges(seqnames = effects$CHROM,
-                                          ranges = IRanges::IRanges(start = as.numeric(effects$POS), 
-                                                                    end = as.numeric(effects$POS)),
-                                          QTL = effects$QTL)
+   real.effects <- GenomicRanges::GRanges(seqnames = effects.scores$CHROM,
+                                          ranges = IRanges::IRanges(start = as.numeric(effects.scores$POS), 
+                                                                    end = as.numeric(effects.scores$POS)),
+                                          QTL = effects.scores$QTL)
+   
    overlap <- IRanges::findOverlapPairs(real.effects, peaks) %>%
       as.data.frame() %>%
       dplyr::select(first.QTL, second.X.start, second.peakPOS, second.X.end, second.detected.peak) %>%
@@ -90,17 +136,22 @@ simulation.metrics <- function(x){
       dplyr::right_join(., peak.info) %>%
       dplyr::mutate(QTL = if_else(is.na(QTL), true = detected.peak, false = QTL))
    
-   all.QTL <- data.frame(c(effects$QTL, overlap$QTL)) %>%
+   all.QTL <- data.frame(c(effects.scores$QTL, overlap$QTL)) %>%
       `colnames<-`(c("QTL")) %>%
       dplyr::filter(!duplicated(QTL)) %>%
       dplyr::mutate(QTL = as.character(QTL),
-                    Simulated = (QTL %in% effects$QTL),
+                    Simulated = (QTL %in% effects.scores$QTL),
                     Detected = (QTL %in% overlap$QTL)) %>%
-      dplyr::full_join(.,effects, by = "QTL") %>%
+      dplyr::full_join(.,effects.scores, by = "QTL") %>%
       dplyr::full_join(.,overlap, by = "QTL") %>%
-      dplyr::select(-CHROM.y, -marker, -POS.y, -AF1) %>%
       dplyr::mutate(sim = x,
-                    algorithm = "LMM-EXACT-INBRED")
+                    var.exp = as.character(var.exp),
+                    BETA = as.character(BETA),
+                    log10p = if_else(condition = is.na(log10p.y), 
+                                     true = log10p.x, 
+                                     false = log10p.y),
+                    algorithm = "LMM-EXACT-INBRED") %>%
+      dplyr::select(-CHROM.y, -marker, -POS.y, -AF1, -log10p.x, -log10p.y)
 
    all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
    all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
@@ -113,45 +164,58 @@ simulation.metrics <- function(x){
    if(is.character(mapping.lmm.exact$result)){
       lmm.exact <- c("No mapping for simulation parameters")
    } else {
-   peak.info <- mapping.lmm.exact$result %>%
-      dplyr::mutate(causal.variant = as.factor(marker %in% effects$QTL)) %>%
-      dplyr::filter(!is.na(peak_id)) %>%
-      dplyr::select(CHROM, marker, POS, AF1, BETA, log10p, startPOS, peakPOS, endPOS, peak_id, interval_size, causal.variant, var.exp) %>%
-      dplyr::filter(!duplicated(.)) %>%
-      dplyr::mutate(detected.peak = marker)
-   
-   peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
-                                   ranges = IRanges::IRanges(start = peak.info$startPOS, 
-                                                             end = peak.info$endPOS),
-                                   peakPOS = peak.info$peakPOS,
-                                   detected.peak = peak.info$detected.peak)
-   real.effects <- GenomicRanges::GRanges(seqnames = effects$CHROM,
-                                          ranges = IRanges::IRanges(start = as.numeric(effects$POS), 
-                                                                    end = as.numeric(effects$POS)),
-                                          QTL = effects$QTL)
-   
-   overlap <- IRanges::findOverlapPairs(real.effects, peaks) %>%
-      as.data.frame() %>%
-      dplyr::select(first.QTL, second.X.start, second.peakPOS, second.X.end, second.detected.peak) %>%
-      `colnames<-`(c("QTL","startPOS","peakPOS","endPOS","detected.peak")) %>%
-      dplyr::right_join(., peak.info) %>%
-      dplyr::mutate(QTL = if_else(is.na(QTL), true = detected.peak, false = QTL))
-   
-   all.QTL <- data.frame(c(effects$QTL, overlap$QTL)) %>%
-      `colnames<-`(c("QTL")) %>%
-      dplyr::filter(!duplicated(QTL)) %>%
-      dplyr::mutate(QTL = as.character(QTL),
-                    Simulated = (QTL %in% effects$QTL),
-                    Detected = (QTL %in% overlap$QTL)) %>%
-      dplyr::full_join(.,effects, by = "QTL") %>%
-      dplyr::full_join(.,overlap, by = "QTL") %>%
-      dplyr::select(-CHROM.y, -marker, -POS.y, -AF1) %>%
-      dplyr::mutate(sim = x,
-                 algorithm = "LMM-EXACT")
-   
-   all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
-   all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
-   lmm.exact <- all.QTL
+      peak.info <- mapping.lmm.exact$result %>%
+         dplyr::mutate(causal.variant = as.factor(marker %in% effects$QTL)) %>%
+         dplyr::filter(!is.na(peak_id)) %>%
+         dplyr::select(CHROM, marker, POS, AF1, BETA, log10p, startPOS, peakPOS, endPOS, peak_id, interval_size, causal.variant, var.exp) %>%
+         dplyr::filter(!duplicated(.)) %>%
+         dplyr::mutate(detected.peak = marker)
+      
+      simulated.mapping.results.scores <- mapping.lmm.exact$result %>%
+         dplyr::rename(QTL = marker) %>%
+         dplyr::filter(QTL %in% effects$QTL) %>%
+         dplyr::select(QTL, log10p)
+      effects.scores <- effects %>%
+         dplyr::full_join(., simulated.mapping.results.scores) %>%
+         dplyr::filter(!duplicated(QTL))
+      
+      peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
+                                      ranges = IRanges::IRanges(start = peak.info$startPOS, 
+                                                                end = peak.info$endPOS),
+                                      peakPOS = peak.info$peakPOS,
+                                      detected.peak = peak.info$detected.peak)
+      real.effects <- GenomicRanges::GRanges(seqnames = effects.scores$CHROM,
+                                             ranges = IRanges::IRanges(start = as.numeric(effects.scores$POS), 
+                                                                       end = as.numeric(effects.scores$POS)),
+                                             QTL = effects.scores$QTL)
+      
+      overlap <- IRanges::findOverlapPairs(real.effects, peaks) %>%
+         as.data.frame() %>%
+         dplyr::select(first.QTL, second.X.start, second.peakPOS, second.X.end, second.detected.peak) %>%
+         `colnames<-`(c("QTL","startPOS","peakPOS","endPOS","detected.peak")) %>%
+         dplyr::right_join(., peak.info) %>%
+         dplyr::mutate(QTL = if_else(is.na(QTL), true = detected.peak, false = QTL))
+      
+      all.QTL <- data.frame(c(effects.scores$QTL, overlap$QTL)) %>%
+         `colnames<-`(c("QTL")) %>%
+         dplyr::filter(!duplicated(QTL)) %>%
+         dplyr::mutate(QTL = as.character(QTL),
+                       Simulated = (QTL %in% effects.scores$QTL),
+                       Detected = (QTL %in% overlap$QTL)) %>%
+         dplyr::full_join(.,effects.scores, by = "QTL") %>%
+         dplyr::full_join(.,overlap, by = "QTL") %>%
+         dplyr::mutate(sim = x,
+                       var.exp = as.character(var.exp),
+                       BETA = as.character(BETA),
+                       log10p = if_else(condition = is.na(log10p.y), 
+                                        true = log10p.x, 
+                                        false = log10p.y),
+                       algorithm = "LMM-EXACT") %>%
+         dplyr::select(-CHROM.y, -marker, -POS.y, -AF1, -log10p.x, -log10p.y)
+      
+      all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
+      all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
+      lmm.exact <- all.QTL
    }
    #####
    
@@ -167,15 +231,23 @@ simulation.metrics <- function(x){
       dplyr::filter(!duplicated(.)) %>%
       dplyr::mutate(detected.peak = marker)
    
+   simulated.mapping.results.scores <- mapping.EMMA$result %>%
+      dplyr::rename(QTL = marker) %>%
+      dplyr::filter(QTL %in% effects$QTL) %>%
+      dplyr::select(QTL, log10p)
+   effects.scores <- effects %>%
+      dplyr::full_join(., simulated.mapping.results.scores) %>%
+      dplyr::filter(!duplicated(QTL))
+   
    peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
                                    ranges = IRanges::IRanges(start = peak.info$startPOS, 
                                                              end = peak.info$endPOS),
                                    peakPOS = peak.info$peakPOS,
                                    detected.peak = peak.info$detected.peak)
-   real.effects <- GenomicRanges::GRanges(seqnames = effects$CHROM,
-                                          ranges = IRanges::IRanges(start = as.numeric(effects$POS), 
-                                                                    end = as.numeric(effects$POS)),
-                                          QTL = effects$QTL)
+   real.effects <- GenomicRanges::GRanges(seqnames = effects.scores$CHROM,
+                                          ranges = IRanges::IRanges(start = as.numeric(effects.scores$POS), 
+                                                                    end = as.numeric(effects.scores$POS)),
+                                          QTL = effects.scores$QTL)
    overlap <- IRanges::findOverlapPairs(real.effects, peaks) %>%
       as.data.frame() %>%
       dplyr::select(first.QTL, second.X.start, second.peakPOS, second.X.end, second.detected.peak) %>%
@@ -183,17 +255,23 @@ simulation.metrics <- function(x){
       dplyr::right_join(., peak.info) %>%
       dplyr::mutate(QTL = if_else(is.na(QTL), true = detected.peak, false = QTL))
    
-   all.QTL <- data.frame(c(effects$QTL, overlap$QTL)) %>%
+   all.QTL <- data.frame(c(effects.scores$QTL, overlap$QTL)) %>%
       `colnames<-`(c("QTL")) %>%
       dplyr::filter(!duplicated(QTL)) %>%
       dplyr::mutate(QTL = as.character(QTL),
-                    Simulated = (QTL %in% effects$QTL),
-                    Detected = (QTL %in% overlap$QTL)) %>%
-      dplyr::full_join(.,effects, by = "QTL") %>%
+                    Simulated = (QTL %in% effects.scores$QTL),
+                    Detected = (QTL %in% overlap$QTL),
+                    BETA = NA) %>%
+      dplyr::full_join(.,effects.scores, by = "QTL") %>%
       dplyr::full_join(.,overlap, by = "QTL") %>%
-      dplyr::select(-CHROM.y, -marker, -POS.y) %>%
       dplyr::mutate(sim = x,
-                 algorithm = "EMMA")
+                    var.exp = as.character(var.exp),
+                    BETA = as.character(BETA),
+                    log10p = if_else(condition = is.na(log10p.y), 
+                                     true = log10p.x, 
+                                     false = log10p.y),
+                    algorithm = "EMMA") %>%
+      dplyr::select(-CHROM.y, -marker, -POS.y, -log10p.x, -log10p.y)
    
    all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
    all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
@@ -205,24 +283,25 @@ simulation.metrics <- function(x){
    
    if(is.character(lmm.exact.inbred)){
       if(is.character(lmm.exact)){
-         if(is.character(EMMA)){print("No Successful Mappings")
-         } else {all.assessments <- EMMA}
-         } 
-      else {
-         if(is.character(EMMA)){all.assessments <- lmm.exact
-         } else {all.assessments <- lmm.exact %>% dplyr::full_join(., EMMA)}
-         }
+         if(is.character(EMMA)){print("No Successful Mappings")} 
+         else {all.assessments <- EMMA}
+         } else {
+            if(is.character(EMMA)){all.assessments <- lmm.exact}
+            else {all.assessments <- lmm.exact %>% dplyr::full_join(., EMMA)}
+            }
       } else {
          if(is.character(lmm.exact)){
-            if(is.character(EMMA)){all.assessments <- lmm.exact.inbred
-            } else {all.assessments <- lmm.exact.inbred %>% dplyr::full_join(., EMMA)}
-         } else { 
-               if(is.character(EMMA)){all.assessments <- lmm.exact.inbred %>% dplyr::full_join(.,lmm.exact)
-               } else {all.assessments <- lmm.exact.inbred %>% dplyr::full_join(.,lmm.exact) %>% dplyr::full_join(., EMMA)}
+            if(is.character(EMMA)){all.assessments <- lmm.exact.inbred} 
+            else {all.assessments <- lmm.exact.inbred %>% dplyr::full_join(., EMMA)}
+            } else {
+               if(is.character(EMMA)){all.assessments <- lmm.exact.inbred %>% dplyr::full_join(.,lmm.exact)} 
+               else {all.assessments <- lmm.exact.inbred %>% dplyr::full_join(.,lmm.exact) %>% dplyr::full_join(., EMMA)}
          }
-         }
-}
+      }
+   
+   
+   
+   }
 simulation.metrics.list <- purrr::map(iterations, simulation.metrics)
-simuation.metrics.df <- do.call(rbind, simulation.metrics.list)
-save(simuation.metrics.df, 
-     file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
+simulation.metrics.df <- Reduce(rbind, simulation.metrics.list)
+save(simulation.metrics.df, file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
