@@ -11,7 +11,7 @@ params.help 	 = null
 params.e_mem 	 = "100"
 params.eigen_mem = params.e_mem + " GB"
 params.cendr_v   = "20180527"
-params.fix_names = "fix"
+params.fix_names = null
 
 /*
 ~ ~ ~ > * Parameters: for simulations
@@ -895,6 +895,7 @@ if(params.simulate_qtlloc){
         tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
         publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA"
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*loco.mlma"
         publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.phen"
         publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.par"
 
@@ -905,13 +906,16 @@ if(params.simulate_qtlloc){
 
         output:
             set file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.bed"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.bim"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.fam"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.map"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.nosex"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.ped"), file("TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set}.log"), val(NQTL), val(SIMREP), file(loci), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par") into sim_phen_output
-            set file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
+            set file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"),file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.log"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.log") into sim_GCTA_mapping_results
+
             set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par"), val(effect_range), file(n_indep_tests) into sim_phen_to_emma
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA") into lmm_exact_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA") into lmm_exact_inbred_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma") into lmm_exact_loco_analyze_sims
+            file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.loco.mlma") into lmm_exact_loco_inbred_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen") into simphen_analyze_sims
             file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par") into simgen_analyze_sims
-            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen") into gcta_intervals
+            set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen") into gcta_intervals
 
         when:
             params.simulate
@@ -940,11 +944,8 @@ if(params.simulate_qtlloc){
         gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} --autosome --maf ${MAF} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm --thread-num 10
         gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} --autosome --maf ${MAF} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --thread-num 10
 
-
         gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen --reml --out check_vp --thread-num 10
-
         vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
-
         if (( \$(echo "0.00001 > \$vp" |bc -l) ));
         then
         awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen > temp.phen;
@@ -952,20 +953,34 @@ if(params.simulate_qtlloc){
         mv temp.phen ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
         fi
 
-        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm
 
+
+        gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm
         gcta64 --fastGWA-lmm-exact \\
             --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
             --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
             --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact \\
             --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
             --maf ${MAF}
+        gcta64 --mlma-loco \\
+            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
+            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
+            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact \\
+            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
+            --maf ${MAF}
+
 
         gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred
-
         gcta64 --fastGWA-lmm-exact \\
             --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
             --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
+            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred \\
+            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
+            --maf ${MAF}
+
+        gcta64 --mlma-loco \\
+            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
+            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
             --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred \\
             --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
             --maf ${MAF}
@@ -988,7 +1003,7 @@ if(params.simulate_qtlloc){
 
     process sim_emmma_maps {
 
-        cpus 16
+        memory '48 GB'
 
         publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_mapping.tsv"
 
@@ -1016,25 +1031,38 @@ if(params.simulate_qtlloc){
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_LOCO_mapping.tsv"
 
-    cpus 1
+    memory '48 GB'
 
     input:
-    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact), file(lmmexact_inbred), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
+    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact), file(lmmexact_inbred), file(lmmexact_loco), file(lmmexact_inbred_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
 
     output:
-    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*LMM_EXACT_mapping.tsv"), file("*LMM_EXACT_INBRED_mapping.tsv") into processed_gcta
-    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM_EXACT_qtl_region.tsv"), file("*LMM_EXACT_INBRED_qtl_region.tsv") into gcta_qtl_to_ld
+    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*LMM_EXACT_mapping.tsv"), file("*LMM_EXACT_INBRED_mapping.tsv"),file("*LMM_EXACT_LOCO_mapping.tsv"),file("*LMM_EXACT_INBRED_LOCO_mapping.tsv") into processed_gcta
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM_EXACT_qtl_region.tsv"), file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv"), file("*LMM_EXACT_INBRED_LOCO_qtl_region.tsv") into gcta_qtl_to_ld
     set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes) into simulated_phenotypes
 
     """
 
     Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT
-
     Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_INBRED
+    Rscript --vanilla `which Find_GCTA_Intervals_LOCO.R` ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_LOCO
+    Rscript --vanilla `which Find_GCTA_Intervals_LOCO.R` ${gm} ${phenotypes} ${lmmexact_inbred_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_INBRED_LOCO
 
     """
 }
+
+/*
+======================================
+~ > *                            * < ~
+~ ~ > *                        * < ~ ~
+~ ~ ~ > *  RUN GWAS MAPPING  * < ~ ~ ~
+~ ~ > *                        * < ~ ~
+~ > *                            * < ~
+======================================
+
 
     gcta_qtl_to_ld
         .combine(emmma_qtl_to_ld, by: [0,1,2,3,4,5,6])
@@ -1060,7 +1088,7 @@ if(params.simulate_qtlloc){
 
     filename='QTL_peaks.tsv'
     echo Start
-    while read p; do 
+    while read p; do
         chromosome=`echo \$p | cut -f1 -d' '`
         trait=`echo \$p | cut -f3 -d' '`
         start_pos=`echo \$p | cut -f4 -d' '`
@@ -1101,7 +1129,8 @@ if(params.simulate_qtlloc){
         --set-missing-var-ids @:# \\
         --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
 
-    sed 's/  */\\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
+
+    sed 's/  \\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
     cut -f2-10 |\\
     sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.\$map_algo.LD.tsv
 
@@ -1123,12 +1152,12 @@ if(params.simulate_qtlloc){
     done < \$filename
 
     """
-}    
-
+}
+*/
 
 /*
 ------------ Run fine mapping
-*/
+
 
 process sim_fine_maps {
 
@@ -1145,11 +1174,11 @@ process sim_fine_maps {
         for i in *ROI_Genotype_Matrix.tsv;
         do
             echo \$i
-        done   
+        done
 
     """
 }
-
+*/
 }
 
 /*
@@ -1370,7 +1399,7 @@ if (params.maps) {
 ~ ~ > *                      * < ~ ~
 ~ > *                          * < ~
 ====================================
-*/
+
 
     traits_to_burden
         .spread(vcf_to_burden)
@@ -1405,5 +1434,5 @@ if (params.maps) {
             --kernel skat
         """
     }
-
+*/
 }
