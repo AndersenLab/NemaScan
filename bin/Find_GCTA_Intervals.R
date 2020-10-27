@@ -25,6 +25,11 @@ library(ggbeeswarm)
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
+# args <- c("complete_0.05_Genotype_Matrix.tsv",  ## TESTING
+#           "1_33_0.9_0.05_gamma_complete_sims.phen", 
+#           "1_33_0.9_0.05_gamma_complete_lmm-exact_inbred.fastGWA",
+#           "complete_0.05_total_independent_tests.txt", 1, 33, 1000, 150, 0.9, 0.05, 
+#           "BF", "complete", 0.05, "gamma", "LMM_EXACT")
 
 # define the trait name
 trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
@@ -64,7 +69,7 @@ process_mapping_df <- function (mapping_df,
                                 snp_grouping = as.numeric(args[7]), 
                                 BF = NA,
                                 geno = genotype_matrix) {
-  pheno <- phenotype_df 
+  pheno <- phenotype_df
   
   pheno$trait <- colnames(phenotype_df)[2]
   
@@ -94,7 +99,12 @@ process_mapping_df <- function (mapping_df,
   
   snpsForVE$trait <- as.character(snpsForVE$trait)
   
-  if (nrow(snpsForVE) > 0) {
+  if (nrow(snpsForVE) > nrow(Processed)*0.8) {
+    Processed <- mapping_df %>% 
+      dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA, 
+                    startPOS = NA, peakPOS = NA, endPOS = NA, 
+                    peak_id = NA, interval_size = 0)
+  } else if (nrow(snpsForVE) < nrow(Processed)*0.5) {
     
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
     

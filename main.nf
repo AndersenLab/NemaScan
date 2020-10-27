@@ -894,10 +894,10 @@ if(params.simulate_qtlloc){
 
         tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA"
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*loco.mlma"
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.phen"
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.par"
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*loco.mlma", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.phen", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.par", overwrite: true
 
         cpus 4
 
@@ -1034,7 +1034,7 @@ if(params.simulate_qtlloc){
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_LOCO_mapping.tsv"
 
-    memory '48 GB'
+    memory '128 GB'
 
     input:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact), file(lmmexact_inbred), file(lmmexact_loco), file(lmmexact_inbred_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
