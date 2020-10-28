@@ -100,12 +100,7 @@ process_mapping_df <- function (mapping_df,
   
   snpsForVE$trait <- as.character(snpsForVE$trait)
   
-  if (nrow(snpsForVE) > nrow(Processed)*0.8) {
-    Processed <- mapping_df %>% 
-      dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA, 
-                    startPOS = NA, peakPOS = NA, endPOS = NA, 
-                    peak_id = NA, interval_size = 0)
-  } else if (nrow(snpsForVE) < nrow(Processed)*0.5) {
+  if (nrow(snpsForVE) < nrow(Processed)*0.5) {
     
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
     
@@ -175,7 +170,7 @@ process_mapping_df <- function (mapping_df,
           if (findPks$start[k] < min(tSNPs$index)) {
             findPks$start[k] <- min(tSNPs$index)
           }
-          else if (findPks$end[k] > max(tSNPs$index)) {
+          if (findPks$end[k] > max(tSNPs$index)) {
             findPks$end[k] <- max(tSNPs$index)
           }
         }
