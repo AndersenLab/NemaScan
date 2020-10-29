@@ -25,6 +25,16 @@ gcta <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                 "_processed_LMM_EXACT_mapping.tsv",sep = "")) %>%
   dplyr::mutate(algorithm = "LMM-EXACT",
                 strain = as.character(strain))
+gcta.loco.inbred <- data.table::fread(paste(mapping.dir,"/",file.prefix,
+                                "_processed_LMM_EXACT_INBRED_LOCO_mapping.tsv",sep = "")) %>%
+  dplyr::mutate(algorithm = "LMM-EXACT-INBRED-LOCO",
+                strain = as.character(strain))
+
+gcta.loco <- data.table::fread(paste(mapping.dir,"/",file.prefix,
+                                     "_processed_LMM_EXACT_LOCO_mapping.tsv",sep = "")) %>%
+  dplyr::mutate(algorithm = "LMM-EXACT-LOCO",
+                strain = as.character(strain))
+
 emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                 "_processed_mapping.tsv",sep = "")) %>%
   dplyr::mutate(algorithm = "EMMAx",
@@ -33,6 +43,8 @@ emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
 
 combined.fastGWA.results <- gcta.inbred %>%
   dplyr::full_join(., gcta) %>%
+  dplyr::full_join(., gcta.loco.inbred) %>%
+  dplyr::full_join(., gcta.loco) %>%
   dplyr::full_join(., emmax) %>%
   dplyr::mutate(CHROM = as.factor(CHROM),
                 Simulated = marker %in% real.effects$QTL)
@@ -64,4 +76,4 @@ combined.fastGWA.results %>%
   theme(legend.position = "none") + 
   facet_grid(algorithm~CHROM, scales = "free_x", space = "free") + 
   ggtitle(paste("Manhattan Plot:",file.prefix)) + 
-  ggsave(paste(file.prefix,"manhattan.plot.png", sep = "."), width = 12, height = 5)
+  ggsave(paste(file.prefix,"manhattan.plot.png", sep = "."), width = 12, height = 12)
