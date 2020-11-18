@@ -120,7 +120,14 @@ process_mapping_df <- function (mapping_df,
   
   snpsForVE$trait <- as.character(snpsForVE$trait)
   
-  if (nrow(snpsForVE) > 0) {
+
+  if (nrow(snpsForVE) > nrow(Processed)*0.25) {
+    Processed <- mapping_df %>%
+      dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
+                    startPOS = NA, peakPOS = NA, endPOS = NA,
+                    peak_id = NA, interval_size = NA)
+  } 
+  if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.25) {
     
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
     
@@ -190,7 +197,7 @@ process_mapping_df <- function (mapping_df,
           if (findPks$start[k] < min(tSNPs$index)) {
             findPks$start[k] <- min(tSNPs$index)
           }
-          else if (findPks$end[k] > max(tSNPs$index)) {
+          if (findPks$end[k] > max(tSNPs$index)) {
             findPks$end[k] <- max(tSNPs$index)
           }
         }
@@ -260,7 +267,8 @@ process_mapping_df <- function (mapping_df,
     Processed <- suppressWarnings(dplyr::left_join(correlation_df, 
                                                    interval_pos_df, by = c("trait", "CHROM", "POS"), 
                                                    copy = TRUE))
-  } else {
+  }
+  else {
     Processed <- mapping_df %>% 
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA, 
                     startPOS = NA, peakPOS = NA, endPOS = NA, 

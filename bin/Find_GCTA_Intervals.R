@@ -53,12 +53,12 @@ genotype_matrix <- readr::read_tsv(args[1]) %>%
 significance_threshold <- args[11]
 
 # set significance threshold
-if(significance_threshold == "BF"){
+if(significance_threshold == "EIGEN"){
+  QTL_cutoff <- data.table::fread(args[4]) %>% dplyr::pull(V1) # Independent tests should be fed to calculation
+} else if(significance_threshold == "BF"){
   QTL_cutoff <- NA
-} else if(significance_threshold == "EIGEN"){
-  QTL_cutoff <- data.table::fread(args[4]) %>% dplyr::pull(V1)
 } else {
-  QTL_cutoff <- as.numeric(args[11])
+  QTL_cutoff <- as.numeric(args[11]) # Specified Threshold
 }
 
 
@@ -68,6 +68,7 @@ process_mapping_df <- function (mapping_df,
                                 CI_size = as.numeric(args[8]),
                                 snp_grouping = as.numeric(args[7]),
                                 BF = NA,
+                                thresh = significance_threshold,
                                 geno = genotype_matrix) {
   pheno <- phenotype_df
 
@@ -75,20 +76,32 @@ process_mapping_df <- function (mapping_df,
 
   colnames(pheno) <- c("strain", "value", "trait")
 
-  if (!is.na(BF) & BF < 1) {
-    message("Taking -log10 of BF.")
-    BF <- -log10(BF)
+  # Determine how to make threshold
+  if (is.na(QTL_cutoff)){ 
+    mapping_df <- mapping_df %>% 
+      dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
+      dplyr::group_by(trait) %>% 
+      dplyr::filter(log10p != 0) %>% 
+      dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>% 
+      dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
+  } 
+  else if (is.numeric(QTL_cutoff) & thresh == "EIGEN"){
+    mapping_df <- mapping_df %>% 
+      dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
+      dplyr::group_by(trait) %>% 
+      dplyr::filter(log10p != 0) %>% 
+      dplyr::mutate(BF = -log10(0.05/BF)) %>% 
+      dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
+  } 
+  else {
+    mapping_df <- mapping_df %>% 
+      dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
+      dplyr::group_by(trait) %>% 
+      dplyr::filter(log10p != 0) %>% 
+      dplyr::mutate(BF = BF) %>% 
+      dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
   }
-
-  #colnames(mapping_df) <- c("CHROM", "marker", "POS", "A1", "A2", "N", "AF1", "BETA", "SE", "P", "log10p")
-
-  mapping_df <- mapping_df %>%
-    dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
-    dplyr::group_by(trait) %>%
-    dplyr::filter(log10p != 0) %>%
-    dplyr::mutate(BF = ifelse(is.na(BF), -log10(0.05/sum(log10p > 0, na.rm = T)), BF)) %>%
-    dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
-
+  
   Processed <- mapping_df %>%
     dplyr::filter(sum(aboveBF, na.rm = T) > 0) %>%
     dplyr::ungroup()
@@ -99,12 +112,13 @@ process_mapping_df <- function (mapping_df,
 
   snpsForVE$trait <- as.character(snpsForVE$trait)
 
-  if (nrow(snpsForVE) > nrow(Processed)*0.8) {
+  if (nrow(snpsForVE) > nrow(Processed)*0.25) {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
-                    peak_id = NA, interval_size = 0)
-  } else if (nrow(snpsForVE) < nrow(Processed)*0.5) {
+                    peak_id = NA, interval_size = NA)
+  } 
+  else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.25) {
 
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
 
@@ -244,7 +258,8 @@ process_mapping_df <- function (mapping_df,
     Processed <- suppressWarnings(dplyr::left_join(correlation_df,
                                                    interval_pos_df, by = c("trait", "CHROM", "POS"),
                                                    copy = TRUE))
-  } else {
+  } 
+  else {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
@@ -256,11 +271,12 @@ process_mapping_df <- function (mapping_df,
 
 
 # process mapping data, define QTL
-processed_mapping <- process_mapping_df(map_df,
-                                        phenotype_data,
+processed_mapping <- process_mapping_df(mapping_df = map_df,
+                                        phenotype_df = phenotype_data,
                                         CI_size = as.numeric(args[8]),
                                         snp_grouping = as.numeric(args[7]),
                                         BF = QTL_cutoff,
+                                        thresh = significance_threshold,
                                         geno = genotype_matrix)
 
 # save processed mapping data

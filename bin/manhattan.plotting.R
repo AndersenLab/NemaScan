@@ -44,12 +44,16 @@ emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
 combined.fastGWA.results <- gcta.inbred %>%
   dplyr::full_join(., gcta) %>%
   dplyr::full_join(., gcta.loco.inbred) %>%
-  dplyr::full_join(., gcta.loco) %>%
   dplyr::full_join(., emmax) %>%
   dplyr::mutate(CHROM = as.factor(CHROM),
                 Simulated = marker %in% real.effects$QTL)
 
 BF <- unique(combined.fastGWA.results$BF)[1]
+if(max(combined.fastGWA.results$log10p) > BF){
+  lim <- max(combined.fastGWA.results$log10p) + 2
+} else {
+  lim <- BF + 2
+}
 combined.fastGWA.results %>%
   dplyr::arrange(Simulated) %>%
   ggplot(.,aes(x = POS/1000000, 
@@ -57,19 +61,10 @@ combined.fastGWA.results %>%
              fill = as.factor(Simulated),
              colour = as.factor(aboveBF))) + 
   theme_classic() + 
-  geom_rect(aes(xmin = startPOS/1000000, 
-                xmax = endPOS/1000000, 
-                ymin = 0, 
-                ymax = Inf, 
-                fill = "blue"),
-            color = "blue",
-            fill = "cyan",
-            linetype = 2, 
-            alpha=.3) + 
   geom_point(shape = 21) +
   scale_colour_manual(values = c("black","red")) + 
   scale_fill_manual(values = c("black","yellow")) + 
-  scale_y_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,lim)) +
   geom_hline(yintercept = BF, linetype = 2) +
   labs(x = "Genomic position (Mb)",
        y = expression(-log[10](italic(p)))) +
