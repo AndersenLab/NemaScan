@@ -6,9 +6,9 @@ library(valr)
 # 2 - number if qtl to simulate 
 # 3 - effect size specification (either a range: "0.2-0.3" or "gamma")
 # 4 - a bed file that contains genomic ranges to spike in QTL
+# setwd("~/Documents/projects/NemaScan_Performance/data")
 # args <- c("TO_SIMS.bim", 100, "gamma", "test.bed")
-# args <- c("TO_SIMS.bim", 100, "0.2-0.3", "test.bed")
-
+# args <- c("TO_SIMS.bim", 5, "0.2-0.3", "chr125.bed")
 args = commandArgs(trailingOnly=TRUE)
 
 variants <- read.table(args[1]) %>%
