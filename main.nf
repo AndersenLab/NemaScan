@@ -1115,7 +1115,7 @@ if(params.simulate_qtlloc){
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
 
-    memory '48 GB'
+    memory '64 GB'
 
     input:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
