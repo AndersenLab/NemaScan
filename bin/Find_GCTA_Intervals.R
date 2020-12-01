@@ -26,10 +26,10 @@ library(ggbeeswarm)
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
 # args <- c("complete_0.05_Genotype_Matrix.tsv",  ## TESTING
-#           "1_33_0.9_0.05_gamma_complete_sims.phen",
-#           "1_33_0.9_0.05_gamma_complete_lmm-exact_inbred.fastGWA",
-#           "complete_0.05_total_independent_tests.txt", 1, 33, 1000, 150, 0.9, 0.05,
-#           "BF", "complete", 0.05, "gamma", "LMM_EXACT")
+#           "5_49_0.2_0.05_gamma_complete_sims.phen",
+#           "5_49_0.2_0.05_gamma_complete_lmm-exact_inbred.fastGWA",
+#           "complete_0.05_total_independent_tests.txt", 5, 49, 1000, 150, 0.2, 0.05,
+#           "BF", "complete", 0.05, "gamma", "LMM_EXACT_INBRED")
 
 # define the trait name
 trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
@@ -84,16 +84,14 @@ process_mapping_df <- function (mapping_df,
       dplyr::filter(log10p != 0) %>% 
       dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>% 
       dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
-  } 
-  else if (is.numeric(QTL_cutoff) & thresh == "EIGEN"){
+  } else if (is.numeric(QTL_cutoff) & thresh == "EIGEN"){
     mapping_df <- mapping_df %>% 
       dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
       dplyr::group_by(trait) %>% 
       dplyr::filter(log10p != 0) %>% 
       dplyr::mutate(BF = -log10(0.05/BF)) %>% 
       dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
-  } 
-  else {
+  } else {
     mapping_df <- mapping_df %>% 
       dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
       dplyr::group_by(trait) %>% 
@@ -112,13 +110,12 @@ process_mapping_df <- function (mapping_df,
 
   snpsForVE$trait <- as.character(snpsForVE$trait)
 
-  if (nrow(snpsForVE) > nrow(Processed)*0.25) {
+  if (nrow(snpsForVE) > nrow(Processed)*0.15) {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
                     peak_id = NA, interval_size = NA)
-  } 
-  else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.25) {
+  } else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.15) {
 
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
 
@@ -258,8 +255,7 @@ process_mapping_df <- function (mapping_df,
     Processed <- suppressWarnings(dplyr::left_join(correlation_df,
                                                    interval_pos_df, by = c("trait", "CHROM", "POS"),
                                                    copy = TRUE))
-  } 
-  else {
+  } else {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,

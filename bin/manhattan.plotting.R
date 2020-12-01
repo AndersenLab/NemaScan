@@ -21,30 +21,28 @@ gcta.inbred <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                        "_processed_LMM_EXACT_INBRED_mapping.tsv",sep = "")) %>%
   dplyr::mutate(algorithm = "LMM-EXACT-INBRED",
                 strain = as.character(strain))
-gcta <- data.table::fread(paste(mapping.dir,"/",file.prefix,
-                                "_processed_LMM_EXACT_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "LMM-EXACT",
-                strain = as.character(strain))
-gcta.loco.inbred <- data.table::fread(paste(mapping.dir,"/",file.prefix,
-                                "_processed_LMM_EXACT_INBRED_LOCO_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "LMM-EXACT-INBRED-LOCO",
-                strain = as.character(strain))
+# gcta <- data.table::fread(paste(mapping.dir,"/",file.prefix,
+#                                 "_processed_LMM_EXACT_mapping.tsv",sep = "")) %>%
+#   dplyr::mutate(algorithm = "LMM-EXACT",
+#                 strain = as.character(strain))
+# gcta.loco.inbred <- data.table::fread(paste(mapping.dir,"/",file.prefix,
+#                                 "_processed_LMM_EXACT_INBRED_LOCO_mapping.tsv",sep = "")) %>%
+#   dplyr::mutate(algorithm = "LMM-EXACT-INBRED-LOCO",
+#                 strain = as.character(strain))
 
 gcta.loco <- data.table::fread(paste(mapping.dir,"/",file.prefix,
                                      "_processed_LMM_EXACT_LOCO_mapping.tsv",sep = "")) %>%
   dplyr::mutate(algorithm = "LMM-EXACT-LOCO",
                 strain = as.character(strain))
 
-emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
-                                "_processed_mapping.tsv",sep = "")) %>%
-  dplyr::mutate(algorithm = "EMMAx",
-                strain = as.character(strain),
-                marker = gsub(marker, pattern = "_", replacement = ":"))
+# emmax <- data.table::fread(paste(mapping.dir,"/",file.prefix,
+#                                 "_processed_mapping.tsv",sep = "")) %>%
+#   dplyr::mutate(algorithm = "EMMAx",
+#                 strain = as.character(strain),
+#                 marker = gsub(marker, pattern = "_", replacement = ":"))
 
 combined.fastGWA.results <- gcta.inbred %>%
-  dplyr::full_join(., gcta) %>%
-  dplyr::full_join(., gcta.loco.inbred) %>%
-  dplyr::full_join(., emmax) %>%
+  dplyr::full_join(., gcta.loco) %>%
   dplyr::mutate(CHROM = as.factor(CHROM),
                 Simulated = marker %in% real.effects$QTL)
 
@@ -61,6 +59,15 @@ combined.fastGWA.results %>%
              fill = as.factor(Simulated),
              colour = as.factor(aboveBF))) + 
   theme_classic() + 
+  geom_rect(aes(xmin = startPOS/1000000, 
+                xmax = endPOS/1000000, 
+                ymin = 0, 
+                ymax = Inf, 
+                fill = "blue"),
+            color = "blue",
+            fill = "cyan",
+            linetype = 2, 
+            alpha=.3)+ 
   geom_point(shape = 21) +
   scale_colour_manual(values = c("black","red")) + 
   scale_fill_manual(values = c("black","yellow")) + 
@@ -71,4 +78,4 @@ combined.fastGWA.results %>%
   theme(legend.position = "none") + 
   facet_grid(algorithm~CHROM, scales = "free_x", space = "free") + 
   ggtitle(paste("Manhattan Plot:",file.prefix)) + 
-  ggsave(paste(file.prefix,"manhattan.plot.png", sep = "."), width = 12, height = 12)
+  ggsave(paste(file.prefix,"manhattan.plot.png", sep = "."), width = 12, height = 6)

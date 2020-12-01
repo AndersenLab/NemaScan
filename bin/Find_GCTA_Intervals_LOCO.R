@@ -122,12 +122,12 @@ process_mapping_df <- function (mapping_df,
 
   snpsForVE$trait <- as.character(snpsForVE$trait)
 
-  if (nrow(snpsForVE) > nrow(Processed)*0.25) {
+  if (nrow(snpsForVE) > nrow(Processed)*0.15) {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
                     peak_id = NA, interval_size = NA)
-  } else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.25) {
+  } else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.15) {
 
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
 
@@ -202,8 +202,7 @@ process_mapping_df <- function (mapping_df,
           }
         }
         intervals[[i]] <- findPks %>% dplyr::ungroup()
-      }
-      else {
+      } else {
         findPks$pID <- 1
         for (j in 2:nrow(findPks)) {
           findPks$pID[j] <- ifelse(abs(findPks$index[j] - findPks$index[j - 1]) < snp_grouping & findPks$CHROM[j] == findPks$CHROM[j - 1],
