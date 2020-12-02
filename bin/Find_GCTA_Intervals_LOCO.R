@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 library(tidyverse)
-library(rrBLUP)
 library(ggbeeswarm)
 
 # argument information
@@ -25,11 +24,18 @@ library(ggbeeswarm)
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
-# args <- c("complete_0.05_Genotype_Matrix.tsv",  ## TESTING
-#           "5_49_0.2_0.05_gamma_complete_sims.phen",
-#           "5_49_0.2_0.05_gamma_complete_lmm-exact_inbred.fastGWA",
-#           "complete_0.05_total_independent_tests.txt", 5, 49, 1000, 150, 0.2, 0.05,
-#           "BF", "complete", 0.05, "gamma", "LMM_EXACT_INBRED")
+# setwd("~/Documents/projects/NemaScan_Performance/data/")
+# args <- c("hahnel.isotypes_0.05_Genotype_Matrix.tsv",  ## TESTING
+#           "5_1_0.9_0.05_0.5-5_hahnel.isotypes_sims.phen",
+#           "5_1_0.9_0.05_0.5-5_hahnel.isotypes_lmm-exact.loco.mlma",
+#           "hahnel.isotypes_0.05_total_independent_tests.txt", 
+#           5, 
+#           1, 
+#           1000, 
+#           150, 
+#           0.9, 
+#           0.05,
+#           "BF", "hahnel.isotypes", 0.05, "0.5-5", "LMM_EXACT_LOCO")
 
 # define the trait name
 trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
@@ -42,7 +48,13 @@ phenotype_data <- data.table::fread(args[2], col.names = c("strain", "strain_dro
 
 # load GCTA mapping data
 map_df <- data.table::fread(args[3]) %>%
-  dplyr::rename(marker = SNP, CHROM = CHR) %>%
+  dplyr::rename(marker = SNP, 
+                CHROM = Chr,
+                POS = bp,
+                AF1 = Freq,
+                BETA = b,
+                SE = se,
+                P = p) %>%
   dplyr::mutate(log10p = -log10(P))
 
 # load genotype matrix
@@ -190,8 +202,7 @@ process_mapping_df <- function (mapping_df,
           }
         }
         intervals[[i]] <- findPks %>% dplyr::ungroup()
-      }
-      else {
+      } else {
         findPks$pID <- 1
         for (j in 2:nrow(findPks)) {
           findPks$pID[j] <- ifelse(abs(findPks$index[j] - findPks$index[j - 1]) < snp_grouping & findPks$CHROM[j] == findPks$CHROM[j - 1],
