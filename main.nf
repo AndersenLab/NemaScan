@@ -1365,6 +1365,8 @@ if (params.maps) {
         publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*fastGWA", overwrite: true
         publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*loco.mlma", overwrite: true
 
+        errorStrategy 'ignore'
+
         input:
         set val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), file(h2_inbred), file(h2log_inbred) from gcta_lmm_exact
 
@@ -1405,6 +1407,8 @@ if (params.maps) {
 
     publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
     publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
+    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_INBRED_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_LOCO_qtl_region.tsv"
 
     memory '48 GB'
 
