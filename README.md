@@ -138,7 +138,7 @@ Genotype_Matrix
       ├── traitname_LMM_EXACT_LOCO_qtl_region.tsv
 ```
 
-#### Genotype_Matrix folder
+#### Genotype_Matrix Folder
 * `Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix
 * `total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix
 
