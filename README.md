@@ -21,9 +21,9 @@ git clone https://github.com/AndersenLab/NemaScan.git
 ```
 
 ### Mappings Profile
-
-`nextflow main.nf -profile mappings --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv --sthresh [BF] [EIGEN] [#]`
-
+```
+nextflow main.nf -profile mappings --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv --sthresh [BF] [EIGEN] [#]
+```
 #### Required Mapping Parameters
 
 * `--vcf` - a VCF file with variant data. There should also be a tabix-generated index file (.tbi) in the same folder as the specified VCF file that has the same name as the VCF except for the addition of the `.tbi` extension. (generated using `tabix -p vcf vcfname.vcf.gz`). If this flag is not used, a VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
@@ -47,7 +47,7 @@ git clone https://github.com/AndersenLab/NemaScan.git
 ### Simulations Profile
 
 ```
-nextflow main.nf -profile simulations --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --out example_simulation_output
+nextflow main.nf -profile simulations --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --simulate_nqtl --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
 module load R/3.6.3
 Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 ```
@@ -70,7 +70,7 @@ Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 
 #### Optional Simulation Parameters
 
-* `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_effect_sizes.csv).
+* `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_locations.bed).
 
 ### Annotations Profile (in development)
 
@@ -136,9 +136,17 @@ Genotype_Matrix
   ├── QTL_Regions
       ├── traitname_LMM_EXACT_INBRED_qtl_region.tsv
       ├── traitname_LMM_EXACT_LOCO_qtl_region.tsv
+Plots
+  ├── ManhattanPlots
+      ├── traitname_manhattan.plot.png
+  ├── LDPlots
+      ├── traitname_LD.plot.png (if > 1 QTL detected)
+  ├── EffectPlots
+      ├── traitname_[QTL.INFO]_LOCO_effect.plot.png (if detected)
+      ├── traitname_[QTL.INFO]_INBRED_effect.plot.png (if detected)
 ```
 
-#### Genotype_Matrix Folder
+#### Genotype_Matrix
 * `Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix
 * `total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix
 
@@ -152,6 +160,11 @@ Genotype_Matrix
 * `traitname_lmm-exact.loco.mlma` - Processed mapping results from lmm-exact.loco.mlma raw mappings. Contains same additional information as above.
 ##### QTL_Regions
 * `traitname_*_qtl_region.tsv` - Contains only QTL information for each mapping. If no QTL are detected, an empty data frame is written.
+
+#### Plots
+* `traitname_manhattan.plot.png` - Standard output for GWA; association of marker differences with phenotypic variation in the population.
+* `traitname_LD.plot.png` - If more than 1 QTL are detected for a trait, a plot showing the linkage disequilibrium between each QTL is generated.
+* `traitname_[QTL.INFO]_INBRED_effect.plot.png` - Phenotypes for each strain are plotted against their marker genotype at the peak marker for each QTL detected for a trait. The dot representing each strain is shaded according to the percentage of the chromosome containing the QTL that is characterized as a selective sweep region.
 
 ### Simulation Output Folder Structure
 
