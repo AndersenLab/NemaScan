@@ -14,6 +14,7 @@ GWA Mapping and Simulation with _C. elegans, C. tropicalis, and C. briggsae_
 1. [R-rrBLUP-v4.6](https://cran.r-project.org/web/packages/rrBLUP/rrBLUP.pdf)
 1. [R-RSpectra-v0.13-1](https://github.com/yixuan/RSpectra)
 1. [R-ggbeeswarm-v0.6](https://github.com/eclarke/ggbeeswarm)
+1. [R-ggrepel](https://cran.r-project.org/web/packages/ggrepel/index.html)
 
 ## Downloading NemaScan
 ```
