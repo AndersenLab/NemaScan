@@ -125,7 +125,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
     log.info "--vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR"
     log.info "Optional arguments:"
-    log.info "--p3d                    BOOLEAN               Set to FALSE for EMMA algortith, TRUE for EMMAx"
     log.info "--maf                    String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
     log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
     log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
@@ -134,10 +133,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile simulations USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
     log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
@@ -1362,8 +1357,8 @@ if (params.maps) {
 
         cpus 4
 
-        publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*fastGWA", overwrite: true
-        publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*loco.mlma", overwrite: true
+        publishDir "${params.out}/Mapping/Raw", mode: 'copy', pattern: "*fastGWA", overwrite: true
+        publishDir "${params.out}/Mapping/Raw", mode: 'copy', pattern: "*loco.mlma", overwrite: true
 
         errorStrategy 'ignore'
 
@@ -1405,10 +1400,10 @@ if (params.maps) {
     process gcta_intervals_maps {
 
 
-    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
-    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
-    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_INBRED_qtl_region.tsv"
-    publishDir "${params.out}/Mapping/lmm_exact/Data", mode: 'copy', pattern: "*LMM_EXACT_LOCO_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
+    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
+    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_INBRED_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_LOCO_qtl_region.tsv"
 
     memory '48 GB'
 
