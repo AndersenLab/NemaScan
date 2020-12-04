@@ -8,12 +8,12 @@ args <- commandArgs(trailingOnly = TRUE)
 # [1]: LOCO mapping
 # [2]: INBRED mapping
 # [3]: Isotype Sweep Metrics from CeNDR as of 20201203
-args <- c("~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.EXT_LMM_EXACT_LOCO_mapping.tsv",
-          "~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.EXT_LMM_EXACT_INBRED_mapping.tsv",
-          "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
+# args <- c("~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.TOF_LMM_EXACT_LOCO_mapping.tsv",
+#           "~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.TOF_LMM_EXACT_INBRED_mapping.tsv",
+#           "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
 compute.LD <- function(QTL, algorithm, trait){
   if(length(unique(QTL$peak_id)) <= 1){
-    fake.LD <- data.frame(unique(QTL$marker),unique(QTL$marker),NA, algorithm, trait) %>%
+    data.frame(unique(QTL$marker),unique(QTL$marker),NA, algorithm, trait) %>%
       `colnames<-`(c("QTL1","QTL2","r2","algorithm","trait"))
   } else {
     QTLcombos <- data.frame(t(combn(x = unique(QTL$peak_id), m = 2))) %>%
@@ -154,21 +154,39 @@ trait.LD <- purrr::pmap(.l = list(nested.QTL$data, nested.QTL$algorithm, nested.
   Reduce(rbind,.)
 
   
-LDcheck <- trait.LD %>%
-  dplyr::filter(!is.na(r2))
 options(scipen = 999)
-if(nrow(LDcheck) > 0){
-  LD.plot <- LDcheck %>%
-    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-    theme_classic() +
-    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-    geom_text(aes(label = round(r2, 4))) + 
-    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-    facet_grid(.~algorithm) + 
-    theme(axis.title = element_blank(),
-          axis.text = element_text(colour = "black")) + 
-    labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-  ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = nrow(LDcheck)*2, height = nrow(LDcheck)*2)
+if(!is.null(trait.LD)){
+  check <- trait.LD %>%
+    dplyr::filter(!is.na(r2)) %>%
+    nrow()
+  if(check > 1){
+    if(length(levels(trait.LD$algorithm)) < 2){
+      LD.plot <- trait.LD %>%
+        dplyr::filter(!is.na(r2)) %>%
+        ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+        theme_classic() +
+        geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+        geom_text(aes(label = round(r2, 4))) + 
+        scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
+        facet_grid(.~algorithm) + 
+        theme(axis.title = element_blank(),
+              axis.text = element_text(colour = "black")) + 
+        labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
+      ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
+    } else {
+      LD.plot <- trait.LD %>%
+        dplyr::filter(!is.na(r2)) %>%
+        ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+        theme_classic() +
+        geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+        geom_text(aes(label = round(r2, 4))) + 
+        scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
+        theme(axis.title = element_blank(),
+              axis.text = element_text(colour = "black")) + 
+        labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
+      ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
+    }
+  }
 }
 
 
@@ -188,7 +206,7 @@ man.plot <- ggplot(data = for.plot,
              alpha = as.factor(aboveBF))) + 
   theme_bw() + 
   geom_point(shape = 21) +
-  scale_colour_manual(values = c("black","red")) + 
+  scale_colour_manual(values = c("black","black")) + 
   scale_fill_manual(values = c("black","red")) + 
   scale_alpha_manual(values = c(0.1,1)) + 
   scale_y_continuous(expand = c(0,0), limits = c(0,max(for.plot$log10p + 1))) +
