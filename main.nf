@@ -1440,7 +1440,7 @@ if (params.maps) {
 
     """
 
-    Rscript --vanilla `which pipeline.plotting.R` ${inbred_mapping} ${loco_mapping} `which sweep_summary.tsv`
+    Rscript --vanilla `which pipeline.plotting.R` ${loco_mapping} ${inbred_mapping} `which sweep_summary.tsv`
 
     """
 }
