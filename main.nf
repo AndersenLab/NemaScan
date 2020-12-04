@@ -199,7 +199,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 log.info ""
 log.info "Trait File                              = ${params.maps}"
 log.info "VCF                                     = ${params.simulate}"
-log.info "P3D                                     = ${params.p3d}"
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Eigen Memory allocation                 = ${params.eigen_mem}"
@@ -1421,6 +1420,33 @@ if (params.maps) {
 
     """
 }
+
+
+  processed_gcta
+      .into{plotting_data}
+
+  process generate_plots {
+
+
+    publishDir "${params.out}/Plots/LDPlots", mode: 'copy', pattern: "*_LD.plot.png"
+    publishDir "${params.out}/Plots/EffectPlots", mode: 'copy', pattern: "*_effect.plot.png"
+    publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
+
+    input:
+    set file(geno), file(pheno), file(inbred_mapping),file(loco_mapping), file(inbred_regions), file(loco_regions) from plotting_data
+
+    output:
+    file("*.png") into plots
+
+    """
+
+    Rscript --vanilla `which pipeline.plotting.R` ${inbred_mapping} ${loco_mapping} `which sweep_summary.tsv`
+
+    """
+}
+
+
+
 
     /*
     set file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv") into gcta_qtl_to_ld
