@@ -44,6 +44,10 @@ nextflow main.nf -profile mappings --vcf input_data/elegans/genotypes/WI.2018052
 
 * `--out` - A user-specified output directory name.
 
+* `--group_qtl` - QTL within this distance of each other (bp) will be grouped as a single QTL by `Find_GCTA_Intervals_*.R`.
+
+* `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval.
+
 
 ### Simulations Profile
 
@@ -73,6 +77,10 @@ Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 
 * `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_locations.bed).
 
+* `--group_qtl` - QTL within this distance of each other (bp) will be grouped as a single QTL by `Find_GCTA_Intervals_*.R`.
+
+* `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval.
+
 ### Annotations Profile (in development)
 
 `nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species briggsae --wb_build WS270`
@@ -86,10 +94,15 @@ Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 * `nextflow main.nf --help` - will display the help message
 
 
-### R scripts
+### Essential R Scripts
 
 * `Get_GenoMatrix_Eigen.R` - Takes a genotype matrix and chromosome name as input and identifies the number significant eigenvalues.
 * `Fix_Isotype_names_bulk.R` - Take sample names present in phenotype data and changes them to isotype names found on [CeNDR](elegansvariation.org) when the `--traitfile` flag is used.
+* `create_causal_QTLs.R` - (_Simulations Profile Only_) Simulates a number of QTL effects specified by `simulate_nqtl.csv` drawn from either 1) a user-specified range or 2) a _Gamma_ distribution with shape = 0.4 and scale = 1.66. Effects are randomly assigned positive or negative directional effects. This script will also source `simulate_locations.bed` if provided. Otherwise, all variants present after MAF filtering and LD pruning are eligible to be selected as causal.
+* `Find_GCTA_Intervals_Maps*.R` - (_Mapping Profile Only_) Assigns QTL "detection" intervals using the `--group_qtl` and `--ci_size` parameters if the number of significant markers does not exceed 15% of whole marker set (as this is a strong indication of high phenotypic noise due to genomic structure or low sampling). *NOTE* These regions should _not_ be treated statistical confidence intervals.
+* `Find_GCTA_Intervals_*.R` - (_Simulation Profile Only_) Assigns QTL "detection" intervals for each simulated mapping using the `--group_qtl` and `--ci_size` parameters if the number of significant markers does not exceed 15% of whole marker set (as this is a strong indication of high phenotypic noise due to genomic structure or low sampling). *NOTE* These regions should _not_ be treated statistical confidence intervals.
+* `Assess_Simulated_Mappings.R` - (_independent from nextflow pipeline_) Analyzes simulated mappings and gathers results and metadata for 1) all detected QTL and 2) undetected simulated QTL. Creates an .RData file within the Simulations directory that can be analyzed locally to determine performance for parameters of interest to the user.
+* `pipeline.plotting.R` - (_Mapping Profile Only_) Generates 1) manhattan plots for each trait in the traitfile, 2) LD heatmaps for 
 
 ### Input Data Folder Structure
 
