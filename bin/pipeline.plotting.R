@@ -8,8 +8,9 @@ args <- commandArgs(trailingOnly = TRUE)
 # [1]: LOCO mapping
 # [2]: INBRED mapping
 # [3]: Isotype Sweep Metrics from CeNDR as of 20201203
-# args <- c("~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.TOF_LMM_EXACT_LOCO_mapping.tsv",
-#           "~/Documents/projects/albendazole_JW_nemascan/mappings/processed_Albendazole_q10.TOF_LMM_EXACT_INBRED_mapping.tsv",
+#local testing
+# args <- c("~/Documents/projects/NemaScan_Performance/data/processed_100uM_gliotoxin_LMM_EXACT_LOCO_mapping.tsv",
+#           "~/Documents/projects/NemaScan_Performance/data/processed_100uM_gliotoxin_LMM_EXACT_INBRED_mapping.tsv",
 #           "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
 compute.LD <- function(QTL, algorithm, trait){
   if(length(unique(QTL$peak_id)) <= 1){
@@ -159,8 +160,7 @@ if(!is.null(trait.LD)){
   check <- trait.LD %>%
     dplyr::filter(!is.na(r2)) %>%
     nrow()
-  if(check > 1){
-    if(length(levels(trait.LD$algorithm)) < 2){
+  if(length(levels(trait.LD$algorithm)) < 2){
       LD.plot <- trait.LD %>%
         dplyr::filter(!is.na(r2)) %>%
         ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
@@ -186,7 +186,6 @@ if(!is.null(trait.LD)){
         labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
       ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
     }
-  }
 }
 
 
