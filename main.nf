@@ -1106,23 +1106,25 @@ if(params.simulate_qtlloc){
 
     process get_gcta_intervals {
 
-    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
-    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_aggregate_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
 
-    memory '64 GB'
+    memory '128 GB'
 
     input:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
 
     output:
-    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*LMM_EXACT_INBRED_mapping.tsv"),file("*LMM_EXACT_LOCO_mapping.tsv") into processed_gcta
-    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv") into gcta_qtl_to_ld
+    set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_aggregate_mapping.tsv"), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), file("*processed_LMM-EXACT-LOCO_mapping.tsv") into processed_gcta
+    set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*aggregate_qtl_region.tsv") into gcta_qtl_to_ld
     set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes) into simulated_phenotypes
 
     """
-
-    Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_INBRED
-    Rscript --vanilla `which Find_GCTA_Intervals_LOCO.R` ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM_EXACT_LOCO
+    Rscript --vanilla `which Aggregate_Mappings.R` ${lmmexact_loco} ${lmmexact_inbred}
+    Rscript --vanilla `which Find_Aggregate_Intervals.R` ${gm} ${phenotypes} temp.aggregate.mapping.tsv ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} aggregate
+    Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+    Rscript --vanilla `which Find_GCTA_Intervals_LOCO.R` ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
 
     """
 }
@@ -1398,11 +1400,8 @@ if (params.maps) {
 
     process gcta_intervals_maps {
 
-
-    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LMM_EXACT_INBRED_mapping.tsv"
-    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LMM_EXACT_LOCO_mapping.tsv"
-    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_INBRED_qtl_region.tsv"
-    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_LOCO_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_mapping.tsv"
+    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region.tsv"
 
     memory '48 GB'
 
@@ -1411,12 +1410,11 @@ if (params.maps) {
     set file(tests), file(geno), val(TRAIT), file(pheno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size) from mapping_data_gcta
 
     output:
-    set file(geno), file(pheno), file("*LMM_EXACT_INBRED_mapping.tsv"),file("*LMM_EXACT_LOCO_mapping.tsv"), file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv") into processed_gcta
+    set file(geno), file(pheno), file("*AGGREGATE_mapping.tsv"), file("*AGGREGATE_qtl_region.tsv") into processed_gcta
 
     """
-
-    Rscript --vanilla `which Find_GCTA_Intervals_Maps.R` ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_LMM_EXACT_INBRED
-    Rscript --vanilla `which Find_GCTA_Intervals_Maps_LOCO.R` ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_LMM_EXACT_LOCO
+    Rscript --vanilla `which Aggregate_Mappings.R` ${lmmexact_loco} ${lmmexact_inbred}
+    Rscript --vanilla `which Find_Aggregate_Intervals_Maps.R` ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
 
     """
 }
@@ -1433,14 +1431,14 @@ if (params.maps) {
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-    set file(geno), file(pheno), file(inbred_mapping),file(loco_mapping), file(inbred_regions), file(loco_regions) from plotting_data
+    set file(geno), file(pheno), file(aggregate_mapping), file(aggregate_regions) from plotting_data
 
     output:
     file("*.png") into plots
 
     """
 
-    Rscript --vanilla `which pipeline.plotting.R` ${loco_mapping} ${inbred_mapping} `which sweep_summary.tsv`
+    Rscript --vanilla `which pipeline.plotting.R` ${aggregate_mapping} `which sweep_summary.tsv`
 
     """
 }
@@ -1449,7 +1447,11 @@ if (params.maps) {
 
 
     /*
-    set file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv") into gcta_qtl_to_ld
+    set file("*LMM_EXACT_INBRED_qtl_region.tsv"), file("*LMM_EXACT_LOCO_qtl_region.tsv"), file("*AGGREGATE_qtl_region.tsv") into gcta_qtl_to_ld
+    Rscript --vanilla `which Find_GCTA_Intervals_Maps.R` ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_LMM_EXACT_INBRED
+    Rscript --vanilla `which Find_GCTA_Intervals_Maps_LOCO.R` ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_LMM_EXACT_LOCO
+    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_INBRED_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/QTL_Regions", mode: 'copy', pattern: "*LMM_EXACT_LOCO_qtl_region.tsv"
     ^^ when we're ready for fine mapping ^^
     */
 
