@@ -277,7 +277,7 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 
 # save processed mapping data
 readr::write_tsv(processed_mapping,
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
+                 file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
                  col_names = T)
 
 
@@ -289,5 +289,5 @@ qtl_region <- processed_mapping %>%
 
 # save processed mapping data
 readr::write_tsv(qtl_region,
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
+                 file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
                  col_names = T)
