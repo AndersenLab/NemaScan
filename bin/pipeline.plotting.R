@@ -8,14 +8,13 @@ args <- commandArgs(trailingOnly = TRUE)
 # [1]: LOCO mapping
 # [2]: INBRED mapping
 # [3]: Isotype Sweep Metrics from CeNDR as of 20201203
-#local testing
-# args <- c("~/Documents/projects/NemaScan_Performance/data/processed_100uM_gliotoxin_LMM_EXACT_LOCO_mapping.tsv",
-#           "~/Documents/projects/NemaScan_Performance/data/processed_100uM_gliotoxin_LMM_EXACT_INBRED_mapping.tsv",
-#           "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
-compute.LD <- function(QTL, algorithm, trait){
+# local testing
+# args <- c("~/Documents/AndersenLab/NemaScan_Performance/data/processed_Emodepside_cv.EXT_AGGREGATE_mapping.tsv",
+#           "~/Documents/AndersenLab//NemaScan_Performance/data/sweep_summary.tsv")
+compute.LD <- function(QTL, trait){
   if(length(unique(QTL$peak_id)) <= 1){
-    data.frame(unique(QTL$marker),unique(QTL$marker),NA, algorithm, trait) %>%
-      `colnames<-`(c("QTL1","QTL2","r2","algorithm","trait"))
+    data.frame(unique(QTL$marker),unique(QTL$marker),NA, trait) %>%
+      `colnames<-`(c("QTL1","QTL2","r2","trait"))
   } else {
     QTLcombos <- data.frame(t(combn(x = unique(QTL$peak_id), m = 2))) %>%
       `colnames<-`(c("QTL1","QTL2"))
@@ -78,13 +77,12 @@ compute.LD <- function(QTL, algorithm, trait){
         tidyr::pivot_wider(names_from = peak_id, values_from = marker) %>%
         `colnames<-`(c("QTL1","QTL2")) %>%
         dplyr::mutate(r2 = r2,
-                      algorithm = algorithm, 
                       trait = trait)
     }
     Reduce(rbind, LD)
   }
 }
-pxg.plots <- function(trait, data, algorithm){
+pxg.plots <- function(trait, data){
   if(nrow(data) == 1){
     print("Mitochondria!")
   } else {
@@ -122,24 +120,22 @@ pxg.plots <- function(trait, data, algorithm){
            x = "Genotype")
     print(plot)
     ggsave(paste(trait,"_", paste("CHR",unique(data$CHROM), sep = ""),"_",
-                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""),"_",
-                 algorithm, "_effect.plot.png",sep = ""), height = 5, width = 7)
+                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 7)
   }
 }
 # setwd("~/Documents/projects/albendazole_JW_nemascan/")
-LOCO <- data.table::fread(args[1]) %>%
-  dplyr::mutate(algorithm = "LOCO")
-INBRED <- data.table::fread(args[2]) %>%
-  dplyr::mutate(algorithm = "INBRED")
-sweeps <- data.table::fread(args[3])
-combined.mappings <- LOCO %>%
-  dplyr::full_join(., INBRED) %>%
+# LOCO <- data.table::fread(args[1]) %>%
+#   dplyr::mutate(algorithm = "LOCO")
+# INBRED <- data.table::fread(args[2]) %>%
+#   dplyr::mutate(algorithm = "INBRED")
+
+combined.mappings <- data.table::fread(args[1]) %>%
   dplyr::mutate(CHROM = as.factor(CHROM))
 levels(combined.mappings$CHROM) <- c("I","II","III","IV","V","X","Mt")
 combined.mappings <- combined.mappings %>%
   dplyr::select(-marker) %>%
-  tidyr::unite("marker",CHROM, POS, sep = ":", remove = F)
-
+  tidyr::unite("marker", CHROM, POS, sep = ":", remove = F)
+sweeps <- data.table::fread(args[2])
 
 ## LD PLOTS ##
 nested.QTL <- combined.mappings %>%
@@ -147,10 +143,11 @@ nested.QTL <- combined.mappings %>%
   dplyr::filter(!is.na(peak_id)) %>%
   dplyr::select(CHROM, marker, trait, algorithm, AF1, value, strain, allele, peak_id) %>%
   dplyr::distinct() %>%
-  dplyr::group_by(trait, algorithm) %>%
+  dplyr::group_by(trait) %>%
   tidyr::nest()
 
-trait.LD <- purrr::pmap(.l = list(nested.QTL$data, nested.QTL$algorithm, nested.QTL$trait), 
+trait.LD <- purrr::pmap(.l = list(nested.QTL$data, 
+                                  nested.QTL$trait), 
             .f = compute.LD) %>%
   Reduce(rbind,.)
 
@@ -160,32 +157,17 @@ if(!is.null(trait.LD)){
   check <- trait.LD %>%
     dplyr::filter(!is.na(r2)) %>%
     nrow()
-  if(length(levels(trait.LD$algorithm)) < 2){
-      LD.plot <- trait.LD %>%
-        dplyr::filter(!is.na(r2)) %>%
-        ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-        theme_classic() +
-        geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-        geom_text(aes(label = round(r2, 4))) + 
-        scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-        facet_grid(.~algorithm) + 
-        theme(axis.title = element_blank(),
-              axis.text = element_text(colour = "black")) + 
-        labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-      ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
-    } else {
-      LD.plot <- trait.LD %>%
-        dplyr::filter(!is.na(r2)) %>%
-        ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-        theme_classic() +
-        geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-        geom_text(aes(label = round(r2, 4))) + 
-        scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-        theme(axis.title = element_blank(),
-              axis.text = element_text(colour = "black")) + 
-        labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-      ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
-    }
+  LD.plot <- trait.LD %>%
+    dplyr::filter(!is.na(r2)) %>%
+    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+    theme_classic() +
+    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+    geom_text(aes(label = round(r2, 4))) + 
+    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
+    theme(axis.title = element_blank(),
+          axis.text = element_text(colour = "black")) + 
+    labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
+ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
 }
 
 
@@ -213,7 +195,7 @@ man.plot <- ggplot(data = for.plot,
                                                                          y = expression(-log[10](italic(p)))) +
   theme(legend.position = "none",
         panel.grid = element_blank()) + 
-  facet_grid(algorithm ~ CHROM, scales = "free_x", space = "free") + 
+  facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
   ggtitle(BF.frame$trait)
 ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan.plot.png"), width = 8, height = 4)
 
@@ -232,19 +214,18 @@ QTLcheck <- combined.mappings %>%
 if(QTLcheck > 0){
   nested.pxg.dat <- combined.mappings %>%
     dplyr::filter(!is.na(peak_id)) %>%
-    dplyr::select(CHROM, marker, trait, startPOS, peakPOS, endPOS, algorithm, AF1, value, strain, allele, peak_id) %>%
+    dplyr::select(CHROM, marker, trait, startPOS, peakPOS, endPOS, AF1, value, strain, allele, peak_id) %>%
     dplyr::distinct() %>%
     dplyr::mutate(startPOS = startPOS/1000000,
                   peakPOS = peakPOS/1000000,
                   endPOS = endPOS/1000000) %>%
     dplyr::left_join(.,sweep.chrom.pivot) %>%
-    dplyr::group_by(trait, peak_id, algorithm) %>%
+    dplyr::group_by(trait, peak_id) %>%
     tidyr::nest()
   
   
   purrr::pmap(.l = list(nested.pxg.dat$trait,
-                        nested.pxg.dat$data,
-                        nested.pxg.dat$algorithm), 
+                        nested.pxg.dat$data), 
               .f = pxg.plots)
 }
 
