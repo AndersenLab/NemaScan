@@ -9,7 +9,7 @@ args <- commandArgs(trailingOnly = TRUE)
 # [2]: INBRED mapping
 # [3]: Isotype Sweep Metrics from CeNDR as of 20201203
 # local testing
-# args <- c("~/Documents/AndersenLab/NemaScan_Performance/data/processed_Emodepside_cv.EXT_AGGREGATE_mapping.tsv",
+# args <- c("~/Documents/AndersenLab/NemaScan_Performance/data/processed_praziquantel.f.L4_AGGREGATE_mapping.tsv",
 #           "~/Documents/AndersenLab//NemaScan_Performance/data/sweep_summary.tsv")
 compute.LD <- function(QTL, trait){
   if(length(unique(QTL$peak_id)) <= 1){
@@ -21,6 +21,7 @@ compute.LD <- function(QTL, trait){
     
     LD <- list()
     for(i in 1:nrow(QTLcombos)){
+      print(i)
       peaks.of.interest <- as.numeric(QTLcombos[i,])
       haps <- QTL %>%
         dplyr::select(strain, allele, peak_id) %>%
@@ -55,6 +56,7 @@ compute.LD <- function(QTL, trait){
         dplyr::left_join(.,n) %>%
         dplyr::mutate(freq = n/total) %>%
         tidyr::unite("allele", c(p,peak_id), sep = "_") %>%
+        dplyr::ungroup() %>%
         dplyr::select(allele, freq) %>%
         tidyr::pivot_wider(names_from = allele, values_from = freq)
       
@@ -120,7 +122,7 @@ pxg.plots <- function(trait, data){
            x = "Genotype")
     print(plot)
     ggsave(paste(trait,"_", paste("CHR",unique(data$CHROM), sep = ""),"_",
-                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 7)
+                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 5)
   }
 }
 # setwd("~/Documents/projects/albendazole_JW_nemascan/")
@@ -140,7 +142,7 @@ sweeps <- data.table::fread(args[2])
 ## LD PLOTS ##
 nested.QTL <- combined.mappings %>%
   as.data.frame() %>%
-  dplyr::filter(!is.na(peak_id)) %>%
+  dplyr::filter(!is.na(peak_id), !is.na(allele)) %>%
   dplyr::select(CHROM, marker, trait, algorithm, AF1, value, strain, allele, peak_id) %>%
   dplyr::distinct() %>%
   dplyr::group_by(trait) %>%
@@ -178,22 +180,24 @@ BF.frame <- combined.mappings %>%
 for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
   dplyr::filter(CHROM != "Mt") %>%
-  droplevels()
-man.plot <- ggplot(data = for.plot,
-         aes(x = POS/1000000, 
-             y = log10p,
-             colour = as.factor(aboveBF),
-             fill = as.factor(aboveBF),
-             alpha = as.factor(aboveBF))) + 
+  dplyr::mutate(algorithm = as.factor(algorithm))
+  
+man.plot <- ggplot() + 
   theme_bw() + 
-  geom_point(shape = 21) +
-  scale_colour_manual(values = c("black","black")) + 
-  scale_fill_manual(values = c("black","red")) + 
-  scale_alpha_manual(values = c(0.1,1)) + 
+  geom_point(data = for.plot[which(for.plot$aboveBF == 1),], 
+             mapping = aes(x = POS/1000000, 
+                           y = log10p,
+                           fill = algorithm), shape = 21) +
+  scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
+  geom_point(data = for.plot[which(for.plot$aboveBF == 0),], 
+             mapping = aes(x = POS/1000000, 
+                           y = log10p), 
+             alpha = 0.25) +
   scale_y_continuous(expand = c(0,0), limits = c(0,max(for.plot$log10p + 1))) +
-  geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + labs(x = "Genomic position (Mb)",
-                                                                         y = expression(-log[10](italic(p)))) +
-  theme(legend.position = "none",
+  geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
+  labs(x = "Genomic position (Mb)",
+       y = expression(-log[10](italic(p)))) +
+  theme(legend.position = "bottom", 
         panel.grid = element_blank()) + 
   facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
   ggtitle(BF.frame$trait)
