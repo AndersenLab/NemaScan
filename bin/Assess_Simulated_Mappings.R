@@ -12,7 +12,7 @@ setwd(paste(args[1],"Simulations",sep = "/"))
 today <- format(Sys.time(), '%Y%m%d')
 
 # Simulated QTLs and Effects
-effects <- list.files(pattern = ".par",recursive = T)
+effects <- list.files(pattern = "sims.par",recursive = T)
 iterations <- purrr::map(effects, .f = function(x){
    paste(strsplit(strsplit(x,split = "/")[[1]][4],split = "_")[[1]][1:6], collapse = "_") # QUEST
 })
@@ -48,12 +48,12 @@ simulation.metrics <- function(x){
       dplyr::select(-strain2)
    
    # Genotype Matrix
-   # ("-1" = "REF", "1" = "ALT")
-   genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
-                                     args[1],
-                                     "/Genotype_Matrix/",
-                                     paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
-                              header = T) %>%
+   
+   complete.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+                           args[1],
+                           "/Genotype_Matrix/",
+                           paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                     header = T) %>%
       tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
       dplyr::filter(QTL %in% effects$QTL) %>%
       dplyr::select(-CHROM, -POS) %>%
@@ -61,7 +61,48 @@ simulation.metrics <- function(x){
       dplyr::full_join(.,effects) %>%
       dplyr::full_join(.,phenos) %>%
       dplyr::group_by(QTL) %>%
-      tidyr::nest()
+      dplyr::summarise(n = n()) %>%
+      dplyr::filter(n != 1,
+                    !is.na(QTL))
+   
+   
+   if(nrow(complete.effects) == nrow(effects)){
+      genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+                                               args[1],
+                                               "/Genotype_Matrix/",
+                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                         header = T) %>%
+         tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
+         dplyr::filter(QTL %in% effects$QTL) %>%
+         dplyr::select(-CHROM, -POS) %>%
+         tidyr::pivot_longer(cols = !c(QTL, REF, ALT), names_to = "strain", values_to = "allele") %>%
+         dplyr::full_join(.,effects) %>%
+         dplyr::full_join(.,phenos) %>%
+         dplyr::group_by(QTL) %>%
+         tidyr::nest()
+      
+   } else {
+      
+      effects.2 <- effects %>%
+         dplyr::filter(QTL %in% complete.effects$QTL) %>%
+         droplevels()
+      
+      genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+                                               args[1],
+                                               "/Genotype_Matrix/",
+                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                         header = T) %>%
+         tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
+         dplyr::filter(QTL %in% effects.2$QTL) %>%
+         dplyr::select(-CHROM, -POS) %>%
+         tidyr::pivot_longer(cols = !c(QTL, REF, ALT), names_to = "strain", values_to = "allele") %>%
+         dplyr::left_join(.,effects.2) %>%
+         dplyr::left_join(.,phenos) %>%
+         dplyr::group_by(QTL) %>%
+         tidyr::nest()
+   }
+   # ("-1" = "REF", "1" = "ALT")
+   
    
    # Simulated Variance Explained
    var.exp <- function(data,QTL){
