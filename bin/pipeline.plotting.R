@@ -9,8 +9,6 @@ args <- commandArgs(trailingOnly = TRUE)
 # [2]: INBRED mapping
 # [3]: Isotype Sweep Metrics from CeNDR as of 20201203
 # local testing
-# args <- c("~/Documents/AndersenLab/NemaScan_Performance/data/processed_praziquantel.f.L4_AGGREGATE_mapping.tsv",
-#           "~/Documents/AndersenLab//NemaScan_Performance/data/sweep_summary.tsv")
 compute.LD <- function(QTL, trait){
   if(length(unique(QTL$peak_id)) <= 1){
     data.frame(unique(QTL$marker),unique(QTL$marker),NA, trait) %>%
@@ -69,7 +67,7 @@ compute.LD <- function(QTL, trait){
       pApBpapb <- p %>%
         unlist() %>%
         prod()
-
+      
       D.AB <- P$REF_REF - pApB
       r2 <- (D.AB^2)/pApBpapb
       LD[[i]] <- QTL %>%
@@ -125,6 +123,10 @@ pxg.plots <- function(trait, data){
                  paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 5)
   }
 }
+
+# args <- c("~/Documents/projects/gliotoxin.mapping/data/processed_sd.bufalin_AGGREGATE_mapping.tsv",
+#           "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
+
 # setwd("~/Documents/projects/albendazole_JW_nemascan/")
 # LOCO <- data.table::fread(args[1]) %>%
 #   dplyr::mutate(algorithm = "LOCO")
@@ -153,23 +155,24 @@ trait.LD <- purrr::pmap(.l = list(nested.QTL$data,
             .f = compute.LD) %>%
   Reduce(rbind,.)
 
-  
 options(scipen = 999)
 if(!is.null(trait.LD)){
   check <- trait.LD %>%
     dplyr::filter(!is.na(r2)) %>%
     nrow()
-  LD.plot <- trait.LD %>%
-    dplyr::filter(!is.na(r2)) %>%
-    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-    theme_classic() +
-    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-    geom_text(aes(label = round(r2, 4))) + 
-    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-    theme(axis.title = element_blank(),
-          axis.text = element_text(colour = "black")) + 
-    labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
+  if(check != 0){
+    LD.plot <- trait.LD %>%
+      dplyr::filter(!is.na(r2)) %>%
+      ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+      theme_classic() +
+      geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+      geom_text(aes(label = round(r2, 4))) + 
+      scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
+      theme(axis.title = element_blank(),
+            axis.text = element_text(colour = "black")) + 
+      labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
+    ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
+  }
 }
 
 
