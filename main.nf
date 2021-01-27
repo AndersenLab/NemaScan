@@ -198,7 +198,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     '''
 log.info ""
 log.info "Trait File                              = ${params.maps}"
-log.info "VCF                                     = ${params.simulate}"
+log.info "VCF                                     = ${params.vcf}"
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Eigen Memory allocation                 = ${params.eigen_mem}"
@@ -983,10 +983,10 @@ if(params.simulate_qtlloc){
 
         tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*fastGWA", overwrite: true
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*loco.mlma", overwrite: true
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.phen", overwrite: true
-        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", mode: 'copy', pattern: "*.par", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
+        publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
         cpus 4
 
@@ -1110,7 +1110,7 @@ if(params.simulate_qtlloc){
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
 
-    memory '128 GB'
+    memory '64 GB'
 
     input:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
