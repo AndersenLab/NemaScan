@@ -1109,8 +1109,12 @@ if(params.simulate_qtlloc){
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_aggregate_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LD.tsv"
 
-    memory '64 GB'
+    memory '48 GB'
+
+    errorStrategy 'ignore'
 
     input:
     set val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE) from find_gcta_intervals
@@ -1358,8 +1362,8 @@ if (params.maps) {
 
         cpus 4
 
-        publishDir "${params.out}/Mapping/Raw", mode: 'copy', pattern: "*fastGWA", overwrite: true
-        publishDir "${params.out}/Mapping/Raw", mode: 'copy', pattern: "*loco.mlma", overwrite: true
+        publishDir "${params.out}/Mapping/Raw", pattern: "*fastGWA", overwrite: true
+        publishDir "${params.out}/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
 
         errorStrategy 'ignore'
 
@@ -1438,7 +1442,7 @@ if (params.maps) {
 
     """
 
-    Rscript --vanilla `which pipeline.plotting.R` ${aggregate_mapping} `which sweep_summary.tsv`
+    Rscript --vanilla `which pipeline.plotting.mod.R` ${aggregate_mapping} `which sweep_summary.tsv`
 
     """
 }
