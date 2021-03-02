@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
 library(tidyverse)
-library(rrBLUP)
 library(ggbeeswarm)
 
 # argument information
@@ -257,7 +256,7 @@ process_mapping_df <- function (mapping_df,
     interval_pos_df_LD <- interval_pos_df %>%
       dplyr::mutate(marker = paste(CHROM, POS, sep = ":"))
     if(nrow(interval_pos_df_LD) <= 1){
-      marker.LD <- data.frame(unique(gINFO$marker),unique(gINFO$marker),NA, unique(gINFO$trait)) %>%
+      marker.LD <- data.frame(unique(interval_pos_df_LD$marker),unique(interval_pos_df_LD$marker),NA, unique(interval_pos_df_LD$trait)) %>%
         `colnames<-`(c("QTL1","QTL2","r2","trait"))
     } else {
       QTLcombos <- data.frame(t(combn(x = unique(interval_pos_df_LD$marker), m = 2))) %>%
