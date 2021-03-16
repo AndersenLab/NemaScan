@@ -12,6 +12,7 @@ params.e_mem 	 = "100"
 params.eigen_mem = params.e_mem + " GB"
 params.cendr_v   = "20180527"
 params.fix_names = null
+params.R_libpath="/projects/b1059/software/R_lib_3.6.0"
 
 /*
 ~ ~ ~ > * Parameters: for simulations
@@ -393,7 +394,10 @@ if (params.maps) {
         params.maps
 
     """
-        Rscript --vanilla `which Fix_Isotype_names_bulk.R` ${phenotypes} ${params.fix_names}
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
+
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names}
     """
 
 }
@@ -568,7 +572,9 @@ if (params.maps) {
         """
             cat Genotype_Matrix.tsv |\\
             awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-            Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
+            
+            echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Get_GenoMatrix_Eigen.R > Get_GenoMatrix_Eigen.R
+            Rscript --vanilla Get_GenoMatrix_Eigen.R ${CHROM}_gm.tsv ${CHROM}   
         """
 
     }
@@ -1417,8 +1423,11 @@ if (params.maps) {
     set file(geno), file(pheno), file("*AGGREGATE_mapping.tsv"), file("*AGGREGATE_qtl_region.tsv") into processed_gcta
 
     """
-    Rscript --vanilla `which Aggregate_Mappings.R` ${lmmexact_loco} ${lmmexact_inbred}
-    Rscript --vanilla `which Find_Aggregate_Intervals_Maps.R` ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Aggregate_Mappings.R > Aggregate_Mappings.R
+    Rscript --vanilla Aggregate_Mappings.R ${lmmexact_loco} ${lmmexact_inbred}
+    
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_Aggregate_Intervals_Maps.R > Find_Aggregate_Intervals_Maps.R
+    Rscript --vanilla Find_Aggregate_Intervals_Maps.R ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
 
     """
 }
@@ -1441,8 +1450,8 @@ if (params.maps) {
     file("*.png") into plots
 
     """
-
-    Rscript --vanilla `which pipeline.plotting.mod.R` ${aggregate_mapping} `which sweep_summary.tsv`
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.R > pipeline.plotting.R
+    Rscript --vanilla pipeline.plotting.R ${aggregate_mapping} `which sweep_summary.tsv`
 
     """
 }

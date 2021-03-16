@@ -55,4 +55,4 @@ aggregate.mapping <- base %>%
                                       true = inbred$algorithm, 
                                       false = loco$algorithm))
 
-write_tsv(x = aggregate.mapping, file = "temp.aggregate.mapping.tsv")
+readr::write_tsv(x = aggregate.mapping, "temp.aggregate.mapping.tsv")
