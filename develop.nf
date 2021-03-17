@@ -17,7 +17,7 @@ date = new Date().format( 'yyyyMMdd' )
 params.traitfile = null
 params.vcf       = "20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
 params.help      = null
-params.e_mem     = "10"
+params.e_mem     = "100"
 params.eigen_mem = params.e_mem + " GB"
 params.fix_names = "fix" // does this need to be an option? why would we not want to run this?
 params.R_libpath = "/projects/b1059/software/R_lib_3.6.0"
@@ -220,6 +220,9 @@ workflow {
 
     } else if(params.simulate) {
 
+        vcf = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz")
+        vcf_index = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz.tbi")
+
         // for simulations
         File pop_file = new File(params.simulate_strains);
 
@@ -230,7 +233,7 @@ workflow {
             .spread(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
-        contigs = ["1", "2", "3", "4", "5", "6"]
+        contigs = Channel.from(["1", "2", "3", "4", "5", "6"])
         contigs.combine(prepare_simulation_files.out.sim_geno) | chrom_eigen_variants_sims
 
         chrom_eigen_variants_sims.out.sim_geno_eigen_join
@@ -295,7 +298,9 @@ process update_annotations {
         tuple file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wb_build}_refFlat.txt")
 
     """
-        Rscript --vanilla `which update_annotations.R` ${params.wb_build} ${params.species} ${gtf_to_refflat}
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/update_annotations.R > update_annotations.R
+        Rscript --vanilla update_annotations.R ${params.wb_build} ${params.species} ${gtf_to_refflat}
     """
 
 }   
@@ -750,7 +755,10 @@ process chrom_eigen_variants_sims {
     """
         cat ${geno} |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        Rscript --vanilla `which Get_GenoMatrix_Eigen.R` ${CHROM}_gm.tsv ${CHROM}
+
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Get_GenoMatrix_Eigen.R > Get_GenoMatrix_Eigen.R
+        Rscript --vanilla Get_GenoMatrix_Eigen.R ${CHROM}_gm.tsv ${CHROM}
 
         mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
     """
@@ -798,10 +806,11 @@ process simulate_effects_loc {
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt")
 
     """
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/create_causal_QTLs.R > create_causal_QTLs.R
+        Rscript --vanilla create_causal_QTLs.R ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
 
-     Rscript --vanilla `which create_causal_QTLs.R` ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
-
-     mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+        mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
 
     """
 }
@@ -821,10 +830,11 @@ process simulate_effects_genome {
 
 
     """
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/create_causal_QTLs.R > create_causal_QTLs.R
+        Rscript --vanilla create_causal_QTLs.R ${bim} ${NQTL} ${effect_range}
 
-     Rscript --vanilla `which create_causal_QTLs.R` ${bim} ${NQTL} ${effect_range}
-
-     mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+        mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
 
     """
 }
@@ -931,10 +941,18 @@ process get_gcta_intervals {
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
 
     """
-    Rscript --vanilla `which Aggregate_Mappings.R` ${lmmexact_loco} ${lmmexact_inbred}
-    Rscript --vanilla `which Find_Aggregate_Intervals.R` ${gm} ${phenotypes} temp.aggregate.mapping.tsv ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} aggregate
-    Rscript --vanilla `which Find_GCTA_Intervals.R` ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
-    Rscript --vanilla `which Find_GCTA_Intervals_LOCO.R` ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Aggregate_Mappings.R > Aggregate_Mappings.R
+        Rscript --vanilla Aggregate_Mappings.R ${lmmexact_loco} ${lmmexact_inbred}
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_Aggregate_Intervals.R > Find_Aggregate_Intervals.R
+        Rscript --vanilla Find_Aggregate_Intervals.R ${gm} ${phenotypes} temp.aggregate.mapping.tsv ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} aggregate
+        
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_GCTA_Intervals.R > Find_GCTA_Intervals.R
+        Rscript --vanilla Find_GCTA_Intervals.R ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+        
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_GCTA_Intervals_LOCO.R > Find_GCTA_Intervals_LOCO.R
+        Rscript --vanilla Find_GCTA_Intervals_LOCO.R ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
 
     """
 }
