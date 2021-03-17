@@ -25,9 +25,9 @@ library(ggbeeswarm)
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
 # args <- c("complete_0.05_Genotype_Matrix.tsv",  ## TESTING
-#           "25_100_0.8_0.05_gamma_complete_sims.phen",
+#           "1_9_0.2_0.05_gamma_complete_sims.phen",
 #           "temp.aggregate.mapping.tsv",
-#           "complete_0.05_total_independent_tests.txt", 25, 100, 1000, 150, 0.8, 0.05,
+#           "complete_0.05_total_independent_tests.txt", 1, 9, 1000, 150, 0.2, 0.05,
 #           "BF", "complete", 0.05, "gamma", "aggregate")
 
 # define the trait name
@@ -114,6 +114,7 @@ process_mapping_df <- function (mapping_df,
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
                     peak_id = NA, interval_size = NA)
+    
   } else if (nrow(snpsForVE) > 0 && nrow(snpsForVE) < nrow(Processed)*0.15) {
 
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
@@ -251,93 +252,20 @@ process_mapping_df <- function (mapping_df,
     interval_pos_df <- data.frame(data.table::rbindlist(interval_positions)) %>%
       dplyr::mutate(interval_size = endPOS - startPOS)
 
-    ## LD ###
-    
-    interval_pos_df_LD <- interval_pos_df %>%
-      dplyr::mutate(marker = paste(CHROM, POS, sep = ":"))
-    if(nrow(interval_pos_df_LD) <= 1){
-      marker.LD <- data.frame(unique(interval_pos_df_LD$marker),unique(interval_pos_df_LD$marker),NA, unique(interval_pos_df_LD$trait)) %>%
-        `colnames<-`(c("QTL1","QTL2","r2","trait"))
-    } else {
-      QTLcombos <- data.frame(t(combn(x = unique(interval_pos_df_LD$marker), m = 2))) %>%
-        `colnames<-`(c("marker1","marker2"))
-
-      LD <- list()
-      for(q in 1:nrow(QTLcombos)){
-        markers.of.interest <- c(as.character(QTLcombos[q,]$marker1),
-                                 as.character(QTLcombos[q,]$marker2))
-        haps <- suppressMessages(gINFO %>%
-          dplyr::select(strain, allele, marker) %>%
-          dplyr::filter(marker %in% markers.of.interest) %>%
-          dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
-          dplyr::mutate(marker = as.factor(marker)) %>%
-          tidyr::pivot_wider(names_from = marker, values_from = allele) %>%
-          `colnames<-`(c("strain","A","B")) %>%
-          tidyr::unite("hap", c(A,B), sep = "_", remove = F))
-
-        P <- suppressMessages(haps %>%
-          dplyr::group_by(hap) %>%
-          dplyr::summarise(n()/nrow(haps)) %>%
-          `colnames<-`(c("P","freq")) %>%
-          tidyr::pivot_wider(names_from = P, values_from = freq))
-
-        n <- suppressMessages(gINFO %>%
-          dplyr::select(marker) %>%
-          dplyr::mutate(marker = as.factor(marker)) %>%
-          dplyr::group_by(marker) %>%
-          dplyr::summarise(n()) %>%
-          `colnames<-`(c("marker_id","total")))
-
-        p <- suppressMessages(gINFO %>%
-          dplyr::select(strain, allele, marker) %>%
-          dplyr::filter(marker %in% markers.of.interest) %>%
-          dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
-          dplyr::mutate(marker = as.factor(marker)) %>%
-          dplyr::group_by(allele, marker) %>%
-          dplyr::summarise(n()) %>%
-          `colnames<-`(c("p","marker_id","n")) %>%
-          dplyr::left_join(.,n) %>%
-          dplyr::mutate(freq = n/total) %>%
-          tidyr::unite("allele", c(p,marker_id), sep = "_") %>%
-          dplyr::ungroup() %>%
-          dplyr::select(allele, freq) %>%
-          tidyr::pivot_wider(names_from = allele, values_from = freq))
-
-        pApB <- p %>%
-          dplyr::select(contains("REF")) %>%
-          c(.) %>%
-          unlist() %>%
-          prod()
-
-        pApBpapb <- p %>%
-          unlist() %>%
-          prod()
-
-        D.AB <- P$REF_REF - pApB
-        r2 <- (D.AB^2)/pApBpapb
-        LD[[q]] <- gINFO %>%
-          dplyr::select(marker) %>%
-          dplyr::filter(marker %in% markers.of.interest) %>%
-          dplyr::distinct()  %>%
-          tidyr::pivot_wider(names_from = marker, values_from = marker) %>%
-          `colnames<-`(c("QTL1","QTL2")) %>%
-          dplyr::mutate(r2 = r2,
-                        trait = unique(gINFO$trait))
-      }
-      marker.LD <- Reduce(rbind, LD)
-    }
 
     Processed <- suppressWarnings(dplyr::left_join(correlation_df,
                                                    interval_pos_df, by = c("trait", "CHROM", "POS"),
                                                    copy = TRUE))
+
   } else {
     Processed <- mapping_df %>%
       dplyr::mutate(strain = NA, value = NA, allele = NA, var.exp = NA,
                     startPOS = NA, peakPOS = NA, endPOS = NA,
                     peak_id = NA, interval_size = NA)
+    
   }
 
-  return(list(Processed,marker.LD))
+  return(Processed)
 }
 
 
@@ -351,12 +279,12 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
                                         geno = genotype_matrix)
 
 # save processed mapping data
-readr::write_tsv(processed_mapping[[1]],
+readr::write_tsv(processed_mapping,
                  file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
                  col_names = T)
 
 # extract interval information
-qtl_region <- processed_mapping[[1]] %>%
+qtl_region <- processed_mapping %>%
   na.omit() %>%
   dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id)
 
@@ -365,7 +293,88 @@ readr::write_tsv(qtl_region,
                  file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
                  col_names = T)
 
-# save mapping LD data
-readr::write_tsv(processed_mapping[[2]],
-                 file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_LD.tsv"),
-                 col_names = T)
+
+## LD ###
+# interval_pos_df_LD <- interval_pos_df %>%
+#   dplyr::mutate(marker = paste(CHROM, POS, sep = ":"))
+# 
+# if(nrow(interval_pos_df_LD) == 1){
+#   
+#   marker.LD <- data.frame(interval_pos_df_LD$marker, interval_pos_df_LD$marker, NA, unique(interval_pos_df_LD$trait)) %>%
+#     `colnames<-`(c("marker1","marker2","r2","trait"))
+#   
+# } else {
+#   QTLcombos <- data.frame(t(combn(x = unique(gINFO$marker), m = 2))) %>%
+#     `colnames<-`(c("marker1","marker2"))
+#   LD <- list()
+#   
+#   for(q in 1:nrow(QTLcombos)){
+#     markers.of.interest <- c(as.character(QTLcombos[q,]$marker1),
+#                              as.character(QTLcombos[q,]$marker2))
+#     haps <- suppressMessages(gINFO %>%
+#                                dplyr::select(strain, allele, marker) %>%
+#                                dplyr::filter(marker %in% markers.of.interest) %>%
+#                                dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
+#                                dplyr::mutate(marker = as.factor(marker)) %>%
+#                                tidyr::pivot_wider(names_from = marker, values_from = allele) %>%
+#                                `colnames<-`(c("strain","A","B")) %>%
+#                                tidyr::unite("hap", c(A,B), sep = "_", remove = F))
+#     
+#     P <- suppressMessages(haps %>%
+#                             dplyr::group_by(hap) %>%
+#                             dplyr::summarise(n()/nrow(haps)) %>%
+#                             `colnames<-`(c("P","freq")) %>%
+#                             tidyr::pivot_wider(names_from = P, values_from = freq))
+#     
+#     n <- suppressMessages(gINFO %>%
+#                             dplyr::select(marker) %>%
+#                             dplyr::mutate(marker = as.factor(marker)) %>%
+#                             dplyr::group_by(marker) %>%
+#                             dplyr::summarise(n()) %>%
+#                             `colnames<-`(c("marker_id","total")))
+#     
+#     p <- suppressMessages(gINFO %>%
+#                             dplyr::select(strain, allele, marker) %>%
+#                             dplyr::filter(marker %in% markers.of.interest) %>%
+#                             dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
+#                             dplyr::mutate(marker = as.factor(marker)) %>%
+#                             dplyr::group_by(allele, marker) %>%
+#                             dplyr::summarise(n()) %>%
+#                             `colnames<-`(c("p","marker_id","n")) %>%
+#                             dplyr::left_join(.,n) %>%
+#                             dplyr::mutate(freq = n/total) %>%
+#                             tidyr::unite("allele", c(p,marker_id), sep = "_") %>%
+#                             dplyr::ungroup() %>%
+#                             dplyr::select(allele, freq) %>%
+#                             tidyr::pivot_wider(names_from = allele, values_from = freq))
+#     
+#     pApB <- p %>%
+#       dplyr::select(contains("REF")) %>%
+#       c(.) %>%
+#       unlist() %>%
+#       prod()
+#     
+#     pApBpapb <- p %>%
+#       unlist() %>%
+#       prod()
+#     
+#     D.AB <- P$REF_REF - pApB
+#     r2 <- (D.AB^2)/pApBpapb
+#     LD[[q]] <- gINFO %>%
+#       dplyr::select(marker) %>%
+#       dplyr::filter(marker %in% markers.of.interest) %>%
+#       dplyr::distinct()  %>%
+#       tidyr::pivot_wider(names_from = marker, values_from = marker) %>%
+#       `colnames<-`(c("marker1","marker2")) %>%
+#       dplyr::mutate(r2 = r2,
+#                     trait = unique(gINFO$trait))
+#   }
+#   
+#   marker.LD <- Reduce(rbind, LD)
+# }
+
+
+# # save mapping LD data
+# readr::write_tsv(processed_mapping[[2]],
+#                  file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_LD.tsv"),
+#                  col_names = T)
