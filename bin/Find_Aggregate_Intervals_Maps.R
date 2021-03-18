@@ -284,17 +284,46 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
                                         snp_grouping = as.numeric(args[5]), 
                                         BF = QTL_cutoff,
                                         thresh = significance_threshold,
-                                        geno = genotype_matrix)
+                                        geno = genotype_matrix) %>%
+                dplyr::mutate(CHROM = dplyr::case_when(CHROM == 1 ~ "I",
+                                          CHROM == 2 ~ "II",
+                                          CHROM == 3 ~ "III",
+                                          CHROM == 4 ~ "IV",
+                                          CHROM == 5 ~ "V",
+                                          CHROM == 6 ~ "X",
+                                          CHROM == 7 ~ "MtDNA",
+                                          TRUE ~ "NA"),
+                              marker = glue::glue("{CHROM}:{POS}"))
 
 # save processed mapping data
 readr::write_tsv(processed_mapping,
                  c(paste("processed",args[8],"mapping.tsv", sep = "_")),
                  col_names = T)
 
+# add narrow-sense heritability point estimate
+# narrow sense heritability with sommer::mmer (no bootstrap)
+narrowh2 <- function(df_h){
+    h2_res <- sommer::mmer(value ~ 1, random = ~sommer::vs(strain, Gu = A), data = df_h)
+    h2 <- as.numeric(sommer::pin(h2_res, h2 ~ (V1) / (V1+V2))[[1]][1])
+    return(h2)
+}
+
+# get trait name and rename trait column
+traitname <- names(phenotype_data)[2]
+names(phenotype_data) <- c("strain", "value")
+
+# additive matrix - first filter by strain
+A <- sommer::A.mat(t(genotype_matrix %>% dplyr::select(dplyr::one_of(phenotype_data$strain))))
+
+result <- narrowh2(phenotype_data)
+
+
+
 # extract interval information
 qtl_region <- processed_mapping %>%
   na.omit() %>%
-  dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id)
+  dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id) %>%
+  dplyr::mutate(narrow_h2 = result)
 
 # save processed mapping data
 readr::write_tsv(qtl_region, 
