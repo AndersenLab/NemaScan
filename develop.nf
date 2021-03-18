@@ -1,13 +1,12 @@
 #! usr/bin/env nextflow
 
-nextflow.preview.dsl=2
-
 if( !nextflow.version.matches('20.0+') ) {
     println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
     println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
     exit 1
 }
 
+nextflow.preview.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
 
@@ -15,9 +14,13 @@ date = new Date().format( 'yyyyMMdd' )
 ~ ~ ~ > * Parameters: common to all analyses
 */
 params.traitfile = null
-params.vcf       = "20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
+params.vcf       = null //"20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
 params.help      = null
-params.e_mem     = "100"
+if(params.simulate) {
+    params.e_mem = "100"
+} else {
+    params.e_mem = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
+}
 params.eigen_mem = params.e_mem + " GB"
 params.fix_names = "fix" // does this need to be an option? why would we not want to run this?
 params.R_libpath = "/projects/b1059/software/R_lib_3.6.0"
@@ -170,8 +173,12 @@ workflow {
         impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
 
     } else {
+        // debug for now with small vcf
+        vcf = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz")
+        vcf_index = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz.tbi")
         //vcf = pull_vcf.out.dl_vcf
         //vcf_index = pull_vcf.out.dl_vcf_index
+        //need to figure this out with hard and impute vcf...
     }
 
     // for mapping
@@ -201,14 +208,28 @@ workflow {
             .spread(Channel.fromPath("${params.numeric_chrom}")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
 
         // process GWAS mapping
-        collect_eigen_variants.out
+        traits_to_map
+            .spread(collect_eigen_variants.out)
             .spread(vcf_to_geno_matrix.out)
-            .spread(traits_to_map)
-            .spread(Channel.from("${params.p3d}"))
-            .spread(Channel.from("${params.sthresh}"))
-            .spread(Channel.from("${params.group_qtl}"))
-            .spread(Channel.from("${params.ci_size}"))
-            .combine(gcta_lmm_exact_mapping.out) | gcta_intervals_maps | generate_plots
+            .combine(Channel.from("${params.p3d}"))
+            .combine(Channel.from("${params.sthresh}"))
+            .combine(Channel.from("${params.group_qtl}"))
+            .combine(Channel.from("${params.ci_size}"))
+            .join(gcta_lmm_exact_mapping.out) | gcta_intervals_maps
+
+        // plot
+        gcta_intervals_maps.out.maps_to_plot | generate_plots
+
+        // summarize all peaks
+        peaks = gcta_intervals_maps.out.qtl_peaks
+            .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
+
+        // divergent regions and haplotypes
+        peaks | divergent_and_haplotype
+
+        // generate main html report
+        peaks
+            .spread(traits_to_map) | html_report_main
 
     } else if(params.annotate) {
 
@@ -341,7 +362,7 @@ process fix_strain_names_bulk {
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
 
-        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names} ${workflow.projectDir}/input_data/elegans/isotypes/strain_isotype_lookup.tsv
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names} ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
     """
 
 }
@@ -414,6 +435,7 @@ process vcf_to_geno_matrix {
     """
 
 }
+
 
 
 /*
@@ -581,10 +603,10 @@ process gcta_lmm_exact_mapping {
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), file(h2_inbred), file(h2log_inbred)
 
     output:
-    tuple file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
 
-    when:
-        params.lmm_exact  // is this working?   
+    //when:
+    //    params.lmm_exact  // is this working?   
 
     """
 
@@ -611,15 +633,16 @@ process gcta_lmm_exact_mapping {
 process gcta_intervals_maps {
 
     publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_mapping.tsv"
-    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region.tsv"
+    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region.tsv" //would be nice to put all these files per trait into one file
 
     memory '48 GB'
 
     input:
-    tuple file(tests), file(geno), val(TRAIT), file(pheno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
+        tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
 
     output:
-    tuple file(geno), file(pheno), file("*AGGREGATE_mapping.tsv"), file("*AGGREGATE_qtl_region.tsv")
+        tuple file(geno), file(pheno), file("*AGGREGATE_mapping.tsv"), emit: maps_to_plot
+        path "*AGGREGATE_qtl_region.tsv", emit: qtl_peaks
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Aggregate_Mappings.R > Aggregate_Mappings.R
@@ -640,16 +663,81 @@ process generate_plots {
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-    tuple file(geno), file(pheno), file(aggregate_mapping), file(aggregate_regions)
+        tuple file(geno), file(pheno), file(aggregate_mapping)
 
     output:
-    file("*.png")
+        file("*.png")
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.R > pipeline.plotting.R
-    Rscript --vanilla pipeline.plotting.R ${aggregate_mapping} `which sweep_summary.tsv`
+    Rscript --vanilla pipeline.plotting.R ${aggregate_mapping} ${workflow.projectDir}/bin/sweep_summary.tsv
 
     """
+}
+
+// generate trait-specific html reports
+process html_report_main {
+
+  executor 'local'
+  errorStrategy 'ignore'
+
+  tag {TRAIT}
+  memory '16 GB'
+  
+
+  publishDir "${params.out}/Reports", mode: 'copy'
+
+
+  input:
+    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno)
+
+  output:
+    tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
+
+
+  """
+    cat "${workflow.projectDir}/bin/NemaScan_Report_main.Rmd" | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
+
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
+
+    Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='${workflow.launchDir}/${params.out}')"
+
+  """
+}
+
+/*
+------ Slice out the QTL region for plotting divergent region and haplotype data.
+*/
+
+
+process divergent_and_haplotype {
+
+  executor 'local'
+
+  publishDir "${params.out}/Divergent_and_haplotype", mode: 'copy'
+
+
+  input:
+    file("QTL_peaks.tsv")
+
+  output:
+    tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list.txt") //, emit: div_hap_table
+    //val true, emit: html_region_prep_table_done
+
+
+  """
+  awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$4,\$6}' > QTL_region.bed
+
+  bedtools intersect -wa -a ${workflow.projectDir}/${params.data_dir}/isotypes/divergent_bins.bed -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins.bed
+
+  bedtools intersect -a ${workflow.projectDir}/${params.data_dir}/isotypes/divergent_df_isotype.bed -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div.bed
+
+  bedtools intersect -a ${workflow.projectDir}/${params.data_dir}/isotypes/haplotype_df_isotype.bed -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt
+
+  cp ${workflow.projectDir}/${params.data_dir}/isotypes/div_isotype_list.txt . 
+
+  """
+
 }
 
 /*

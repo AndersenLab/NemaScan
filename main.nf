@@ -11,7 +11,7 @@ params.help 	 = null
 params.e_mem 	 = "100"
 params.eigen_mem = params.e_mem + " GB"
 params.cendr_v   = "20180527"
-params.fix_names = null
+params.fix_names = "fix"
 params.R_libpath="/projects/b1059/software/R_lib_3.6.0"
 
 /*
@@ -397,7 +397,7 @@ if (params.maps) {
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
 
-        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names}
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names} ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
     """
 
 }
