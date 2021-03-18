@@ -277,8 +277,9 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
                                         geno = genotype_matrix)
 
 # save processed mapping data
-readr::write_tsv(processed_mapping,
-                 file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
+
+readr::write_tsv(processed_mapping[[1]],
+                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
                  col_names = T)
 
 
@@ -290,7 +291,7 @@ qtl_region <- processed_mapping %>%
 
 # save processed mapping data
 readr::write_tsv(qtl_region,
-                 file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
+                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
                  col_names = T)
 
 # ## LD ###
@@ -371,7 +372,8 @@ readr::write_tsv(qtl_region,
 #   marker.LD <- Reduce(rbind, LD)
 # }
 
-# save mapping LD data
+## save mapping LD data
+
 # readr::write_tsv(processed_mapping[[2]],
 #                  file = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_LD.tsv"),
 #                  col_names = T)

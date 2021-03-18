@@ -3,3 +3,5 @@
 report.*
 Analysis_Results-*
 .nextflow/
+abatest-2021031*
+analysis/*
