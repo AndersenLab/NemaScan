@@ -145,8 +145,8 @@ pxg.plots <- function(trait, data){
 #           "~/Documents/projects/NemaScan_Performance/data/sweep_summary.tsv")
 
 combined.mappings <- data.table::fread(args[1]) %>%
-  dplyr::mutate(CHROM = as.factor(CHROM))
-levels(combined.mappings$CHROM) <- c("I","II","III","IV","V","X","Mt")
+  dplyr::mutate(CHROM = factor(CHROM, levels = c("I","II","III","IV","V","X","MtDNA")))
+# levels(combined.mappings$CHROM) <- c("I","II","III","IV","V","X","MtDNA")
 combined.mappings <- combined.mappings %>%
   dplyr::select(-marker) %>%
   tidyr::unite("marker", CHROM, POS, sep = ":", remove = F)
@@ -193,7 +193,7 @@ BF.frame <- combined.mappings %>%
   dplyr::filter(!duplicated(trait))
 for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
-  dplyr::filter(CHROM != "Mt") %>%
+  dplyr::filter(CHROM != "MtDNA") %>%
   dplyr::mutate(algorithm = as.factor(algorithm))
   
 man.plot <- ggplot() + 
