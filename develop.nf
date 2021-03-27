@@ -229,7 +229,8 @@ workflow {
 
         // generate main html report
         peaks
-            .spread(traits_to_map) | html_report_main
+            .spread(traits_to_map)
+            .combine(divergent_and_haplotype.out.div_done) | html_report_main
 
     } else if(params.annotate) {
 
@@ -669,40 +670,10 @@ process generate_plots {
         file("*.png")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.R > pipeline.plotting.R
-    Rscript --vanilla pipeline.plotting.R ${aggregate_mapping} ${workflow.projectDir}/bin/sweep_summary.tsv
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.mod.R > pipeline.plotting.mod.R
+    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${workflow.projectDir}/bin/sweep_summary.tsv
 
     """
-}
-
-// generate trait-specific html reports
-process html_report_main {
-
-  executor 'local'
-  errorStrategy 'ignore'
-
-  tag {TRAIT}
-  memory '16 GB'
-  
-
-  publishDir "${params.out}/Reports", mode: 'copy'
-
-
-  input:
-    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno)
-
-  output:
-    tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
-
-
-  """
-    cat "${workflow.projectDir}/bin/NemaScan_Report_main.Rmd" | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
-
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
-
-    Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='${workflow.launchDir}/${params.out}')"
-
-  """
 }
 
 /*
@@ -722,7 +693,7 @@ process divergent_and_haplotype {
 
   output:
     tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list.txt") //, emit: div_hap_table
-    //val true, emit: html_region_prep_table_done
+    val true, emit: div_done
 
 
   """
@@ -739,6 +710,39 @@ process divergent_and_haplotype {
   """
 
 }
+
+// generate trait-specific html reports
+process html_report_main {
+
+  executor 'local'
+  errorStrategy 'ignore'
+
+  tag {TRAIT}
+  memory '16 GB'
+  
+
+  publishDir "${params.out}/Reports", mode: 'copy'
+
+
+  input:
+    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno), val(div_done)
+
+  output:
+    tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
+
+
+  """
+    cat "${workflow.projectDir}/bin/NemaScan_Report_main.Rmd" | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
+    cat "${workflow.projectDir}/bin/NemaScan_Report_region_template.Rmd" > NemaScan_Report_region_template.Rmd 
+
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
+
+    Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='${workflow.launchDir}/${params.out}')"
+
+  """
+}
+
+
 
 /*
 ======================================
