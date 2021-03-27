@@ -242,8 +242,8 @@ workflow {
 
     } else if(params.simulate) {
 
-        vcf = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz")
-        vcf_index = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz.tbi")
+        // vcf = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz")
+        // vcf_index = Channel.fromPath("input_data/elegans/genotypes/WI.20180527.impute.vcf.gz.tbi")
 
         // for simulations
         File pop_file = new File(params.simulate_strains);
@@ -1018,7 +1018,6 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
-    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LD.tsv"
 
     memory '48 GB'
 
