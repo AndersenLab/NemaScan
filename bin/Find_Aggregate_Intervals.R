@@ -24,11 +24,11 @@ library(ggbeeswarm)
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
-# args <- c("complete_0.05_Genotype_Matrix.tsv",  ## TESTING
-#           "1_9_0.2_0.05_gamma_complete_sims.phen",
+# args <- c("hahnel.isotypes_0.05_Genotype_Matrix.tsv",  ## TESTING
+#           "1_1_0.9_0.05_0.5-5_hahnel.isotypes_sims.phen",
 #           "temp.aggregate.mapping.tsv",
-#           "complete_0.05_total_independent_tests.txt", 1, 9, 1000, 150, 0.2, 0.05,
-#           "BF", "complete", 0.05, "gamma", "aggregate")
+#           "hahnel.isotypes_0.05_total_independent_tests.txt", 1, 1, 1000, 150, 0.9, 0.05,
+#           "BF", "hahnel.isotypes", 0.05, "0.5-5", "aggregate")
 
 # define the trait name
 trait_name <- glue::glue("{args[5]}_{args[6]}_{args[9]}")
@@ -280,7 +280,7 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 
 # save processed mapping data
 
-readr::write_tsv(processed_mapping[[1]],
+readr::write_tsv(processed_mapping,
                  path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
                  col_names = T)
 

@@ -1021,8 +1021,6 @@ process get_gcta_intervals {
 
     memory '48 GB'
 
-    errorStrategy 'ignore'
-
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE)
 
