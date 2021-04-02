@@ -235,12 +235,12 @@ workflow {
             .spread(pheno_strains) | prep_ld_files
 
         // divergent regions and haplotypes
-        //peaks | divergent_and_haplotype
+        peaks | divergent_and_haplotype
 
         // generate main html report
-        //peaks
-        //    .spread(traits_to_map)
-        //    .combine(divergent_and_haplotype.out.div_done) | html_report_main
+        peaks
+            .spread(traits_to_map)
+            .combine(divergent_and_haplotype.out.div_done) | html_report_main
 
     } else if(params.annotate) {
 
@@ -777,7 +777,7 @@ process prep_ld_files {
             --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
             --set-missing-var-ids @:# \\
             --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
-        sed 's/  \\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
+        sed 's/ */\\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
         cut -f2-10 |\\
         sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
         bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
