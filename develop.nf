@@ -227,13 +227,20 @@ workflow {
         peaks = gcta_intervals_maps.out.qtl_peaks
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
 
+        // prep LD files
+        peaks
+            .splitCsv(sep: '\t', skip: 1)
+            .join(gcta_intervals_maps.out.maps_to_plot, by: 2)
+            .spread(vcf.spread(vcf_index))
+            .spread(pheno_strains) | prep_ld_files
+
         // divergent regions and haplotypes
-        peaks | divergent_and_haplotype
+        //peaks | divergent_and_haplotype
 
         // generate main html report
-        peaks
-            .spread(traits_to_map)
-            .combine(divergent_and_haplotype.out.div_done) | html_report_main
+        //peaks
+        //    .spread(traits_to_map)
+        //    .combine(divergent_and_haplotype.out.div_done) | html_report_main
 
     } else if(params.annotate) {
 
@@ -644,7 +651,7 @@ process gcta_intervals_maps {
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
 
     output:
-        tuple file(geno), file(pheno), file("*AGGREGATE_mapping.tsv"), val(TRAIT), emit: maps_to_plot
+        tuple file(geno), file(pheno), val(TRAIT), file("*AGGREGATE_mapping.tsv"), emit: maps_to_plot
         path "*AGGREGATE_qtl_region.tsv", emit: qtl_peaks
 
     """
@@ -666,7 +673,7 @@ process generate_plots {
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-        tuple file(geno), file(pheno), file(aggregate_mapping), val(TRAIT)
+        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping)
 
     output:
         file("*.png")
@@ -684,7 +691,7 @@ process LD_between_regions {
   publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
 
   input:
-        tuple file(geno), file(pheno), file(aggregate_mapping), val(TRAIT)
+        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping)
 
   output:
         tuple val(TRAIT), path("*LD_between_QTL_regions.tsv") optional true
@@ -712,16 +719,17 @@ process LD_between_regions {
 ------------ Extract QTL interval genotype matrix
 */
 
-/*
+
+
 process prep_ld_files {
 
     tag {TRAIT}
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(trait), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), val(TRAIT), file(vcf), file(index), file(strains)
+        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), file(phenotype)
 
     output:
-        tuple val(TRAIT), val(CHROM), val(marker), val(trait), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), val(TRAIT), file(vcf), file(index), file(strains), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv") 
+        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), file(strains), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv") 
 
     """
         echo "HELLO"
@@ -769,7 +777,7 @@ process prep_ld_files {
             --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
             --set-missing-var-ids @:# \\
             --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
-        sed 's/  */\\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
+        sed 's/  \\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
         cut -f2-10 |\\
         sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
         bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
@@ -789,7 +797,7 @@ process prep_ld_files {
         done < \$filename
     """
 }
-*/
+
 
 
 
