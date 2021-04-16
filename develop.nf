@@ -232,7 +232,7 @@ workflow {
             .splitCsv(sep: '\t', skip: 1)
             .join(gcta_intervals_maps.out.maps_to_plot, by: 2)
             .spread(vcf.spread(vcf_index))
-            .spread(pheno_strains) | prep_ld_files
+            .spread(pheno_strains) //| prep_ld_files
 
         // divergent regions and haplotypes
         peaks | divergent_and_haplotype
