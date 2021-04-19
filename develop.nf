@@ -164,6 +164,7 @@ log.info ""
 /*
 ~ ~ ~ > * WORKFLOW
 */
+
 workflow {
 
 // VCF
@@ -302,6 +303,10 @@ workflow {
             .spread(Channel.from("${params.sthresh}"))
             .spread(Channel.from("${params.group_qtl}"))
             .spread(Channel.from("${params.ci_size}")) | get_gcta_intervals
+
+        // LD from simulations
+        get_gcta_intervals.out.processed_gcta | LD_simulated_maps
+
     }
 
 }
@@ -704,7 +709,6 @@ process LD_between_regions {
 }
 
 
-
 /*
 ======================================
 ~ > *                            * < ~
@@ -797,9 +801,6 @@ process prep_ld_files {
         done < \$filename
     """
 }
-
-
-
 
 /*
 ------ Slice out the QTL region for plotting divergent region and haplotype data.
@@ -1146,6 +1147,8 @@ process get_gcta_intervals {
 
     memory '48 GB'
 
+    errorStrategy 'ignore'
+
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE)
 
@@ -1169,6 +1172,22 @@ process get_gcta_intervals {
         Rscript --vanilla Find_GCTA_Intervals_LOCO.R ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
 
     """
+}
+
+process LD_simulated_maps {
+
+  publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
+
+  input:
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file(aggregate_mapping), file(inbred_mapping), file(loco_mapping)
+
+  output:
+        path("*LD_between_QTL_regions.tsv") optional true
+
+  """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/LD_between_regions_sims.R > LD_between_regions_sims.R 
+    Rscript --vanilla LD_between_regions_sims.R ${gm} ${aggregate_mapping} ${NQTL} ${SIMREP} ${H2} ${params.maf} ${effect_range} ${strain_set}
+  """
 }
 
 /*
