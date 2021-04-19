@@ -13,18 +13,45 @@ date = new Date().format( 'yyyyMMdd' )
 /*
 ~ ~ ~ > * Parameters: common to all analyses
 */
-params.traitfile = null
-params.vcf       = null //"20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
-params.help      = null
+//params.traitfile   = null
+//params.vcf         = null
+params.help        = null
 if(params.simulate) {
-    params.e_mem = "100"
+    params.e_mem   = "100"
 } else {
-    params.e_mem = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
+    params.e_mem   = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
 }
-params.eigen_mem = params.e_mem + " GB"
-params.fix_names = "fix" // does this need to be an option? why would we not want to run this?
-params.R_libpath = "/projects/b1059/software/R_lib_3.6.0"
-params.out       = "Analysis_Results-${date}"
+params.eigen_mem   = params.e_mem + " GB"
+params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
+params.out         = "Analysis_Results-${date}"
+params.debug       = null
+params.species     = "elegans"
+params.wbb         = "WS276"
+params.data_dir    = "input_data/${params.species}"
+params.numeric_chrom = "input_data/all_species/rename_chromosomes"
+params.sparse_cut  = 0.01
+params.group_qtl   = 1000
+params.ci_size     = 150
+params.sthresh     = "BF"
+params.p3d         = "TRUE"
+params.maf         = 0.05
+
+if(params.debug) {
+    println """
+
+        *** Using debug mode ***
+
+    """
+    // debug for now with small vcf
+    params.vcf = "330_TEST.vcf.gz"
+    vcf = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz.tbi")
+    params.traitfile = "${workflow.projectDir}/test_data/example_trait.tsv"
+} else {
+    vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
+}
 
 
 /*
@@ -166,21 +193,6 @@ log.info ""
 */
 workflow {
 
-// VCF
-    if(params.vcf) {
-        vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
-        impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
-
-    } else {
-        // debug for now with small vcf
-        vcf = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz.tbi")
-        //vcf = pull_vcf.out.dl_vcf
-        //vcf_index = pull_vcf.out.dl_vcf_index
-        //need to figure this out with hard and impute vcf...
-    }
-
     // for mapping
     if(params.maps) {
 
@@ -221,7 +233,7 @@ workflow {
         gcta_intervals_maps.out.maps_to_plot | generate_plots 
 
         // LD b/w regions
-        gcta_intervals_maps.out.maps_to_plot | LD_between_regions
+        //gcta_intervals_maps.out.maps_to_plot | LD_between_regions
 
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
@@ -373,7 +385,7 @@ process fix_strain_names_bulk {
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
 
-        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names} ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
     """
 
 }
@@ -1332,7 +1344,6 @@ workflow.onComplete {
     Min Strains with Variant for Burden     = ${params.minburden}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Fix isotype names and prune data        = ${params.fix_names}
     Eigen Memory allocation                 = ${params.eigen_mem}
     Path to R libraries.                    = ${params.R_libpath}
 
