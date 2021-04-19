@@ -164,6 +164,7 @@ log.info ""
 /*
 ~ ~ ~ > * WORKFLOW
 */
+
 workflow {
 
 // VCF
@@ -295,6 +296,10 @@ workflow {
             .spread(Channel.from("${params.sthresh}"))
             .spread(Channel.from("${params.group_qtl}"))
             .spread(Channel.from("${params.ci_size}")) | get_gcta_intervals
+
+        // LD from simulations
+        get_gcta_intervals.out.processed_gcta | LD_simulated_maps
+
     }
 
 }
@@ -697,102 +702,6 @@ process LD_between_regions {
 }
 
 
-
-/*
-======================================
-~ > *                            * < ~
-~ ~ > *                        * < ~ ~
-~ ~ ~ > *  RUN FINE MAPPING  * < ~ ~ ~
-~ ~ > *                        * < ~ ~
-~ > *                            * < ~
-======================================
-*/
-
-/*
------------- Extract QTL interval genotype matrix
-*/
-
-/*
-process prep_ld_files {
-
-    tag {TRAIT}
-
-    input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(trait), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), val(TRAIT), file(vcf), file(index), file(strains)
-
-    output:
-        tuple val(TRAIT), val(CHROM), val(marker), val(trait), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), val(TRAIT), file(vcf), file(index), file(strains), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv") 
-
-    """
-        echo "HELLO"
-        cat ${aggregate_mapping} |\\
-        awk '\$0 !~ "\\tNA\\t" {print}' |\\
-        awk '!seen[\$2,\$5,\$12,\$13,\$14]++' |\\
-        awk 'NR>1{print \$2, \$5, \$12, \$13, \$14}' OFS="\\t" > ${TRAIT}_QTL_peaks.tsv
-        filename='${TRAIT}_QTL_peaks.tsv'
-        echo Start
-        while read p; do 
-            chromosome=`echo \$p | cut -f1 -d' '`
-            trait=`echo \$p | cut -f2 -d' '`
-            start_pos=`echo \$p | cut -f3 -d' '`
-            peak_pos=`echo \$p | cut -f4 -d' '`
-            end_pos=`echo \$p | cut -f5 -d' '`
-        
-        cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
-        bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${vcf} \
-        -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 |\\
-        awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
-        bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${vcf} \
-        -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 -Oz -o finemap.vcf.gz
-        plink --vcf finemap.vcf.gz \\
-            --snps-only \\
-            --maf 0.05 \\
-            --biallelic-only \\
-            --allow-extra-chr \\
-            --set-missing-var-ids @:# \\
-            --geno \\
-            --make-bed \\
-            --recode vcf-iid bgz \\
-            --extract \$trait.\$chromosome.\$start_pos.\$end_pos.txt \\
-            --out \$trait.\$chromosome.\$start_pos.\$end_pos
-        nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
-        plink --r2 with-freqs \\
-            --allow-extra-chr \\
-            --snps-only \\
-            --ld-window-r2 0 \\
-            --ld-snp \$chromosome:\$peak_pos \\
-            --ld-window \$nsnps \\
-            --ld-window-kb 6000 \\
-            --chr \$chromosome \\
-            --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
-            --set-missing-var-ids @:# \\
-            --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
-        sed 's/  */\\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
-        cut -f2-10 |\\
-        sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
-        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
-            sed 's/[[# 0-9]*]//g' |\\
-            sed 's/:GT//g' |\\
-            sed 's/0|0/-1/g' |\\
-            sed 's/1|1/1/g' |\\
-            sed 's/0|1/NA/g' |\\
-            sed 's/1|0/NA/g' |\\
-            sed 's/.|./NA/g'  |\\
-            sed 's/0\\/0/-1/g' |\\
-            sed 's/1\\/1/1/g'  |\\
-            sed 's/0\\/1/NA/g' |\\
-            sed 's/1\\/0/NA/g' |\\
-            sed 's/.\\/./NA/g' |\\
-            sed 's/^23/X/g' > \$trait.\$chromosome:\$start_pos-\$end_pos.ROI_Genotype_Matrix.tsv
-        done < \$filename
-    """
-}
-*/
-
-
-
 /*
 ------ Slice out the QTL region for plotting divergent region and haplotype data.
 */
@@ -1138,6 +1047,8 @@ process get_gcta_intervals {
 
     memory '48 GB'
 
+    errorStrategy 'ignore'
+
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE)
 
@@ -1161,6 +1072,22 @@ process get_gcta_intervals {
         Rscript --vanilla Find_GCTA_Intervals_LOCO.R ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
 
     """
+}
+
+process LD_simulated_maps {
+
+  publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
+
+  input:
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file(aggregate_mapping), file(inbred_mapping), file(loco_mapping)
+
+  output:
+        path("*LD_between_QTL_regions.tsv") optional true
+
+  """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/LD_between_regions_sims.R > LD_between_regions_sims.R 
+    Rscript --vanilla LD_between_regions_sims.R ${gm} ${aggregate_mapping} ${NQTL} ${SIMREP} ${H2} ${params.maf} ${effect_range} ${strain_set}
+  """
 }
 
 /*
