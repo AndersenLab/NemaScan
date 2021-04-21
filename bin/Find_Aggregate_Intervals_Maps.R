@@ -2,6 +2,7 @@
 library(tidyverse)
 library(rrBLUP)
 library(ggbeeswarm)
+library(sommer)
 
 # LOCAL
 # setwd("~/Documents/projects/NemaScan_Performance/data/")

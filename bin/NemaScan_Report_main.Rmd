@@ -36,7 +36,7 @@ library("tidyverse", lib.loc = library.path)
 library("plotly", lib.loc = library.path)
 library("DT", lib.loc = library.path)
 library("ggbeeswarm", lib.loc = library.path)
-library("ComplexHeatmap", lib.loc = library.path)
+# library("ComplexHeatmap", lib.loc = library.path)
 library("knitr", lib.loc = library.path)
 library("ggrepel", lib.loc = library.path)
 
