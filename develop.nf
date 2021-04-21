@@ -44,8 +44,8 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
-    vcf = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz.tbi")
+    vcf = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz.tbi")
     params.traitfile = "${workflow.projectDir}/test_data/example_trait.tsv"
 } else {
     vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")

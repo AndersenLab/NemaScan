@@ -1,3 +1,5 @@
+ANALYSIS/*
+katie*
 *.nextflow.log*
 *.nextflow
 report.*
