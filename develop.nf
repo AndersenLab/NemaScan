@@ -22,7 +22,7 @@ if(params.simulate) {
     params.e_mem   = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
 }
 params.eigen_mem   = params.e_mem + " GB"
-params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
+//params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
 params.out         = "Analysis_Results-${date}"
 params.debug       = null
 params.species     = "elegans"
@@ -47,7 +47,7 @@ if(params.debug) {
     vcf = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz")
     vcf_index = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz.tbi")
     params.traitfile = "${workflow.projectDir}/test_data/example_trait.tsv"
-} else {
+} else { // does this work with gcp config? which takes preference?
     vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
     vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
     impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
