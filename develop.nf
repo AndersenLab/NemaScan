@@ -234,7 +234,11 @@ workflow {
             .splitCsv(sep: '\t', skip: 1)
             .join(gcta_intervals_maps.out.maps_to_plot, by: 2)
             .spread(impute_vcf.spread(impute_vcf_index))
-            .spread(pheno_strains) | prep_ld_files
+            .spread(pheno_strains)
+            .spread(Channel.fromPath("${params.numeric_chrom}")) | prep_ld_files
+
+        //fine mapping
+        prep_ld_files.out.finemap_preps | gcta_fine_maps
 
         // divergent regions and haplotypes
         peaks | divergent_and_haplotype
@@ -730,14 +734,14 @@ process prep_ld_files {
 
     tag {TRAIT}
 
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy', pattern: "*ROI_Genotype_Matrix.tsv"
-    publishDir "${params.out}/Genotype_Matrix", mode: 'copy', pattern: "*LD.tsv"
+    publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*ROI_Genotype_Matrix.tsv"
+    publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*LD.tsv"
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(phenotype)
+        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(phenotype), file(num_chroms)
 
     output:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv"), emit: finemap_preps
+        tuple val(TRAIT), file(pheno), file("*ROI_Genotype_Matrix.tsv"), file("*LD.tsv"), file("*.bim"), file("*.bed"), file("*.fam"), emit: finemap_preps
 
     """
         echo "HELLO"
@@ -759,11 +763,13 @@ process prep_ld_files {
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 |\\
+        bcftools annotate --rename-chrs rename_chromosomes |\\
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
 
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 -Oz -o finemap.vcf.gz
+        bcftools filter -i N_MISSING=0 -Oz |\\
+        bcftools annotate --rename-chrs rename_chromosomes -o finemap.vcf.gz
 
         plink --vcf finemap.vcf.gz \\
             --snps-only \\
@@ -778,21 +784,23 @@ process prep_ld_files {
             --out \$trait.\$chromosome.\$start_pos.\$end_pos
 
         nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
+
+        chrom_num=`cat rename_chromosomes | grep \$chromosome | cut -f2 -d' '`
+
         plink --r2 with-freqs \\
             --allow-extra-chr \\
             --snps-only \\
             --ld-window-r2 0 \\
-            --ld-snp \$chromosome:\$peak_pos \\
+            --ld-snp \$chrom_num:\$peak_pos \\
             --ld-window \$nsnps \\
             --ld-window-kb 6000 \\
-            --chr \$chromosome \\
+            --chr \$chrom_num \\
             --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
             --set-missing-var-ids @:# \\
             --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
 
 
-        cut \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld -f2-10 |\\
-        sed 's/23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
+        cut \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld -f2-10 > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
 
         bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
             sed 's/[[# 0-9]*]//g' |\\
@@ -812,47 +820,42 @@ process prep_ld_files {
     """
 }
 
-/*
+
 process gcta_fine_maps {
 
-
-    tag {"${TRAIT} ${CHROM}:${start_pos}-${end_pos}"}
+    publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*.fastGWA"
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(ROI_geno), file(ROI_LD)
-
+        tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
 
     output:
-        tuple val(TRAIT), path(phenotype), path(roi_geno_matrix), path("*prLD_df.tsv"), emit: prLD
-        tuple path("*pdf"), path("*prLD_df.tsv")
+        tuple file("*.fastGWA")
 
     """
+
+    tail -n +2 ${pheno} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_finemap_traits.tsv
+
     for i in *ROI_Genotype_Matrix.tsv;
         do
 
-        gcta64 --bfile ${TRAIT}.${CHROM}.${start_pos}.${end_pos} --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_gcta_grm_inbred --thread-num 10
-        gcta64 --grm ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_sparse_grm_inbred
+        chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
+        start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
+        stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
+
+        gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --thread-num 10
+        gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred
         gcta64 --fastGWA-lmm-exact \\
-        --grm-sparse ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_sparse_grm_inbred \\
-        --bfile ${TRAIT} \\
-        --out ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_finemap_inbred \\
-        --pheno ${traits} \\
+        --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred \\
+        --bfile ${TRAIT}.\$chr.\$start.\$stop  \\
+        --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred \\
+        --pheno plink_finemap_traits.tsv \\
         --maf ${params.maf}
 
-
-
-            start_pos=`echo \$i | cut -f2 -d':' | cut -f1 -d'.' | cut -f1 -d'-'`
-            end_pos=`echo \$i | cut -f2 -d':' | cut -f1 -d'.' | cut -f2 -d'-'`
-            ld_file=`ls *LD.tsv | grep "\$start_pos" | grep "\$end_pos" | tr -d '\\n'`
-            echo "\$ld_file"
-          echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Finemap_QTL_Intervals.R > Finemap_QTL_Intervals.R
-          
-          Rscript --vanilla Finemap_QTL_Intervals.R ${geno} \$i ${aggregate_mapping} \$ld_file ${task.cpus}
         done
 
     """
 }
-*/
+
 
 
 
@@ -871,6 +874,7 @@ process rrblup_fine_maps {
         tuple path("*pdf"), path("*prLD_df.tsv")
 
     """
+
         for i in *ROI_Genotype_Matrix.tsv;
         do
             start_pos=`echo \$i | cut -f2 -d':' | cut -f1 -d'.' | cut -f1 -d'-'`
