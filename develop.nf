@@ -824,12 +824,13 @@ process prep_ld_files {
 process gcta_fine_maps {
 
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*.fastGWA"
+    publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*_finemap_plot.pdf"
 
     input:
         tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
 
     output:
-        tuple file("*.fastGWA")
+        tuple file("*.fastGWA"), file("*_prLD_df.tsv"), file("*_finemap_plot.pdf")
 
     """
 
@@ -851,44 +852,13 @@ process gcta_fine_maps {
         --pheno plink_finemap_traits.tsv \\
         --maf ${params.maf}
 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Finemap_QTL_Intervals.R  > Finemap_QTL_Intervals.R 
+        Rscript --vanilla Finemap_QTL_Intervals.R  ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
+
         done
 
     """
 }
-
-
-
-
-/*
-process rrblup_fine_maps {
-
-    publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*_finemap_plot.pdf"
-    publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*_prLD_df.tsv"
-    tag {"${TRAIT} ${CHROM}:${start_pos}-${end_pos}"}
-
-    input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), path(roi_geno_matrix), path(roi_ld)
-
-    output:
-        tuple val(TRAIT), file(pheno), path(roi_geno_matrix), path("*prLD_df.tsv"), emit: prLD
-        tuple path("*pdf"), path("*prLD_df.tsv")
-
-    """
-
-        for i in *ROI_Genotype_Matrix.tsv;
-        do
-            start_pos=`echo \$i | cut -f2 -d':' | cut -f1 -d'.' | cut -f1 -d'-'`
-            end_pos=`echo \$i | cut -f2 -d':' | cut -f1 -d'.' | cut -f2 -d'-'`
-            ld_file=`ls *LD.tsv | grep "\$start_pos" | grep "\$end_pos" | tr -d '\\n'`
-            echo "\$ld_file"
-          echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Finemap_QTL_Intervals.R > Finemap_QTL_Intervals.R
-          
-          Rscript --vanilla Finemap_QTL_Intervals.R ${geno} \$i ${aggregate_mapping} \$ld_file ${task.cpus}
-        done
-    """
-}
-*/
-
 
 
 
