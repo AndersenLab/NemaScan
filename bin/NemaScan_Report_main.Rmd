@@ -39,6 +39,8 @@ library("ggbeeswarm", lib.loc = library.path)
 # library("ComplexHeatmap", lib.loc = library.path)
 library("knitr", lib.loc = library.path)
 library("ggrepel", lib.loc = library.path)
+library("ggnewscale", lib.loc = library.path)
+library("cowplot", lib.loc = library.path)
 
 ```
 
@@ -121,9 +123,7 @@ man.plot <- ggplot2::ggplot() +
     ggplot2::theme_bw() + 
     ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 1),], 
                         mapping = aes(x = POS/1000000, 
-                                      y = log10p,
-                                      fill = algorithm), shape = 21) +
-    ggplot2::scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
+                                      y = log10p), shape = 21, fill = "red") +
     ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 0),], 
                         mapping = aes(x = POS/1000000, 
                                       y = log10p), 
