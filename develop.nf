@@ -331,7 +331,7 @@ workflow {
 
 process update_annotations {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${save_dir}", mode: 'copy'
 
@@ -366,7 +366,7 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 process fix_strain_names_bulk {
 
-    executor 'local'
+    //executor 'local'
 
     tag {"BULK TRAIT"}
 
@@ -403,7 +403,7 @@ process fix_strain_names_bulk {
 
 process vcf_to_geno_matrix {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -507,7 +507,7 @@ process chrom_eigen_variants {
 
 process collect_eigen_variants {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -820,7 +820,7 @@ process prep_ld_files {
 
 process divergent_and_haplotype {
 
-  executor 'local'
+  //executor 'local'
 
   publishDir "${params.out}/Divergent_and_haplotype", mode: 'copy'
 
@@ -851,7 +851,7 @@ process divergent_and_haplotype {
 // generate trait-specific html reports
 process html_report_main {
 
-  executor 'local'
+  //executor 'local'
   errorStrategy 'ignore'
 
   tag {TRAIT}
@@ -1000,7 +1000,7 @@ process chrom_eigen_variants_sims {
 
 process collect_eigen_variants_sims {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
