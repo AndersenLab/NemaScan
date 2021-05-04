@@ -57,15 +57,6 @@ if(length(new) == 0) {
   print(new)
 }
 
-#no_issues <- c('"[1] \"Strain issues: (if empty, no strain issues were found)\""', '"Warning message:"', '"Grouping rowwise data frame strips rowwise nature "')
-
-# check to see if there were any issues:
-#if(identical(strain_issues, no_issues)) {
-#    "No strain issues to report!"
-#} else {
-#    strain_issues[2:(length(strain_issues)-2)]
-#}
-
 ```
 
 
@@ -121,9 +112,8 @@ man.plot <- ggplot2::ggplot() +
     ggplot2::theme_bw() + 
     ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 1),], 
                         mapping = aes(x = POS/1000000, 
-                                      y = log10p,
-                                      fill = algorithm), shape = 21) +
-    ggplot2::scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
+                                      y = log10p), fill = "red", shape = 21) +
+    # ggplot2::scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
     ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 0),], 
                         mapping = aes(x = POS/1000000, 
                                       y = log10p), 
@@ -159,7 +149,7 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
     QTL_peaks <- read.delim("Mapping/Processed/QTL_peaks.tsv", header=TRUE, stringsAsFactors=FALSE) %>%
         dplyr::filter(trait == trait_name)
     
-    # don't have LD yet
+    # No LD if only one QTL
     if (nrow(QTL_peaks) < 2) {
         whether_plot_LD <- FALSE
     } else { whether_plot_LD <- TRUE }
@@ -170,9 +160,10 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
         whether_plot_LD <- FALSE
     } else {
 
-        # QTL_peaks <- QTL_peaks %>%
-        #     dplyr::mutate(Region_width = endPOS - startPOS) %>% 
-        #     dplyr::filter(Region_width < 5000000)
+        # only show results for regions < 5 Mb for now
+        QTL_peaks <- QTL_peaks %>%
+            dplyr::mutate(Region_width = endPOS - startPOS) %>%
+            dplyr::filter(Region_width < 5000000)
         
         if (nrow(QTL_peaks)==0) {
             print("Significant QTL regions are too wide for plotting")

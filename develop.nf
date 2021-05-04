@@ -785,7 +785,7 @@ process prep_ld_files {
 
         nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
 
-        chrom_num=`cat rename_chromosomes | grep \$chromosome | cut -f2 -d' '`
+        chrom_num=`cat rename_chromosomes | grep -w \$chromosome | cut -f2 -d' '`
 
         plink --r2 with-freqs \\
             --allow-extra-chr \\
