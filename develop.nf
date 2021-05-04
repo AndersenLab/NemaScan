@@ -1100,6 +1100,9 @@ process simulate_effects_genome {
 
     cpus 4
 
+    errorStrategy 'retry'
+    maxRetries 3
+
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP)
 
@@ -1207,7 +1210,8 @@ process get_gcta_intervals {
 
     memory '48 GB'
 
-    errorStrategy 'ignore'
+    errorStrategy 'retry'
+    maxRetries 3
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE)
@@ -1238,6 +1242,8 @@ process LD_simulated_maps {
 
   publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
 
+  errorStrategy 'ignore'
+  
   input:
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file(aggregate_mapping), file(inbred_mapping), file(loco_mapping)
 
