@@ -842,7 +842,7 @@ process divergent_and_haplotype {
     tuple file("QTL_peaks.tsv"), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
   output:
-    tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list.txt") //, emit: div_hap_table
+    tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list2.txt") //, emit: div_hap_table
     val true, emit: div_done
 
 
@@ -855,7 +855,7 @@ process divergent_and_haplotype {
 
   bedtools intersect -a ${haplotype_df_isotype} -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt
 
-  cp ${div_isotype_list} . 
+  cp ${div_isotype_list} ./div_isotype_list2.txt
 
   """
 
@@ -887,8 +887,12 @@ process html_report_main {
 
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
 
+    cat `which test.Rmd` | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > test.Rmd
+
+    Rscript -e "rmarkdown::render('test.Rmd')
+
     # probably need to change root dir...
-    Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='${workflow.launchDir}/${params.out}')"
+    # Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='gs://nf-pipeline/output/NemaScan-20210505/')"
 
   """
 }
