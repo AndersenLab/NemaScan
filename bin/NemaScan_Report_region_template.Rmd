@@ -1,6 +1,61 @@
 
 ### `r region_name`
 
+#### Fine mapping
+
+Fine mapping was performed by evaluating the genotype-phenotype relationship for variants nearby the QTL identified from GWA mapping using a vcf containing imputed variants to avoid removing variants with missing genotype information for one or a few strains. Only SNVs were considered in this mapping.
+
+```{r}
+
+finemap <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.fastGWA")) %>%
+  dplyr::mutate(CHR = as.factor(CHR),
+                SNP = as.factor(SNP),
+                POS = as.numeric(POS),
+                AF1 = as.numeric(AF1),
+                P = as.numeric(P))
+ROI.geno.matrix <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix.tsv"))
+ROI.LD <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD.tsv"))
+
+peakp <- unique(ROI.LD$BP_A)
+
+finemap_peaks <- na.omit(finemap) %>%
+  dplyr::filter(POS == peakp)
+
+finemap_peaks$POS <- as.numeric(finemap_peaks$POS)
+
+# add strain genotype to ld file for snpeff later
+roi_genotype <- ROI.geno.matrix %>%
+  tidyr::gather(strain, allele, -c(CHROM:ALT)) %>%
+  dplyr::mutate(allele = ifelse(allele == -1, "REF", ifelse(allele == 1, "ALT", NA))) %>%
+  dplyr::group_by(CHROM, POS, REF, ALT, allele) %>%
+  dplyr::summarize(strains = paste(strain, collapse = ",")) 
+
+pr_roi_ld <- ROI.LD %>%
+  dplyr::mutate(peak_marker = gsub("_", ":", unique(finemap_peaks$SNP))) %>%
+  dplyr::mutate(SNP = SNP_B) %>%
+  dplyr::select(peak_marker, peak_maf = MAF_A, SNP, maf_marker_b = MAF_B, ld_r2 = R2) %>%
+  dplyr::mutate(ld_r2 = as.numeric(ld_r2)) %>%
+  dplyr::filter(!is.na(ld_r2)) %>%
+  dplyr::left_join(finemap,., by = "SNP") %>%
+  dplyr::left_join(.,roi_genotype)
+
+peak_roi_marker <- dplyr::filter(pr_roi_ld, POS == peakp)
+
+ld_plot <- ggplot(pr_roi_ld, mapping = aes(x = POS/1000000, y = as.numeric(-log(P)), fill = ld_r2)) +
+  theme_bw(15) +
+  geom_point(shape = 23, size = 3) +
+  geom_point(aes(y = -log(P)), shape = 23, size = 3, fill = "red",
+             data = peak_roi_marker) +
+  scale_fill_distiller(palette = "PuOr", name = bquote(r^2)) +
+  labs(x = "Genomic Position (Mb)",
+       y = expression(-log[10](italic(p))))
+
+# ggsave(ld_plot, filename = finemap_plot.pdf", height = 4, width = 12)
+
+print(ld_plot)
+
+```
+
 #### Divergent regions
 
 ```{r}
