@@ -560,7 +560,7 @@ process prepare_gcta_files {
 
     """
 
-    bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
+    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
     bcftools view -S ${strains} |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
 
@@ -920,7 +920,7 @@ process prepare_simulation_files {
 
     """
 
-    bcftools annotate --rename-chrs rename_chromosomes ${vcf} |\\
+    bcftools annotate --rename-chrs num_chroms ${vcf} |\\
     bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
 
