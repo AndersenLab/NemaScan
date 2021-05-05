@@ -197,7 +197,8 @@ workflow {
     if(params.maps) {
 
         // Fix strain names
-        Channel.fromPath("${params.traitfile}") | fix_strain_names_bulk
+        Channel.fromPath("${params.traitfile}")
+            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -230,7 +231,8 @@ workflow {
             .join(gcta_lmm_exact_mapping.out) | gcta_intervals_maps
 
         // plot
-        gcta_intervals_maps.out.maps_to_plot | generate_plots 
+        gcta_intervals_maps.out.maps_to_plot
+            .combine(Channel.fromPath("${workflow.projectDir}/bin/sweep_summary.tsv")) | generate_plots 
 
         // LD b/w regions
         //gcta_intervals_maps.out.maps_to_plot | LD_between_regions
@@ -247,7 +249,11 @@ workflow {
             .spread(pheno_strains) //| prep_ld_files
 
         // divergent regions and haplotypes
-        peaks | divergent_and_haplotype
+        peaks
+            .combine("${workflow.projectDir}/${params.data_dir}/isotypes/divergent_bins.bed")
+            .combine("${workflow.projectDir}/${params.data_dir}/isotypes/divergent_df_isotype.bed")
+            .combine("${workflow.projectDir}/${params.data_dir}/isotypes/haplotype_df_isotype.bed")
+            .combine("${workflow.projectDir}/${params.data_dir}/isotypes/div_isotype_list.txt") | divergent_and_haplotype
 
         // generate main html report
         peaks
@@ -374,7 +380,7 @@ process fix_strain_names_bulk {
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "strain_issues.txt"
 
     input:
-        file(phenotypes)
+        tuple file(phenotypes), file(isotype_lookup)
 
     output:
         path "pr_*.tsv", emit: fixed_strain_phenotypes 
@@ -383,9 +389,9 @@ process fix_strain_names_bulk {
 
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Fix_Isotype_names_bulk.R` > Fix_Isotype_names_bulk.R 
 
-        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix $isotype_lookup
     """
 
 }
@@ -495,7 +501,7 @@ process chrom_eigen_variants {
         cat Genotype_Matrix.tsv |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Get_GenoMatrix_Eigen.R > Get_GenoMatrix_Eigen.R
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Get_GenoMatrix_Eigen.R` > Get_GenoMatrix_Eigen.R
         Rscript --vanilla Get_GenoMatrix_Eigen.R ${CHROM}_gm.tsv ${CHROM}
     """
 
@@ -623,7 +629,10 @@ process gcta_lmm_exact_mapping {
     errorStrategy 'ignore'
 
     input:
-    tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), file(h2_inbred), file(h2log_inbred)
+    tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
+    file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
+    file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), \
+    file(h2_inbred), file(h2log_inbred)
 
     output:
     tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
@@ -660,17 +669,18 @@ process gcta_intervals_maps {
     memory '48 GB'
 
     input:
-        tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
+        tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
+        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
 
     output:
         tuple file(geno), file(pheno), val(TRAIT), file("*AGGREGATE_mapping.tsv"), emit: maps_to_plot
         path "*AGGREGATE_qtl_region.tsv", emit: qtl_peaks
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Aggregate_Mappings.R > Aggregate_Mappings.R
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Aggregate_Mappings.R` > Aggregate_Mappings.R
     Rscript --vanilla Aggregate_Mappings.R ${lmmexact_loco} ${lmmexact_inbred}
 
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_Aggregate_Intervals_Maps.R > Find_Aggregate_Intervals_Maps.R
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Find_Aggregate_Intervals_Maps.R` > Find_Aggregate_Intervals_Maps.R
     Rscript --vanilla Find_Aggregate_Intervals_Maps.R ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
 
     """
@@ -685,14 +695,14 @@ process generate_plots {
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping)
+        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping), file(sweep_summary)
 
     output:
         file("*.png")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.mod.R > pipeline.plotting.mod.R
-    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${workflow.projectDir}/bin/sweep_summary.tsv
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which pipeline.plotting.mod.R` > pipeline.plotting.mod.R
+    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${sweep_summary}
 
     """
 }
@@ -710,7 +720,7 @@ process LD_between_regions {
         val TRAIT, emit: linkage_done
 
   """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/LD_between_regions.R > LD_between_regions.R 
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which LD_between_regions.R` > LD_between_regions.R 
     Rscript --vanilla LD_between_regions.R ${geno} ${aggregate_mapping} ${TRAIT}
   """
 }
@@ -738,10 +748,13 @@ process prep_ld_files {
     tag {TRAIT}
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), file(phenotype)
+        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), \
+        val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), file(phenotype)
 
     output:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), file(strains), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv") 
+        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), \
+        val(peak_id), val(h2), file(geno), file(pheno), file(aggregate_mapping), file(vcf), file(index), \
+        file(strains), path("*ROI_Genotype_Matrix.tsv"), path("*LD.tsv") 
 
     """
         echo "HELLO"
@@ -826,7 +839,7 @@ process divergent_and_haplotype {
 
 
   input:
-    file("QTL_peaks.tsv")
+    tuple file("QTL_peaks.tsv"), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
   output:
     tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list.txt") //, emit: div_hap_table
@@ -836,13 +849,13 @@ process divergent_and_haplotype {
   """
   awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$4,\$6}' > QTL_region.bed
 
-  bedtools intersect -wa -a ${workflow.projectDir}/${params.data_dir}/isotypes/divergent_bins.bed -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins.bed
+  bedtools intersect -wa -a ${divergent_bins} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins.bed
 
-  bedtools intersect -a ${workflow.projectDir}/${params.data_dir}/isotypes/divergent_df_isotype.bed -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div.bed
+  bedtools intersect -a ${divergent_df_isotype} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div.bed
 
-  bedtools intersect -a ${workflow.projectDir}/${params.data_dir}/isotypes/haplotype_df_isotype.bed -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt
+  bedtools intersect -a ${haplotype_df_isotype} -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt
 
-  cp ${workflow.projectDir}/${params.data_dir}/isotypes/div_isotype_list.txt . 
+  cp ${div_isotype_list} . 
 
   """
 
@@ -869,11 +882,12 @@ process html_report_main {
 
 
   """
-    cat "${workflow.projectDir}/bin/NemaScan_Report_main.Rmd" | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
-    cat "${workflow.projectDir}/bin/NemaScan_Report_region_template.Rmd" > NemaScan_Report_region_template.Rmd 
+    cat `which NemaScan_Report_main.Rmd` | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
+    cat `which NemaScan_Report_region_template.Rmd` > NemaScan_Report_region_template.Rmd 
 
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
 
+    # probably need to change root dir...
     Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='${workflow.launchDir}/${params.out}')"
 
   """
