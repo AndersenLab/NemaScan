@@ -10,8 +10,6 @@ args <- commandArgs(trailingOnly = TRUE)
 # 2 - ROI geno matrix
 # 3 - ld file
 
-#args <- c("Genotype_Matrix.tsv", "PC1.II:11276295-11838190.ROI_Genotype_Matrix.tsv", "PC1_processed_mapping.tsv", "PC1.II.11276295.11838190.LD.tsv" "1")
-
 ## test ##
 # setwd("~/Documents/projects/NemaScan_Performance/data")
 # args <- c("median_dauer.X.13839330.14647661.finemap_inbred.fastGWA", 
@@ -51,7 +49,7 @@ pr_roi_ld <- ROI.LD %>%
   dplyr::left_join(finemap,., by = "SNP") %>%
   dplyr::left_join(.,roi_genotype)
 
-readr::write_tsv(pr_roi_ld, path = glue::glue("{save_name}_prLD_df.tsv"))
+readr::write_tsv(pr_roi_ld, path = glue::glue("{save_name}.prLD_df.tsv"))
 
 peak_roi_marker <- dplyr::filter(pr_roi_ld, POS == peakp)
 

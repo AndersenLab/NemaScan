@@ -110,6 +110,8 @@ pxg.plots <- function(trait, data){
     
     pos <- position_beeswarm()
     
+    peakPOS <- paste(unique(data$CHROM), unique(data$peakPOS), sep = ":")
+    
     plot <- data %>%
       dplyr::filter(!is.na(allele)) %>%
       dplyr::mutate(SOI = strain %in% strains.of.interest,
@@ -129,13 +131,11 @@ pxg.plots <- function(trait, data){
       # scale_colour_gradient(low = "black", high = "violetred", name = "Selective Sweep (% Chromosome)") +
       
       geom_text_repel(aes(label = SOI.2),
-                      colour = "black", position = pos) +
+                      colour = "black", position = pos, max.overlaps = Inf) +
       theme(legend.position = "bottom") +
-      ggtitle(paste(trait, paste("CHR",unique(data$CHROM), sep = ""),
-                    paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), sep = ": ")) +
+      ggtitle(peakPOS) +
       labs(y = "Trait Value",
            x = "Genotype")
-    print(plot)
     ggsave(paste(trait,"_", paste("CHR",unique(data$CHROM), sep = ""),"_",
                  paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 5)
   }
@@ -150,68 +150,56 @@ combined.mappings <- data.table::fread(args[1]) %>%
 combined.mappings <- combined.mappings %>%
   dplyr::select(-marker) %>%
   tidyr::unite("marker", CHROM, POS, sep = ":", remove = F)
-sweeps <- data.table::fread(args[2])
-
-## LD PLOTS ##
-nested.QTL <- combined.mappings %>%
-  as.data.frame() %>%
-  dplyr::filter(!is.na(peak_id), !is.na(allele)) %>%
-  dplyr::select(CHROM, marker, trait, algorithm, AF1, value, strain, allele, peak_id) %>%
-  dplyr::distinct() %>%
-  dplyr::group_by(trait) %>%
-  tidyr::nest()
-
-trait.LD <- purrr::pmap(.l = list(nested.QTL$data, 
-                                  nested.QTL$trait), 
-            .f = compute.LD) %>%
-  Reduce(rbind,.)
-
-options(scipen = 999)
-if(!is.null(trait.LD)){
-  check <- trait.LD %>%
-    dplyr::filter(!is.na(r2)) %>%
-    nrow()
-  if(check != 0){
-    LD.plot <- trait.LD %>%
-      dplyr::filter(!is.na(r2)) %>%
-      ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-      theme_classic() +
-      geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-      geom_text(aes(label = round(r2, 4))) + 
-      scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-      theme(axis.title = element_blank(),
-            axis.text = element_text(colour = "black")) + 
-      labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-    ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
-  }
-}
-
+tests <- args[2]
 
 ## MANHATTAN PLOTS ##
-BF.frame <- combined.mappings %>%
-  dplyr::select(trait, BF) %>%
-  dplyr::filter(!duplicated(trait))
 for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
   dplyr::filter(CHROM != "MtDNA") %>%
   dplyr::mutate(algorithm = as.factor(algorithm))
-  
+
+BF <- combined.mappings %>% 
+    dplyr::group_by(trait) %>% 
+    dplyr::filter(log10p != 0) %>% 
+    dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(BF) %>%
+    unique(.) %>%
+  as.numeric()
+
+ntests <- data.table::fread(tests) %>%
+  as.numeric()
+EIGEN <- -log10(0.05/ntests)
+BF.frame <- combined.mappings %>%
+  dplyr::select(trait) %>%
+  dplyr::filter(!duplicated(trait)) %>%
+  dplyr::mutate(BF = BF, EIGEN  = EIGEN)
+
+for.plot.ann <- for.plot %>%
+  dplyr::mutate(sig = case_when(log10p > BF.frame$BF ~ "BF",
+                                log10p > BF.frame$EIGEN ~ "EIGEN",
+                                TRUE ~ "NONSIG"))
+
+sig.colors <- c("red","#EE4266")
+names(sig.colors) <- c("BF","EIGEN")
+
 man.plot <- ggplot() + 
   theme_bw() + 
-  geom_point(data = for.plot[which(for.plot$aboveBF == 1),], 
+  geom_point(data = for.plot.ann[which(for.plot.ann$sig != "NONSIG"),], 
              mapping = aes(x = POS/1000000, 
                            y = log10p,
-                           fill = algorithm), shape = 21) +
-  scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
-  geom_point(data = for.plot[which(for.plot$aboveBF == 0),], 
+                           colour = sig)) +
+  scale_colour_manual(values = sig.colors) + 
+  geom_point(data = for.plot[which(for.plot.ann$sig == "NONSIG"),], 
              mapping = aes(x = POS/1000000, 
                            y = log10p), 
              alpha = 0.25) +
-  scale_y_continuous(expand = c(0,0), limits = c(0,max(for.plot$log10p + 1))) +
+  scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
   geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
+  geom_hline(data = BF.frame, aes(yintercept = EIGEN), linetype = 3) + 
   labs(x = "Genomic position (Mb)",
        y = expression(-log[10](italic(p)))) +
-  theme(legend.position = "bottom", 
+  theme(legend.position = "none", 
         panel.grid = element_blank()) + 
   facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
   ggtitle(BF.frame$trait)
@@ -219,13 +207,6 @@ ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan.plot.png"), width 
 
 
 ## SWEPTNESS & EFFECTS SUMMARY ##
-proc.sweeps <- sweeps %>%
-  dplyr::select(c(isotype,contains("hapshare")))
-colnames(proc.sweeps) <- gsub(colnames(proc.sweeps),pattern = "_hapshare", replacement = "")
-sweep.chrom.pivot <- proc.sweeps %>%
-  tidyr::pivot_longer(cols = -isotype, names_to = "CHROM", values_to = "sweep.share") %>%
-  dplyr::rename(strain = isotype)
-
 QTLcheck <- combined.mappings %>%
   dplyr::filter(!is.na(peak_id)) %>%
   nrow()
@@ -237,7 +218,6 @@ if(QTLcheck > 0){
     dplyr::mutate(startPOS = startPOS/1000000,
                   peakPOS = peakPOS/1000000,
                   endPOS = endPOS/1000000) %>%
-    dplyr::left_join(.,sweep.chrom.pivot) %>%
     dplyr::group_by(trait, peak_id) %>%
     tidyr::nest()
   
