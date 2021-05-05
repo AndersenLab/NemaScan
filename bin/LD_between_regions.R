@@ -29,4 +29,21 @@ if ( nrow(ld_snps) > 1 ) {
   diag(ldcalc) <- 1
   
   write.table(ldcalc, paste0(TRAIT, "_LD_between_QTL_regions.tsv"), quote=F, row.names = T, col.names = NA, sep="\t")
+  
+  ldcalc %>%
+    as.data.frame() %>%
+    dplyr::mutate(QTL1 = rownames(.),
+                  trait = TRAIT) %>%
+    tidyr::pivot_longer(cols = -c(QTL1, trait), names_to = "QTL2", values_to = "r2") %>%
+    dplyr::filter(!is.na(r2)) %>%
+    dplyr::select(QTL1, QTL2, everything()) %>%
+    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+    theme_classic() +
+    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+    geom_text(aes(label = round(r2, 4))) + 
+    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(r^2)) + 
+    theme(axis.title = element_blank(),
+          axis.text = element_text(colour = "black")) + 
+    labs(title = paste0("Linkage Disequilibrium: ",TRAIT)) +
+    ggsave(filename = paste0(TRAIT,"_LD.plot.png"), width = 7, height = 7)
 }

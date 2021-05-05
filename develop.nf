@@ -33,6 +33,7 @@ params.out       = "Analysis_Results-${date}"
 params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
 params.freqUpper = 0.05
 params.minburden = 2
+params.genes     = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
 
 
 if (params.help) {
@@ -220,10 +221,10 @@ workflow {
             .join(gcta_lmm_exact_mapping.out) | gcta_intervals_maps
 
         // plot
-        gcta_intervals_maps.out.maps_to_plot | generate_plots 
+        gcta_intervals_maps.out.to_plots | generate_plots 
 
         // LD b/w regions
-        gcta_intervals_maps.out.maps_to_plot | LD_between_regions
+        gcta_intervals_maps.out.to_plots | LD_between_regions
 
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
@@ -232,7 +233,7 @@ workflow {
         // prep LD files
         peaks
             .splitCsv(sep: '\t', skip: 1)
-            .join(gcta_intervals_maps.out.maps_to_plot, by: 2)
+            .join(generate_plots.out.maps_from_plot, by: 2)
             .spread(impute_vcf.spread(impute_vcf_index))
             .spread(pheno_strains)
             .spread(Channel.fromPath("${params.numeric_chrom}")) | prep_ld_files
@@ -661,7 +662,7 @@ process gcta_intervals_maps {
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
 
     output:
-        tuple file(geno), file(pheno), val(TRAIT), file("*AGGREGATE_mapping.tsv"), emit: maps_to_plot
+        tuple file(geno), file(pheno), file(tests), val(TRAIT), file("*AGGREGATE_mapping.tsv"), emit: to_plots
         path "*AGGREGATE_qtl_region.tsv", emit: qtl_peaks
 
     """
@@ -677,20 +678,19 @@ process gcta_intervals_maps {
 
 process generate_plots {
 
-
-    publishDir "${params.out}/Plots/LDPlots", mode: 'copy', pattern: "*_LD.plot.png"
     publishDir "${params.out}/Plots/EffectPlots", mode: 'copy', pattern: "*_effect.plot.png"
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping)
+        tuple file(geno), file(pheno), file(tests), val(TRAIT), file(aggregate_mapping)
 
     output:
+        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping), emit: maps_from_plot
         file("*.png")
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/pipeline.plotting.mod.R > pipeline.plotting.mod.R
-    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${workflow.projectDir}/bin/sweep_summary.tsv
+    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${tests}
 
     """
 }
@@ -699,12 +699,13 @@ process generate_plots {
 process LD_between_regions {
 
   publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
+  publishDir "${params.out}/Plots/LDPlots", mode: 'copy', pattern: "*_LD.plot.png"
 
   input:
-        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping)
+        tuple file(geno), file(pheno), file(tests), val(TRAIT), file(aggregate_mapping)
 
   output:
-        tuple val(TRAIT), path("*LD_between_QTL_regions.tsv") optional true
+        tuple val(TRAIT), path("*LD_between_QTL_regions.tsv"), file("*.png") optional true
         val TRAIT, emit: linkage_done
 
   """
@@ -824,13 +825,14 @@ process prep_ld_files {
 process gcta_fine_maps {
 
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*.fastGWA"
-    publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*_finemap_plot.pdf"
+    publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes.tsv"
+    publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*.pdf"
 
     input:
         tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
 
     output:
-        tuple file("*.fastGWA"), file("*_prLD_df.tsv"), file("*_finemap_plot.pdf")
+        tuple file("*.fastGWA"), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
 
     """
 
@@ -854,6 +856,9 @@ process gcta_fine_maps {
 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Finemap_QTL_Intervals.R  > Finemap_QTL_Intervals.R 
         Rscript --vanilla Finemap_QTL_Intervals.R  ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/plot_genes.R  > plot_genes.R 
+        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${params.genes} /projects/b1059/projects/Katie/annotation/WI.${params.vcf}.bcsq-annotation.tsv
 
         done
 
