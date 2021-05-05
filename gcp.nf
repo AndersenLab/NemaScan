@@ -198,7 +198,7 @@ workflow {
 
         // Fix strain names
         Channel.fromPath("${params.traitfile}")
-            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv")) | fix_strain_names_bulk
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/strain_isotype_lookup.tsv")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -250,10 +250,10 @@ workflow {
 
         // divergent regions and haplotypes
         peaks
-            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/divergent_bins.bed"))
-            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/divergent_df_isotype.bed"))
-            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/haplotype_df_isotype.bed"))
-            .combine(Channel.fromPath("${workflow.projectDir}/${params.data_dir}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/divergent_bins.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/divergent_df_isotype.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/haplotype_df_isotype.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
         // generate main html report
         peaks
