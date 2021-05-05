@@ -39,6 +39,7 @@ library("ggbeeswarm", lib.loc = library.path)
 library("ComplexHeatmap", lib.loc = library.path)
 library("knitr", lib.loc = library.path)
 library("ggrepel", lib.loc = library.path)
+library("genetics", lib.loc = library.path)
 
 ```
 
@@ -82,14 +83,12 @@ independent_test_cutoff <- -log10(0.05/total_independent_tests[[1]])
 ```
 
 
-## Manhatton plot
+## Manhattan plot
 * #### Every dot is a SNV marker.
 
 * #### SNVs are colored red if they pass the genome-wide corrected significance threshold:
     * If Bonferroni-corrected significance (BF) threshold were used: the horizontal solid line corresponds to BF threshold, and the horizontal dash line corresponds to EIGEN threshold (see below). If user supplied threshold exists, it will replace the BF threshold.
     * If Eigen-decomposition significance threshold were used, the horizontal solid line overlaps with the dash line and corresponds to the EIGEN threshold, which corrects for the number of independent markers in your data set.
-
-* #### Light blue regions are QTL confidence intervals. These regions have separate report pages with links below.
 
 
 ```{r, fig.height=4.5, fig.width=12}
@@ -109,33 +108,54 @@ if(num_traits > 1){
 }
 
 ## MANHATTAN PLOTS ##
-BF.frame <- processed_mapping %>%
-    dplyr::select(trait, BF) %>%
-    dplyr::filter(!duplicated(trait))
 for.plot <- processed_mapping %>%
     dplyr::mutate(CHROM = as.factor(CHROM)) %>%
     dplyr::filter(CHROM != "MtDNA") %>%
     dplyr::mutate(algorithm = as.factor(algorithm))
-  
-man.plot <- ggplot2::ggplot() + 
-    ggplot2::theme_bw() + 
-    ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 1),], 
-                        mapping = aes(x = POS/1000000, 
-                                      y = log10p,
-                                      fill = algorithm), shape = 21) +
-    ggplot2::scale_fill_manual(values = c("blue","red"), name = "Algorithm") + 
-    ggplot2::geom_point(data = for.plot[which(for.plot$aboveBF == 0),], 
-                        mapping = aes(x = POS/1000000, 
-                                      y = log10p), 
-                        alpha = 0.25) +
-    ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0,max(for.plot$log10p + 1))) +
-    ggplot2::geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
-    ggplot2::labs(x = "Genomic position (Mb)",
-                  y = expression(-log[10](italic(p)))) +
-    ggplot2::theme(legend.position = "bottom", 
-                   panel.grid = element_blank()) + 
-    ggplot2::facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
-    ggplot2::ggtitle(BF.frame$trait)
+
+BF <- processed_mapping %>% 
+    dplyr::group_by(trait) %>% 
+    dplyr::filter(log10p != 0) %>% 
+    dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(BF) %>%
+    unique(.) %>%
+  as.numeric()
+
+EIGEN <- independent_test_cutoff
+BF.frame <- processed_mapping %>%
+  dplyr::select(trait) %>%
+  dplyr::filter(!duplicated(trait)) %>%
+  dplyr::mutate(BF = BF, EIGEN  = EIGEN)
+
+for.plot.ann <- for.plot %>%
+  dplyr::mutate(sig = case_when(log10p > BF.frame$BF ~ "BF",
+                                log10p > BF.frame$EIGEN ~ "EIGEN",
+                                TRUE ~ "NONSIG"))
+
+sig.colors <- c("red","#EE4266")
+names(sig.colors) <- c("BF","EIGEN")
+
+man.plot <-  ggplot2::ggplot() + 
+   ggplot2::theme_bw() + 
+   ggplot2::geom_point(data = for.plot.ann[which(for.plot.ann$sig != "NONSIG"),], 
+                       mapping = aes(x = POS/1000000, 
+                                     y = log10p,
+                                     colour = sig)) +
+   ggplot2::scale_colour_manual(values = sig.colors) + 
+   ggplot2::geom_point(data = for.plot[which(for.plot.ann$sig == "NONSIG"),], 
+                       mapping = aes(x = POS/1000000, 
+                           y = log10p), 
+                       alpha = 0.25) +
+   ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
+   ggplot2::geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
+   ggplot2::geom_hline(data = BF.frame, aes(yintercept = EIGEN), linetype = 3) + 
+   ggplot2::labs(x = "Genomic position (Mb)",
+                 y = expression(-log[10](italic(p)))) +
+   ggplot2::theme(legend.position = "none", 
+                  panel.grid = element_blank()) + 
+   ggplot2::facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
+   ggplot2::ggtitle(BF.frame$trait)
 
 # save the plot to file. keep this code for user to create plots with their own styles
 # ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan.plot.png"), width = 8, height = 4)
@@ -291,116 +311,47 @@ print(plot)
 ## Linkage disequilibrium (LD) between QTL
 ```{r, eval = whether_plot_LD}
 
-# this code is not very clean for a markdown for other people to follow... maybe we should compute LD first then output results?
-compute.LD <- function(QTL, trait){
-  if(length(unique(QTL$peak_id)) <= 1){
-    data.frame(unique(QTL$marker),unique(QTL$marker),NA, trait) %>%
-      `colnames<-`(c("QTL1","QTL2","r2","trait"))
-  } else {
-    QTLcombos <- data.frame(t(combn(x = unique(QTL$peak_id), m = 2))) %>%
-      `colnames<-`(c("QTL1","QTL2"))
-    
-    LD <- list()
-    for(i in 1:nrow(QTLcombos)){
-      print(i)
-      peaks.of.interest <- as.numeric(QTLcombos[i,])
-      haps <- QTL %>%
-        dplyr::select(strain, allele, peak_id) %>%
-        dplyr::filter(peak_id %in% peaks.of.interest) %>%
-        dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
-        dplyr::mutate(peak_id = as.factor(peak_id)) %>%
-        tidyr::pivot_wider(names_from = peak_id, values_from = allele) %>%
-        `colnames<-`(c("strain","A","B")) %>%
-        tidyr::unite("hap", c(A,B), sep = "_", remove = F)
-      
-      P <- haps %>%
-        dplyr::group_by(hap) %>%
-        dplyr::summarise(n()/nrow(haps)) %>%
-        `colnames<-`(c("P","freq")) %>%
-        tidyr::pivot_wider(names_from = P, values_from = freq)
-      
-      n <- QTL %>%
-        dplyr::select(peak_id) %>%
-        dplyr::mutate(peak_id = as.factor(peak_id)) %>%
-        dplyr::group_by(peak_id) %>%
-        dplyr::summarise(n()) %>%
-        `colnames<-`(c("peak_id","total"))
-      
-      p <- QTL %>%
-        dplyr::select(strain, allele, peak_id) %>%
-        dplyr::filter(peak_id %in% peaks.of.interest) %>%
-        dplyr::mutate(allele = if_else(allele == -1, true = "REF", false = "ALT")) %>%
-        dplyr::mutate(peak_id = as.factor(peak_id)) %>%
-        dplyr::group_by(allele, peak_id) %>%
-        dplyr::summarise(n()) %>%
-        `colnames<-`(c("p","peak_id","n")) %>%
-        dplyr::left_join(.,n) %>%
-        dplyr::mutate(freq = n/total) %>%
-        tidyr::unite("allele", c(p,peak_id), sep = "_") %>%
-        dplyr::ungroup() %>%
-        dplyr::select(allele, freq) %>%
-        tidyr::pivot_wider(names_from = allele, values_from = freq)
-      
-      pApB <- p %>%
-        dplyr::select(contains("REF")) %>%
-        c(.) %>%
-        unlist() %>%
-        prod()
-      
-      pApBpapb <- p %>%
-        unlist() %>%
-        prod()
-      
-      D.AB <- P$REF_REF - pApB
-      r2 <- (D.AB^2)/pApBpapb
-      LD[[i]] <- QTL %>%
-        dplyr::select(marker, peak_id) %>%
-        dplyr::filter(peak_id %in% peaks.of.interest) %>%
-        dplyr::distinct()  %>%
-        tidyr::pivot_wider(names_from = peak_id, values_from = marker) %>%
-        `colnames<-`(c("QTL1","QTL2")) %>%
-        dplyr::mutate(r2 = r2,
-                      trait = trait)
-    }
-    Reduce(rbind, LD)
+gm <- read.table("Genotype_Matrix/Genotype_Matrix.tsv", header = T)
+snp_df <- processed_mapping %>% na.omit()
+ld_snps <- dplyr::filter(gm, CHROM %in% snp_df$CHROM, POS %in% snp_df$POS)
+
+
+if ( nrow(ld_snps) > 1 ) {
+  
+  ld_snps <- data.frame(snp_id = paste(ld_snps$CHROM, ld_snps$POS,
+                                       sep = "_"), data.frame(ld_snps)[, 5:ncol(ld_snps)])
+  
+  sn <- list()
+  
+  for (i in 1:nrow(ld_snps)) {
+    sn[[i]] <- genetics::genotype(as.character(gsub(1, "T/T",
+                                                    gsub(-1, "A/A", ld_snps[i, 4:ncol(ld_snps)]))))
   }
-}
-
-## LD PLOTS ##
-nested.QTL <- processed_mapping %>%
-  as.data.frame() %>%
-  dplyr::filter(!is.na(peak_id), !is.na(allele)) %>%
-  dplyr::select(CHROM, marker, trait, algorithm, AF1, value, strain, allele, peak_id) %>%
-  dplyr::distinct() %>%
-  dplyr::group_by(trait) %>%
-  tidyr::nest()
-
-trait.LD <- purrr::pmap(.l = list(nested.QTL$data, 
-                                  nested.QTL$trait), 
-            .f = compute.LD) %>%
-  Reduce(rbind,.)
-
-options(scipen = 999)
-if(!is.null(trait.LD)){
-  check <- trait.LD %>%
+  
+  test <- data.frame(sn)
+  colnames(test) <- (ld_snps$snp_id)
+  ldcalc <- t(genetics::LD(test)[[4]])^2
+  diag(ldcalc) <- 1
+  
+  TRAIT <- unique(processed_mapping$trait)
+  ldcalc %>%
+    as.data.frame() %>%
+    dplyr::mutate(QTL1 = rownames(.),
+                  trait = TRAIT) %>%
+    tidyr::pivot_longer(cols = -c(QTL1, trait), names_to = "QTL2", values_to = "r2") %>%
     dplyr::filter(!is.na(r2)) %>%
-    nrow()
-  if(check != 0){
-    LD.plot <- trait.LD %>%
-      dplyr::filter(!is.na(r2)) %>%
-      ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
-      theme_classic() +
-      geom_tile(aes(fill = r2),colour = "black", size = 3) + 
-      geom_text(aes(label = round(r2, 4))) + 
-      scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(italic(r^2))) + 
-      theme(axis.title = element_blank(),
-            axis.text = element_text(colour = "black")) + 
-      labs(title = paste0("Linkage Disequilibrium: ",unique(trait.LD$trait)))
-    
-    print(LD.plot)
-    # ggsave(LD.plot, filename = paste0(unique(trait.LD$trait),"_LD.plot.png"), width = 7, height = 7)
-  }
+    dplyr::select(QTL1, QTL2, everything()) %>%
+    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+    theme_classic() +
+    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+    geom_text(aes(label = round(r2, 4))) + 
+    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(r^2)) + 
+    theme(axis.title = element_blank(),
+          axis.text = element_text(colour = "black")) + 
+    labs(title = "Linkage Disequilibrium")
 }
+
+
 
 ```
 
