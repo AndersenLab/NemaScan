@@ -828,6 +828,10 @@ process gcta_fine_maps {
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes.tsv"
     publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*.pdf"
 
+    memory '48 GB'
+    
+    errorStrategy 'ignore'
+
     input:
         tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
 

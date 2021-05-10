@@ -354,6 +354,7 @@ if(args[2] == "fix"){
 
 for(i in 1:(ncol(fixed_names)-1)){
     t_df <- fixed_names[,c(1,i+1)]
+    colnames(t_df)[2] <- gsub(colnames(t_df)[2], pattern = "\\.", replacement = "_")
     trait_name <- colnames(t_df)[2]
     write.table(t_df, 
                 file = glue::glue("pr_{trait_name}.tsv"),

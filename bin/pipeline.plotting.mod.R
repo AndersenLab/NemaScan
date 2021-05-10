@@ -194,7 +194,7 @@ man.plot <- ggplot() +
              mapping = aes(x = POS/1000000, 
                            y = log10p), 
              alpha = 0.25) +
-  scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
+  # scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
   geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
   geom_hline(data = BF.frame, aes(yintercept = EIGEN), linetype = 3) + 
   labs(x = "Genomic position (Mb)",
