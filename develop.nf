@@ -247,7 +247,8 @@ workflow {
         // generate main html report
         peaks
             .spread(traits_to_map)
-            .combine(divergent_and_haplotype.out.div_done) | html_report_main
+            .combine(divergent_and_haplotype.out.div_done)
+            .combine(gcta_fine_maps.out.finemap_done) | html_report_main
 
     } else if(params.annotate) {
 
@@ -833,6 +834,7 @@ process gcta_fine_maps {
 
     output:
         tuple file("*.fastGWA"), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
+        val true, emit: finemap_done
 
     """
 
@@ -916,7 +918,7 @@ process html_report_main {
 
 
   input:
-    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno), val(div_done)
+    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno), val(div_done), val(finemap_done)
 
   output:
     tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
