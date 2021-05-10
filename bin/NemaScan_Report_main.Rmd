@@ -58,15 +58,6 @@ if(length(new) == 0) {
   print(new)
 }
 
-#no_issues <- c('"[1] \"Strain issues: (if empty, no strain issues were found)\""', '"Warning message:"', '"Grouping rowwise data frame strips rowwise nature "')
-
-# check to see if there were any issues:
-#if(identical(strain_issues, no_issues)) {
-#    "No strain issues to report!"
-#} else {
-#    strain_issues[2:(length(strain_issues)-2)]
-#}
-
 ```
 
 
@@ -109,9 +100,9 @@ if(num_traits > 1){
 
 ## MANHATTAN PLOTS ##
 for.plot <- processed_mapping %>%
-    dplyr::mutate(CHROM = as.factor(CHROM)) %>%
-    dplyr::filter(CHROM != "MtDNA") %>%
-    dplyr::mutate(algorithm = as.factor(algorithm))
+  dplyr::mutate(CHROM = as.factor(CHROM)) %>%
+  dplyr::filter(CHROM != "MtDNA") %>%
+  dplyr::mutate(algorithm = as.factor(algorithm))
 
 BF <- processed_mapping %>% 
     dplyr::group_by(trait) %>% 
@@ -122,7 +113,10 @@ BF <- processed_mapping %>%
     unique(.) %>%
   as.numeric()
 
-EIGEN <- independent_test_cutoff
+
+# ntests <- data.table::fread(tests) %>%
+#  as.numeric()
+# EIGEN <- -log10(0.05/ntests)
 BF.frame <- processed_mapping %>%
   dplyr::select(trait) %>%
   dplyr::filter(!duplicated(trait)) %>%
@@ -157,6 +151,7 @@ man.plot <-  ggplot2::ggplot() +
    ggplot2::facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
    ggplot2::ggtitle(BF.frame$trait)
 
+
 # save the plot to file. keep this code for user to create plots with their own styles
 # ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan.plot.png"), width = 8, height = 4)
 
@@ -179,7 +174,7 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
     QTL_peaks <- read.delim("Mapping/Processed/QTL_peaks.tsv", header=TRUE, stringsAsFactors=FALSE) %>%
         dplyr::filter(trait == trait_name)
     
-    # don't have LD yet
+    # No LD if only one QTL
     if (nrow(QTL_peaks) < 2) {
         whether_plot_LD <- FALSE
     } else { whether_plot_LD <- TRUE }
@@ -190,9 +185,10 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
         whether_plot_LD <- FALSE
     } else {
 
-        # QTL_peaks <- QTL_peaks %>%
-        #     dplyr::mutate(Region_width = endPOS - startPOS) %>% 
-        #     dplyr::filter(Region_width < 5000000)
+        # only show results for regions < 5 Mb for now
+        QTL_peaks <- QTL_peaks %>%
+            dplyr::mutate(Region_width = endPOS - startPOS) %>%
+            dplyr::filter(Region_width < 5000000)
         
         if (nrow(QTL_peaks)==0) {
             print("Significant QTL regions are too wide for plotting")
@@ -291,7 +287,7 @@ plot <- nested.pxg.dat %>%
     ggplot2::scale_fill_manual(values = c("#9297C4","#D33E43"), guide = FALSE) +
     # scale_colour_gradient(low = "black", high = "violetred", name = "Selective Sweep (% Chromosome)") +
     ggrepel::geom_text_repel(aes(label = SOI.2),
-                      colour = "black", position = ggbeeswarm::position_beeswarm()) +
+                      colour = "black", position = ggbeeswarm::position_beeswarm(), max.overlaps = Inf) +
     ggplot2::theme(legend.position = "bottom") +
     ggplot2::labs(y = "Trait Value",
            x = "Genotype") +
