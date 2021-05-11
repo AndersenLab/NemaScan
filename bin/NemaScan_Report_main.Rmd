@@ -120,7 +120,7 @@ BF <- processed_mapping %>%
 BF.frame <- processed_mapping %>%
   dplyr::select(trait) %>%
   dplyr::filter(!duplicated(trait)) %>%
-  dplyr::mutate(BF = BF, EIGEN  = EIGEN)
+  dplyr::mutate(BF = BF, EIGEN  = independent_test_cutoff)
 
 for.plot.ann <- for.plot %>%
   dplyr::mutate(sig = case_when(log10p > BF.frame$BF ~ "BF",

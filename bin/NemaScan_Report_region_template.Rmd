@@ -6,6 +6,69 @@
 Fine mapping was performed by evaluating the genotype-phenotype relationship for variants nearby the QTL identified from GWA mapping using a vcf containing imputed variants to avoid removing variants with missing genotype information for one or a few strains. Only SNVs were considered in this mapping.
 
 ```{r}
+# read in genes in region and pval
+genes_in_region <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes.tsv"))
+    
+gene_df <- genes_in_region %>%
+    dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
+    dplyr::distinct(WBGeneID, PEAK_MARKER, CHROM, STRAND, TRANSCRIPTION_START_POS, 
+                    TRANSCRIPTION_END_POS, START_POS, END_POS, VARIANT_LOG10p) %>%
+    dplyr::group_by(WBGeneID) %>%
+    dplyr::mutate(VARIANT_LOG10p = max(VARIANT_LOG10p, na.rm = T)) %>%
+    dplyr::distinct()
+
+peak_variant <- as.numeric(strsplit(unique(gene_df$PEAK_MARKER), split = ":")[[1]][2])
+
+variant_df <- genes_in_region %>%
+    dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
+    dplyr::distinct(CHROM, POS, VARIANT_LOG10p, VARIANT_IMPACT)
+
+variant_df$VARIANT_IMPACT[is.na(variant_df$VARIANT_IMPACT)] <- "Intergenic"
+
+xs <- unique(gene_df$START_POS)
+xe <- unique(gene_df$END_POS)
+cq <- unique(gene_df$CHROM)
+
+max_logp <- unique(max(variant_df$VARIANT_LOG10p, na.rm = T))/150
+
+gene_plot <- ggplot(gene_df) +
+    geom_vline(aes(xintercept = peak_variant/1e6),
+               linetype=3, color = "cyan")+
+    geom_segment(aes(x = ifelse(STRAND == "+", TRANSCRIPTION_START_POS/1e6, TRANSCRIPTION_END_POS/1e6),
+                     xend = ifelse(STRAND == "+", TRANSCRIPTION_END_POS/1e6, TRANSCRIPTION_START_POS/1e6),
+                     y = VARIANT_LOG10p,
+                     yend = VARIANT_LOG10p),
+                 arrow = arrow(length = unit(5, "points")), size = 1) +
+    geom_segment(aes(x = POS/1e6,
+                     xend = POS/1e6,
+                     y = VARIANT_LOG10p+max_logp,
+                     yend = VARIANT_LOG10p-max_logp,
+                     color = VARIANT_IMPACT), data = variant_df) +
+    scale_color_manual(values = c("MODIFIER" = "gray50",
+                                  "LOW" = "gray30",
+                                  "MODERATE" = "orange",
+                                  "HIGH" = "red",
+                                  "Intergenic" = "gray80"),
+                       breaks = c("HIGH", "MODERATE", "LOW", "MODIFIER", "Intergenic"),
+                       name = "EFFECT")+
+    labs(x = "Genomic Position (Mb)",
+         y = expression(-log[10](italic(p))))+
+    theme_bw(18)+
+    xlim(c(xs/1e6, xe/1e6)) +
+    theme(legend.position = "top",
+          panel.grid = element_blank())
+
+print(gene_plot)
+    
+    # ggsave(gene_plot,
+    #        filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}.pdf"),
+    #        height=10, width = 14)
+
+
+
+```
+
+```{r}
 
 finemap <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.fastGWA")) %>%
   dplyr::mutate(CHR = as.factor(CHR),
