@@ -373,10 +373,12 @@ for (i in seq_len(nrow(QTL_peaks))) {
     
     out <- c(out, knitr::knit_child('NemaScan_Report_region_template.Rmd'))
 }
+# `r paste(knitr::knit(text = out), collapse = '\n')`
+
+paste(knitr::knit(text = out), collapse = '\n')
 
 ```
 
-`r paste(knitr::knit(text = out), collapse = '\n')`
 
 <br>
 <br>
