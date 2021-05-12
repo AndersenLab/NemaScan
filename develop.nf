@@ -13,8 +13,9 @@ date = new Date().format( 'yyyyMMdd' )
 /*
 ~ ~ ~ > * Parameters: common to all analyses
 */
-params.traitfile = null
-params.vcf       = null //"20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
+params.debug       = null
+//params.traitfile = null
+//params.vcf       = null //"20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
 params.help      = null
 if(params.simulate) {
     params.e_mem = "100"
@@ -26,6 +27,24 @@ params.fix_names = "fix" // does this need to be an option? why would we not wan
 params.R_libpath = "/projects/b1059/software/R_lib_3.6.0"
 params.out       = "Analysis_Results-${date}"
 
+if(params.debug) {
+    println """
+        *** Using debug mode ***
+    """
+    // debug for now with small vcf
+    params.vcf = "330_TEST.vcf.gz"
+    vcf = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    params.traitfile = "${workflow.projectDir}/input_data/elegans/phenotypes/FileS2_wipheno.tsv"
+    // debug can use same vcf for impute and normal
+    impute_vcf = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
+    impute_vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+} else { // does this work with gcp config? which takes preference?
+    vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
+    impute_vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+}
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping
@@ -168,22 +187,6 @@ log.info ""
 
 workflow {
 
-// VCF
-    if(params.vcf) {
-        vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
-        impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
-        impute_vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
-
-    } else {
-        // debug for now with small vcf
-        vcf = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/workflows/diverged_regions-nf/input_files/330_TEST.vcf.gz.tbi")
-        //vcf = pull_vcf.out.dl_vcf
-        //vcf_index = pull_vcf.out.dl_vcf_index
-        //need to figure this out with hard and impute vcf...
-    }
-
     // for mapping
     if(params.maps) {
 
@@ -248,7 +251,8 @@ workflow {
         peaks
             .spread(traits_to_map)
             .combine(divergent_and_haplotype.out.div_done)
-            .combine(gcta_fine_maps.out.finemap_done) | html_report_main
+            //.combine(gcta_fine_maps.out.finemap_done) | html_report_main
+            .join(gcta_fine_maps.out.finemap_done, by: 1) | html_report_main
 
     } else if(params.annotate) {
 
@@ -831,14 +835,15 @@ process gcta_fine_maps {
 
     memory '48 GB'
     
-    errorStrategy 'ignore'
+    //errorStrategy 'ignore'
 
     input:
         tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
 
     output:
-        tuple file("*.fastGWA"), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
-        val true, emit: finemap_done
+        tuple file("*.fastGWA"), val(TRAIT), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
+        //val true, emit: finemap_done
+        tuple file("*_genes.tsv"), val(TRAIT), emit: finemap_done
 
     """
 
@@ -922,7 +927,7 @@ process html_report_main {
 
 
   input:
-    tuple file("QTL_peaks.tsv"), val(TRAIT), file(pheno), val(div_done), val(finemap_done)
+    tuple val(TRAIT), file("QTL_peaks.tsv"), file(pheno), val(div_done), file("genes.tsv")
 
   output:
     tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
