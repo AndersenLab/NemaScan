@@ -183,6 +183,7 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
         print("No significant QTL region for this trait")
         whether_fine_map <- FALSE # skip related chunks
         whether_plot_LD <- FALSE
+        whether_print_peaks <- FALSE
     } else {
 
         # only show results for regions < 5 Mb for now
