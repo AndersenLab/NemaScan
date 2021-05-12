@@ -252,7 +252,7 @@ workflow {
             .spread(traits_to_map)
             .combine(divergent_and_haplotype.out.div_done)
             //.combine(gcta_fine_maps.out.finemap_done) | html_report_main
-            .join(gcta_fine_maps.out.finemap_done, by: 1) | html_report_main
+            .join(gcta_fine_maps.out.finemap_done, by: 1, remainder: true) | html_report_main
 
     } else if(params.annotate) {
 
