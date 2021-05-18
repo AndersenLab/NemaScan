@@ -869,7 +869,7 @@ process gcta_fine_maps {
         Rscript --vanilla Finemap_QTL_Intervals.R  ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/plot_genes.R  > plot_genes.R 
-        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${params.genes} /projects/b1059/projects/Katie/annotation/WI.${params.vcf}.bcsq-annotation.tsv
+        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${params.genes} /projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.bcsq.tsv
 
         done
 
