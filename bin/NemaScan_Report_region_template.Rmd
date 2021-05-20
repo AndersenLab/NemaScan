@@ -257,42 +257,67 @@ x_axis_end <- colnames(m2)[ncol(m2)]
 genomic_coor_text <- as.numeric(colnames(m2))
 genomic_coor_text[!genomic_coor_text %in% c(x_axis_start,x_axis_peak, x_axis_end)] <- ""
 
-x_axis_label <- ComplexHeatmap::HeatmapAnnotation(
-    year = ComplexHeatmap::anno_text(genomic_coor_text, rot = 0, location = unit(1, "npc"), just = "top"))
+test <- data.frame(m2) %>%
+    tibble::rownames_to_column(var = "strain") %>%
+    tidyr::gather(pos, div, -strain) %>%
+    dplyr::mutate(pos = as.numeric(gsub("X", "", pos)),
+                  div = as.character(div)) %>%
+    dplyr::full_join(ref_alt_annotation) %>%
+    dplyr::arrange(geno_group, desc(div))
+test$strain <- factor(test$strain, levels = unique(test$strain))
+test$geno_group_count <- factor(test$geno_group_count, levels = rev(unique(test$geno_group_count)))
 
-# add empty space on top of plot so the text "peak" will be within plottin area and show
-peak_label_space <- ComplexHeatmap::HeatmapAnnotation(foo = ComplexHeatmap::anno_empty(border = FALSE, height = unit(1, "cm")))
+test %>%
+    ggplot2::ggplot(.) +
+    aes(x = pos, y = strain, fill = div) +
+    geom_tile() +
+    theme_bw() +
+    theme(axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          panel.grid = element_blank()) +
+    scale_fill_manual(values = c("1" = "indianred1","0" = "grey90","-1" = "dodgerblue3"), 
+                      labels = c("not divergent", "divergent from N2", "no divergent data")) +
+    facet_grid(geno_group_count~., scales = "free_y", space = "free_y") +
+    geom_vline(xintercept = round(QTL_Peak, digits = -3), linetype = "dashed") +
+    labs(x = "Genomic position (Mb)", y = "Strain")
 
 
-ht <- ComplexHeatmap::Heatmap(m2, name="div_region",
-              row_split=factor(ref_alt_annotation$geno_group_count,
-                               levels=c(paste0("REF(", ref_count[1,2], ")"), paste0("ALT(", alt_count[1,2], ")"))), row_gap = unit(3, "mm"),
-              cluster_columns = FALSE, 
-              show_row_dend = FALSE, 
-              cluster_row_slices=FALSE, 
-              col = colors, 
-              heatmap_legend_param = list( title="",
-                                           at = legend_mapping$div_group,
-                                           labels = as.character(legend_mapping$div_label)),
-              show_column_names = FALSE,
-              show_row_names = FALSE,
-              bottom_annotation = x_axis_label,
-              top_annotation = peak_label_space)
-
-ComplexHeatmap:: draw(ht)
-
-ComplexHeatmap::decorate_heatmap_body("div_region", {
-    i = which(colnames(m2) == round(QTL_Peak, digits = -3))
-    x = i/ncol(m2)
-    grid.lines(c(x, x), c(0, 1), gp = gpar(lwd = 2, lty = 2))
-    grid.text("QTL peak", x, unit(1, "npc") + unit(5, "mm"))
-}, row_slice=1)
-
-ComplexHeatmap::decorate_heatmap_body("div_region", {
-    i = which(colnames(m2) == round(QTL_Peak, digits = -3))
-    x = i/ncol(m2)
-    grid.lines(c(x, x), c(0, 1), gp = gpar(lwd = 2, lty = 2))
-}, row_slice=2)
+# x_axis_label <- ComplexHeatmap::HeatmapAnnotation(
+#     year = ComplexHeatmap::anno_text(genomic_coor_text, rot = 0, location = unit(1, "npc"), just = "top"))
+# 
+# # add empty space on top of plot so the text "peak" will be within plottin area and show
+# peak_label_space <- ComplexHeatmap::HeatmapAnnotation(foo = ComplexHeatmap::anno_empty(border = FALSE, height = unit(1, "cm")))
+# 
+# 
+# ht <- ComplexHeatmap::Heatmap(m2, name="div_region",
+#               row_split=factor(ref_alt_annotation$geno_group_count,
+#                                levels=c(paste0("REF(", ref_count[1,2], ")"), paste0("ALT(", alt_count[1,2], ")"))), row_gap = unit(3, "mm"),
+#               cluster_columns = FALSE, 
+#               show_row_dend = FALSE, 
+#               cluster_row_slices=FALSE, 
+#               col = colors, 
+#               heatmap_legend_param = list( title="",
+#                                            at = legend_mapping$div_group,
+#                                            labels = as.character(legend_mapping$div_label)),
+#               show_column_names = FALSE,
+#               show_row_names = FALSE,
+#               bottom_annotation = x_axis_label,
+#               top_annotation = peak_label_space)
+# 
+# ComplexHeatmap:: draw(ht)
+# 
+# ComplexHeatmap::decorate_heatmap_body("div_region", {
+#     i = which(colnames(m2) == round(QTL_Peak, digits = -3))
+#     x = i/ncol(m2)
+#     grid.lines(c(x, x), c(0, 1), gp = gpar(lwd = 2, lty = 2))
+#     grid.text("QTL peak", x, unit(1, "npc") + unit(5, "mm"))
+# }, row_slice=1)
+# 
+# ComplexHeatmap::decorate_heatmap_body("div_region", {
+#     i = which(colnames(m2) == round(QTL_Peak, digits = -3))
+#     x = i/ncol(m2)
+#     grid.lines(c(x, x), c(0, 1), gp = gpar(lwd = 2, lty = 2))
+# }, row_slice=2)
 
 #dev.copy(pdf,'divergent_regions.pdf')
 #dev.off()

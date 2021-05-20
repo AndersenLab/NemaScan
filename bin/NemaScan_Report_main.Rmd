@@ -36,10 +36,12 @@ library("tidyverse", lib.loc = library.path)
 library("plotly", lib.loc = library.path)
 library("DT", lib.loc = library.path)
 library("ggbeeswarm", lib.loc = library.path)
-library("ComplexHeatmap", lib.loc = library.path)
+# library("ComplexHeatmap", lib.loc = library.path)
 library("knitr", lib.loc = library.path)
 library("ggrepel", lib.loc = library.path)
 library("genetics", lib.loc = library.path)
+library("ggnewscale", lib.loc = library.path)
+library("cowplot", lib.loc = library.path)
 
 ```
 
@@ -173,6 +175,13 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
         
     QTL_peaks <- read.delim("Mapping/Processed/QTL_peaks.tsv", header=TRUE, stringsAsFactors=FALSE) %>%
         dplyr::filter(trait == trait_name)
+
+    # plot pxg?
+    if(nrow(QTL_peaks == 0)) {
+        whether_plot_pxg <- FALSE
+    } else {
+        whether_plot_pxg <- TRUE
+    }
     
     # No LD if only one QTL
     if (nrow(QTL_peaks) < 2) {
@@ -226,7 +235,7 @@ DT::datatable(QTL_peaks_original)
 <br>
 
 ## Phenotype by Genotype Split
-```{r, eval=whether_print_peaks}
+```{r, eval=whether_plot_pxg}
 
 
 ## SWEPTNESS & EFFECTS SUMMARY ##
