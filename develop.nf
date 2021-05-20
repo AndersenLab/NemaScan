@@ -17,15 +17,43 @@ params.debug       = null
 //params.traitfile = null
 //params.vcf       = null //"20200815" // instead of hard coding vcf paths, maybe user can select cendr release date?
 params.help      = null
+
 if(params.simulate) {
-    params.e_mem = "100"
+    params.e_mem   = "100"
 } else {
-    params.e_mem = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
+    params.e_mem   = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
 }
-params.eigen_mem = params.e_mem + " GB"
-params.fix_names = "fix" // does this need to be an option? why would we not want to run this?
-params.R_libpath = "/projects/b1059/software/R_lib_3.6.0"
-params.out       = "Analysis_Results-${date}"
+params.eigen_mem   = params.e_mem + " GB"
+//params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
+params.out         = "Analysis_Results-${date}"
+params.debug       = null
+params.species     = "elegans"
+params.wbb         = "WS276"
+params.data_dir    = "input_data/${params.species}"
+params.numeric_chrom = "input_data/all_species/rename_chromosomes"
+params.sparse_cut  = 0.01
+params.group_qtl   = 1000
+params.ci_size     = 150
+params.sthresh     = "BF"
+params.p3d         = "TRUE"
+params.maf         = 0.05
+
+if(params.debug) {
+    println """
+
+        *** Using debug mode ***
+
+    """
+    // debug for now with small vcf
+    params.vcf = "330_TEST.vcf.gz"
+    vcf = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${workflow.projectDir}/test_data/330_TEST.vcf.gz.tbi")
+    params.traitfile = "${workflow.projectDir}/test_data/example_trait.tsv"
+} else { // does this work with gcp config? which takes preference?
+    vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/isotype_only/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("/projects/b1059/analysis/WI-${params.vcf}/imputed/WI.${params.vcf}.impute.isotype.vcf.gz")
+}
 
 if(params.debug) {
     println """
@@ -188,7 +216,6 @@ log.info ""
 */
 
 workflow {
-
     // for mapping
     if(params.maps) {
 
@@ -230,6 +257,7 @@ workflow {
 
         // LD b/w regions
         gcta_intervals_maps.out.to_plots | LD_between_regions
+
 
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
@@ -338,7 +366,7 @@ workflow {
 
 process update_annotations {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${save_dir}", mode: 'copy'
 
@@ -373,7 +401,7 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 process fix_strain_names_bulk {
 
-    executor 'local'
+    //executor 'local'
 
     tag {"BULK TRAIT"}
 
@@ -392,7 +420,7 @@ process fix_strain_names_bulk {
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
 
-        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} ${params.fix_names} ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix ${workflow.projectDir}/${params.data_dir}/isotypes/strain_isotype_lookup.tsv
     """
 
 }
@@ -410,7 +438,7 @@ process fix_strain_names_bulk {
 
 process vcf_to_geno_matrix {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -514,7 +542,7 @@ process chrom_eigen_variants {
 
 process collect_eigen_variants {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -888,7 +916,7 @@ process gcta_fine_maps {
 
 process divergent_and_haplotype {
 
-  executor 'local'
+  //executor 'local'
 
   publishDir "${params.out}/Divergent_and_haplotype", mode: 'copy'
 
@@ -919,7 +947,7 @@ process divergent_and_haplotype {
 // generate trait-specific html reports
 process html_report_main {
 
-  executor 'local'
+  //executor 'local'
   errorStrategy 'ignore'
 
   tag {TRAIT}
@@ -1068,7 +1096,7 @@ process chrom_eigen_variants_sims {
 
 process collect_eigen_variants_sims {
 
-    executor 'local'
+    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -1436,7 +1464,6 @@ workflow.onComplete {
     Min Strains with Variant for Burden     = ${params.minburden}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Fix isotype names and prune data        = ${params.fix_names}
     Eigen Memory allocation                 = ${params.eigen_mem}
     Path to R libraries.                    = ${params.R_libpath}
 

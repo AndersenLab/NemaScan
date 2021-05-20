@@ -1,3 +1,5 @@
+ANALYSIS/*
+katie*
 *.nextflow.log*
 *.nextflow
 report.*
@@ -5,6 +7,5 @@ Analysis_Results-*
 .nextflow/
 abatest-2021031*
 analysis/*
-ANALYSIS/*
 katie_test_out/*
 debug-test/*
