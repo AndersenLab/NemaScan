@@ -39,11 +39,13 @@ if(params.debug) {
     // debug can use same vcf for impute and normal
     impute_vcf = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
     impute_vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    ann_file = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/WI.330_TEST.strain-annotation.bcsq.tsv")
 } else { // does this work with gcp config? which takes preference?
     vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
     vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
     impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
     impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+    ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.bcsq.tsv")
 }
 
 /*
@@ -242,7 +244,8 @@ workflow {
             .spread(Channel.fromPath("${params.numeric_chrom}")) | prep_ld_files
 
         //fine mapping
-        prep_ld_files.out.finemap_preps | gcta_fine_maps
+        prep_ld_files.out.finemap_preps
+            .combine(ann_file) | gcta_fine_maps
 
         // divergent regions and haplotypes
         peaks | divergent_and_haplotype
@@ -838,7 +841,7 @@ process gcta_fine_maps {
     //errorStrategy 'ignore'
 
     input:
-        tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam)
+        tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam), file(annotation)
 
     output:
         tuple file("*.fastGWA"), val(TRAIT), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
@@ -869,7 +872,7 @@ process gcta_fine_maps {
         Rscript --vanilla Finemap_QTL_Intervals.R  ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/plot_genes.R  > plot_genes.R 
-        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${params.genes} /projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.bcsq.tsv
+        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${params.genes} ${annotation}
 
         done
 
