@@ -177,7 +177,7 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
         dplyr::filter(trait == trait_name)
 
     # plot pxg?
-    if(nrow(QTL_peaks == 0)) {
+    if(nrow(QTL_peaks) == 0) {
         whether_plot_pxg <- FALSE
     } else {
         whether_plot_pxg <- TRUE
