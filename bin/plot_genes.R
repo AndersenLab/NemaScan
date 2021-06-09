@@ -91,7 +91,7 @@ for(r in 1:nrow(query_regions)){
 # combine annotations for regions
 annotation_df <- dplyr::bind_rows(annotation_out) %>%
     dplyr::left_join(pr_trait_ld, ., by = c("marker", "REF", "ALT")) %>% {
-        if(ann_type == "bcsq") dplyr::rename(., gene_id = GENE) else .
+        if(ann_type == "bcsq") dplyr::rename(., gene_id = WORMBASE_ID) else dplyr::select(., -gene_name)
     }
 
 genes_in_region <- gene_ref_flat %>%
@@ -109,10 +109,10 @@ ugly_genes_in_region <- genes_in_region %>%
                   end_pos = query_regions$end_pos)
 
 tidy_genes_in_region <- if(ann_type == "bcsq") {
-        # no gene_name, feature_type
+        # no feature_type
         ugly_genes_in_region %>%
             dplyr::select(MARKER = marker, CHROM = CHR, POS, REF, ALT, START_POS = start_pos, END_POS = end_pos, MAF_variant = maf_marker_b,
-                      WBGeneID = gene_id,
+                      GENE_NAME = gene_name, WBGeneID = gene_id,
                       WBFeature_ID = feature_id, TRANSCRIPT_BIOTYPE = BIOTYPE, CONSEQUENCE, VARIANT_IMPACT,
                       NUCLEOTIDE_CHANGE = DNA_CHANGE, AMINO_ACID_CHANGE, BLOSUM, Grantham, Percent_Protein,
                       STRAND, TRANSCRIPTION_START_POS = txstart, TRANSCRIPTION_END_POS = txend,
