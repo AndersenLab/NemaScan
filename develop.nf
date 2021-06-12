@@ -35,6 +35,7 @@ params.ci_size     = 150
 params.sthresh     = "BF"
 params.p3d         = "TRUE"
 params.maf         = 0.05
+params.annotation  = "bcsq"
 
 if(params.debug) {
     println """
@@ -67,7 +68,7 @@ if(params.debug) {
     impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
     impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
     
-    ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.{params.annotation}.tsv")
+    ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
 }
 
 /*
