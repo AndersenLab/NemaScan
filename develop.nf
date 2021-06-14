@@ -13,8 +13,7 @@ date = new Date().format( 'yyyyMMdd' )
 /*
 ~ ~ ~ > * Parameters: common to all analyses
 */
-//params.traitfile   = null
-//params.vcf         = null
+
 params.help        = null
 if(params.simulate) {
     params.e_mem   = "100"
@@ -22,7 +21,6 @@ if(params.simulate) {
     params.e_mem   = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
 }
 params.eigen_mem   = params.e_mem + " GB"
-//params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
 params.out         = "Analysis_Results-${date}"
 params.debug       = null
 params.species     = "elegans"
@@ -35,7 +33,24 @@ params.ci_size     = 150
 params.sthresh     = "BF"
 params.p3d         = "TRUE"
 params.maf         = 0.05
+params.genes       = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
+params.gcp         = null
+download_vcf       = null
 params.annotation  = "bcsq"
+
+/*
+~ ~ ~ > * Parameters: for burden mapping
+*/
+
+params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
+params.freqUpper = 0.05
+params.minburden = 2
+
+
+/*
+~ ~ ~ > * Parameters: VCF
+*/
+
 
 if(params.debug) {
     println """
@@ -54,34 +69,58 @@ if(params.debug) {
     
     ann_file = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/WI.330_TEST.strain-annotation.bcsq.tsv")
 } else if(params.gcp) { 
-    vcf_file = Channel.fromPath("gs://caendr-data/releases/20210121/variation/WI.20210121.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://caendr-data/releases/20210121/variation/WI.20210121.hard-filter.isotype.vcf.gz.tbi")
+    // use the data directly from google on gcp
+    vcf_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
 
-    impute_vcf = Channel.fromPath("gs://caendr-data/releases/20210121/variation/WI.20210121.impute.isotype.vcf.gz")
-    impute_vcf_index = Channel.fromPath("gs://caendr-data/releases/20210121/variation/WI.20210121.impute.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
+    impute_vcf_index = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-    ann_file = Channel.fromPath("gs://caendr-data/releases/20210121/variation/WI.20210121.strain-annotation.bcsq.tsv")
-} else {
-    vcf_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
-
-    impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
-    impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+    ann_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.bcsq.tsv")
+} else if(!params.vcf) {
+    // if there is no VCF date provided, pull the latest vcf from cendr.
+    params.vcf = "20210121"
+    download_vcf = true
     
-    ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+} else {
+    // use the vcf data from QUEST when a cendr date is provided
+
+    // Check that params.vcf is valid
+    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+        vcf_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+        vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+
+        impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
+        impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+
+        // check if cendr release date is not 20210121, use snpeff annotation
+        if("${params.vcf}" != "20210121") {
+            println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use --vcf 20210121"
+            ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+        } else {
+            ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.bcsq.tsv")
+        }
+    } else {
+        println "Error! Cannot find ${params.vcf}.vcf. Please provide a valid CeNDR release date (20210121, 20200815, 20180527, or 20170531)."
+        exit 1
+    }
 }
 
-/*
-~ ~ ~ > * Parameters: for burden mapping
-*/
-params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
-params.freqUpper = 0.05
-params.minburden = 2
-params.genes     = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
+// If mapping, check that traitfile exists
+if(params.map) {
+    if (!file("${params.traitfile}").exists()) {
+        println """
+        Error: Phenotype input file (${params.traitfile}) does not exist.
+        """
+        System.exit(1)
+    }
+}
+
 
 
 if (params.help) {
     log.info '''
+
 O~~~     O~~                                   O~~ ~~
 O~ O~~   O~~                                 O~~    O~~
 O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
@@ -91,19 +130,25 @@ O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~
 O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
     '''
     log.info "----------------------------------------------------------------"
-    log.info "                      USAGE                                     "
+    log.info "                         USAGE                                  "
     log.info "----------------------------------------------------------------"
     log.info ""
-    log.info "nextflow main.nf --traitdir=test_bulk --p3d=TRUE --sthresh=BF # download VCF from CeNDR"
+    log.info "nextflow develop.nf --traitfile=input_data/elegans/phenotypes/abamectin_pheno.tsv --vcf 20210121"
     log.info ""
     log.info "Profiles available:"
-    log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
-    log.info "simulations           Profile                Perform phenotype simulations with GCTA"
+    log.info "-profile mappings        (Default)             Perform GWA mappings with a provided trait file"
+    log.info "-profile simulations                           Perform phenotype simulations with GCTA"
+    log.info "----------------------------------------------------------------"
+    log.info "                         DEBUG                                  "
+    log.info "----------------------------------------------------------------"
+    log.info ""
+    log.info "nextflow develop.nf --debug"
+    log.info ""
     log.info "----------------------------------------------------------------"
     log.info "             -profile annotations USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile annotations --species elegans"
+    log.info "nextflow develop.nf --vcf 20210121 -profile annotations --species elegans"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--wb_build               String                Wormbase build number, must be greater than WS270"
@@ -112,12 +157,12 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings --p3d TRUE"
+    log.info "nextflow develop.nf --vcf 20210121 --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
-    log.info "--vcf                    String                Name of VCF to extract variants from. There should also be a tabix-generated index file with the same name in the directory that contains the VCF. If none is provided, the pipeline will download the latest VCF from CeNDR"
+    log.info "--vcf                    String                CeNDR release date of VCF to extract variants from. If none is provided, the pipeline will download the latest VCF from CeNDR"
     log.info "Optional arguments:"
     log.info "--maf                    String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
     log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
@@ -127,7 +172,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile simulations USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
+    log.info "nextflow develop.nf --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz -profile simulations"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
@@ -144,7 +189,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "Optional arguments (General):"
     log.info "--out                    String                Name of folder that will contain the results"
     log.info "--e_mem                  String                Value that corresponds to the amount of memory to allocate for eigen decomposition of chromosomes (DEFAULT = 100)"
-    log.info "--cendr_v                String                CeNDR release (DEFAULT = 20180527)"
     log.info "Optional arguments (Marker):"
     log.info "--sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
     log.info "--group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
@@ -163,7 +207,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info ""
     log.info "--------------------------------------------------------"
     log.info ""
-    log.info " Required software packages to be in users path"
+    log.info "Required software packages to be in users path:"
     log.info "BCFtools               v1.9"
     log.info "plink                  v1.9"
     log.info "R-cegwas2              Found on GitHub"
@@ -173,6 +217,10 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "R-sommer               v3.5"
     log.info "R-RSpectra             v0.13-1"
     log.info "R-ggbeeswarm           v0.6.0"
+    log.info "                                               "
+    log.info "Options to run without downloading individual software:"
+    log.info "(1) On QUEST, a local conda environment and corresponding R packages are already supplied."
+    log.info "(2) On QUEST or outside of QUEST, you can also supply a docker/singularity container with -profile mappings_docker. Remember to load singularity first."
     log.info "--------------------------------------------------------"
     exit 1
 } else {
@@ -190,10 +238,13 @@ log.info "Trait File                              = ${params.traitfile}"
 log.info "VCF                                     = ${params.vcf}"
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
+log.info "-----------------------------------------------------------"
+log.info "Run mapping profile?                    = ${params.maps}"
+log.info "Run simulation profile?                 = ${params.simulate}"
+log.info "Run annotation profile?                 = ${params.annotate}"
 log.info ""
 }
 
-// add more params to show user ^^ how does this work with different profiles?
 
 
 /*
@@ -201,6 +252,18 @@ log.info ""
 */
 
 workflow {
+
+    // if no VCF is provided, download the latest version from CeNDR
+    if(download_vcf) {
+        pull_vcf()
+
+        vcf_file = pull_vcf.out.hard_vcf
+        vcf_index = pull_vcf.out.hard_vcf_index
+        impute_vcf = pull_vcf.out.impute_vcf
+        impute_vcf_index = pull_vcf.out.impute_vcf_index
+        ann_file = pull_vcf.out.ann_vcf
+    }
+
     // for mapping
     if(params.maps) {
 
@@ -344,6 +407,39 @@ workflow {
 
 }
 
+/*
+==============================================
+~ > *                                    * < ~
+~ ~ > *                                * < ~ ~
+~ ~ ~ > *  DOWNLOAD VCF FROM CENDR   * < ~ ~ ~
+~ ~ > *                                * < ~ ~
+~ > *                                    * < ~
+==============================================
+*/
+
+process pull_vcf {
+
+    tag {"PULLING VCF FROM CeNDR"}
+
+    output:
+        path "*hard-filter.isotype.vcf.gz", emit: hard_vcf 
+        path "*hard-filter.isotype.vcf.gz.tbi", emit: hard_vcf_index 
+        path "*impute.isotype.vcf.gz", emit: impute_vcf 
+        path "*impute.isotype.vcf.gz.tbi", emit: impute_vcf_index 
+        path "*.strain-annotation*.tsv", emit: ann_vcf
+
+    """
+        wget https://storage.googleapis.com/elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
+        tabix -p vcf WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
+
+        wget https://storage.googleapis.com/elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz
+        tabix -p vcf WI.${params.vcf}.impute.isotype.vcf.gz
+
+        wget https://storage.googleapis.com/elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.bcsq.tsv
+
+    """
+}
+
 
 /*
 ==============================================
@@ -356,8 +452,6 @@ workflow {
 */
 
 process update_annotations {
-
-    //executor 'local'
 
     publishDir "${save_dir}", mode: 'copy'
 
@@ -392,8 +486,6 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 process fix_strain_names_bulk {
 
-    //executor 'local'
-
     tag {"BULK TRAIT"}
 
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "*pr_*.tsv"
@@ -427,8 +519,6 @@ process fix_strain_names_bulk {
 */
 
 process vcf_to_geno_matrix {
-
-    //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -524,17 +614,15 @@ process chrom_eigen_variants {
 
 process collect_eigen_variants {
 
-    //executor 'local'
-
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
     cpus 1
 
     input:
-        file(chrom_tests) //from sig_snps_geno_matrix.collect()
+        file(chrom_tests) 
 
     output:
-        file("total_independent_tests.txt") //into independent_tests
+        file("total_independent_tests.txt")
 
     """
         cat *independent_snvs.csv |\\
@@ -870,8 +958,6 @@ process gcta_fine_maps {
 
 process divergent_and_haplotype {
 
-  //executor 'local'
-
   publishDir "${params.out}/Divergent_and_haplotype", mode: 'copy'
 
 
@@ -896,7 +982,6 @@ process divergent_and_haplotype {
 // generate trait-specific html reports
 process html_report_main {
 
-  //executor 'local'
   errorStrategy 'ignore'
 
   tag {TRAIT}
