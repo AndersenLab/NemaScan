@@ -36,6 +36,7 @@ params.maf         = 0.05
 params.genes       = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
 params.gcp         = null
 download_vcf       = null
+params.annotation  = "bcsq"
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping
@@ -49,6 +50,7 @@ params.minburden = 2
 /*
 ~ ~ ~ > * Parameters: VCF
 */
+
 
 if(params.debug) {
     println """
@@ -102,7 +104,6 @@ if(params.debug) {
         println "Error! Cannot find ${params.vcf}.vcf. Please provide a valid CeNDR release date (20210121, 20200815, 20180527, or 20170531)."
         exit 1
     }
-    
 }
 
 // If mapping, check that traitfile exists
