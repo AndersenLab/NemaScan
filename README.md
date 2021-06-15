@@ -64,7 +64,7 @@ If you are trying to run a GWAS mapping with NemaScan, it might be a good idea t
 nextflow run develop.nf --debug
 ```
 
-To display the help message, run `nextflow main.nf --help` 
+To display the help message, run `nextflow develop.nf --help` 
 
 # Profiles and Parameters
 
@@ -106,7 +106,7 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 This profile runs GWA simulations
 
 ```
-nextflow develop.nf -profile simulations --vcf input_data/elegans/genotypes/WI.20180527.impute.vcf.gz --simulate_nqtl --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
+nextflow develop.nf -profile simulations --vcf 20210121 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
 module load R/3.6.3
 Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 ```
@@ -115,19 +115,24 @@ Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 
 CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
+### --simulate_nqtl 
+A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header) (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
+
+### --simulate_reps
+The number of replicates to simulate per number of QTL and heritability (Default: 2).
+
+### --simulate_h2 
+A CSV file with phenotype heritability. (format: one value per line, no column header) (Default is located: `input_data/all_species/simulate_h2.csv`).
+
+### --simulate_eff
+A CSV file specifying a range of causal QTL effects. QTL effects will be drawn from a uniform distribution bound by these two values. If the user wants to specify _Gamma_ distributed effects, the value in this file can be simply specified as "gamma". (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_effect_sizes.csv).
+
+### --simulate_strains
+A TSV file specifying the population in which to simulate GWA mappings. Multiple populations can be simulated at once, but causal QTL will be drawn independently for each population as a result of minor allele frequency and LD pruning prior to mapping. (format: one line per population; supplied population name and a comma-separated list of each strain in the population) (Default is located: input_data/all_species/simulate_strains.tsv).
+
 #### Optional Simulation Parameters
 
 * `--simulate_maf` - A single column CSV file that defines the minor allele frequency threshold used to filter the VCF prior to simulations (Default: 0.05).
-
-* `--simulate_nqtl` - A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header)   (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
-
-* `--simulate_reps` - The number of replicates to simulate per number of QTL and heritability (Default: 2).
-
-* `--simulate_h2` - A CSV file with phenotype heritability. (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_h2.csv).
-
-* `--simulate_eff` - A CSV file specifying a range of causal QTL effects. QTL effects will be drawn from a uniform distribution bound by these two values. If the user wants to specify _Gamma_ distributed effects, the value in this file can be simply specified as "gamma". (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_effect_sizes.csv).
-
-* `--simulate_strains` - A TSV file specifying the population in which to simulate GWA mappings. Multiple populations can be simulated at once, but causal QTL will be drawn independently for each population as a result of minor allele frequency and LD pruning prior to mapping. (format: one line per population; supplied population name and a comma-separated list of each strain in the population) (Default is located: input_data/all_species/simulate_strains.tsv).
 
 * `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_locations.bed).
 
@@ -181,24 +186,6 @@ tropicalis
       ├── refFlat file
 ```
 
-## Essential R Scripts (`Nemascan/bin`)
-
-* `Get_GenoMatrix_Eigen.R` - Takes a genotype matrix and chromosome name as input and identifies the number significant eigenvalues.
-* `Fix_Isotype_names_bulk.R` - Take sample names present in phenotype data and changes them to isotype names found on [CeNDR](elegansvariation.org) when the `--traitfile` flag is used.
-
-* `create_causal_QTLs.R` - (_Simulations Profile Only_) Simulates a number of QTL effects specified by `simulate_nqtl.csv` drawn from either 1) a user-specified range or 2) a _Gamma_ distribution with shape = 0.4 and scale = 1.66. Effects are randomly assigned positive or negative directional effects. This script will also source `simulate_locations.bed` if provided. Otherwise, all variants present after MAF filtering and LD pruning are eligible to be selected as causal.
-* `Find_GCTA_Intervals_*.R` - (_Simulation Profile Only_) Assigns QTL "detection" intervals for each simulated mapping using the `--group_qtl` and `--ci_size` parameters if the number of significant markers does not exceed 15% of whole marker set (as this is a strong indication of high phenotypic noise due to genomic structure or low sampling). *NOTE* These regions should _not_ be treated statistical confidence intervals.
-
-* `Find_GCTA_Intervals_Maps*.R` - (_Mapping Profile Only_) Assigns QTL "detection" intervals using the `--group_qtl` and `--ci_size` parameters if the number of significant markers does not exceed 15% of whole marker set (as this is a strong indication of high phenotypic noise due to genomic structure or low sampling). *NOTE* These regions should _not_ be treated statistical confidence intervals.
-* `pipeline.plotting.R` - (_Mapping Profile Only_) Generates 1) manhattan plots for each trait in the traitfile, 2) LD heatmaps for traits with greater than two detected QTL, and 3) phenotype-by-genotype plots for each detected QTL.
-
-* `Assess_Simulated_Mappings.R` - (_Standalone for Simulations_) Analyzes simulated mappings and gathers results and metadata for 1) all detected QTL and 2) undetected simulated QTL. Creates an .RData file within the Simulations directory that can be analyzed locally to determine performance for parameters of interest to the user.
-* `manhattan.plotting.R` - (_Standalone for Simulations_) Generates a manhattan plot for a specified simulation generated by the simulations profile with the following usage:
-```
-Rscript bin/manhattan.plotting.R [nQTL] [Replicate] [h2] [MAF] [effect range (as CHARACTER)] [strain set] example_simulation_output
-```
-
-
 # Mapping Output Folder Structure
 
 ```
@@ -247,14 +234,14 @@ Reports
 * `pr_traitname.tsv` - Processed phenotype file for each trait. This is the file that goes into the mapping
 
 ### Genotype_Matrix folder
-* `Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix
+* `Genotype_Matrix.tsv` - LD-pruned genotype matrix used for GWAS and construction of kinship matrix
 * `total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix
 
 ### Mapping folder
 
 #### Raw
 * `traitname_lmm-exact_inbred.fastGWA` - Raw mapping results from GCTA's fastGWA program using an inbred kinship matrix
-* `traitname_lmm-exact.loco.mlma` - Raw mapping results from GCTA's mlma program using a kinship matrix constructed from all chromosomes except for the chromosome containing each tested variant.
+* `traitname_lmm-exact.loco.mlma` - Raw mapping results from GCTA's mlma program using a kinship matrix constructed from all chromosomes except for the chromosome containing each tested variant
 
 #### Processed
 * `traitname_LMM_EXACT_INBRED_mapping.tsv` - Processed mapping results from lmm-exact_inbred raw mappings. Contains additional information nested such as 1) rough intervals (see parameters for calculation) and estimates of the variance explained by the detected QTL 2) phenotype information and genotype status for each strain at the detected QTL.
