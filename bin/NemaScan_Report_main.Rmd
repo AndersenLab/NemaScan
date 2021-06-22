@@ -371,9 +371,14 @@ print("Not enough QTL regions to calculate linkage")
 ## Divergent region, haplotype, and fine mapping for each significant QTL region 
 Only for regions less than 5 Mb in size
 
+```{r}
+# evaluate this always
+out <- NULL
+
+```
+
 ```{r, eval = whether_fine_map}
 
-out <- NULL
 for (i in seq_len(nrow(QTL_peaks))) { 
     QTL_chrom <- QTL_peaks$CHROM[i]
     QTL_start <- QTL_peaks$startPOS[i]
@@ -385,9 +390,11 @@ for (i in seq_len(nrow(QTL_peaks))) {
 }
 # `r paste(knitr::knit(text = out), collapse = '\n')`
 
-paste(knitr::knit(text = out), collapse = '\n')
+#paste(knitr::knit(text = out), collapse = '\n')  # this stopped working...
 
 ```
+
+`r if(!is.null(out)) { paste(knitr::knit(text = out), collapse = '\\n') }`
 
 
 <br>
