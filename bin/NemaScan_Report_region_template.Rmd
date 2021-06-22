@@ -124,7 +124,7 @@ print(ld_plot)
 ```{r}
 
 # check whether there are user tested strains that have no divergent region data
-div_strain_list <- read.delim("Divergent_and_haplotype/div_isotype_list.txt", header=FALSE, stringsAsFactors=FALSE) 
+div_strain_list <- read.delim("Divergent_and_haplotype/div_isotype_list2.txt", header=FALSE, stringsAsFactors=FALSE) 
 
 # where does this come from?
 user_strain_pheno_list <- processed_mapping %>%
