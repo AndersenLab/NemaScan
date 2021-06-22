@@ -123,7 +123,7 @@ process_mapping_df <- function (mapping_df,
     
     row.names(pheno) <- gsub("-", "\\.", row.names(pheno))
     
-    pheno$trait <- gsub("-", "\\.", pheno$trait)
+    # pheno$trait <- gsub("-", "\\.", pheno$trait)  ## do we need this line? causes errors if trait name has hyphen...
     
     rawTr <- pheno %>%
       dplyr::left_join(., snpsForVE, by = "trait")
