@@ -113,7 +113,7 @@ if(params.map) {
         Error: Phenotype input file (${params.traitfile}) does not exist.
         """
         System.exit(1)
-    }
+    } 
 }
 
 
@@ -277,6 +277,15 @@ workflow {
 
         // Genotype matrix
         pheno_strains = fix_strain_names_bulk.out.phenotyped_strains_to_analyze
+        // pheno_strains.splitText().count().view()
+
+        // // check that there are at least 40 strains to map
+        // if(pheno_strains.splitText().count().toInteger() < 40) {
+        //     println """
+        //     Error: Please input more than 40 strains for a GWAS mapping.
+        //     """
+        //     System.exit(1)
+        // }
 
         vcf_file.spread(vcf_index)
                 .combine(pheno_strains) | vcf_to_geno_matrix
@@ -503,6 +512,14 @@ process fix_strain_names_bulk {
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_bulk.R > Fix_Isotype_names_bulk.R 
         Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix $isotype_lookup
+
+        # check to make sure there are more than 40 strains for a mapping.
+        if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
+        then
+            echo "ERROR: Please provide at least 40 strains for a GWAS mapping."
+            exit 1
+        fi
+
     """
 
 }
