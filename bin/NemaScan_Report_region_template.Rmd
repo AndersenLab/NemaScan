@@ -5,13 +5,13 @@
 
 Fine mapping was performed by evaluating the genotype-phenotype relationship for variants nearby the QTL identified from GWA mapping using a vcf containing imputed variants to avoid removing variants with missing genotype information for one or a few strains. Only SNVs were considered in this mapping.
 
-```{r}
+```{r, out.width = '100%', fig.height = 6}
 # read in genes in region and pval
 genes_in_region <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes.tsv"))
     
 gene_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
-    dplyr::distinct(WBGeneID, PEAK_MARKER, CHROM, STRAND, TRANSCRIPTION_START_POS, 
+    dplyr::distinct(WBGeneID, GENE_NAME, PEAK_MARKER, CHROM, STRAND, TRANSCRIPTION_START_POS, 
                     TRANSCRIPTION_END_POS, START_POS, END_POS, VARIANT_LOG10p) %>%
     dplyr::group_by(WBGeneID) %>%
     dplyr::mutate(VARIANT_LOG10p = max(VARIANT_LOG10p, na.rm = T)) %>%
@@ -21,7 +21,7 @@ peak_variant <- as.numeric(strsplit(unique(gene_df$PEAK_MARKER), split = ":")[[1
 
 variant_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
-    dplyr::distinct(CHROM, POS, VARIANT_LOG10p, VARIANT_IMPACT)
+    dplyr::distinct(CHROM, POS, GENE_NAME, WBGeneID, VARIANT_LOG10p, VARIANT_IMPACT)
 
 variant_df$VARIANT_IMPACT[is.na(variant_df$VARIANT_IMPACT)] <- "Intergenic"
 
@@ -32,6 +32,7 @@ cq <- unique(gene_df$CHROM)
 max_logp <- unique(max(variant_df$VARIANT_LOG10p, na.rm = T))/150
 
 gene_plot <- ggplot(gene_df) +
+    aes(text = paste0(GENE_NAME, "\n", WBGeneID)) +
     geom_vline(aes(xintercept = peak_variant/1e6),
                linetype=3, color = "cyan")+
     geom_segment(aes(x = ifelse(STRAND == "+", TRANSCRIPTION_START_POS/1e6, TRANSCRIPTION_END_POS/1e6),
@@ -48,17 +49,22 @@ gene_plot <- ggplot(gene_df) +
                                   "LOW" = "gray30",
                                   "MODERATE" = "orange",
                                   "HIGH" = "red",
+                                  "Linker" = "gray80", 
                                   "Intergenic" = "gray80"),
                        breaks = c("HIGH", "MODERATE", "LOW", "MODIFIER", "Intergenic"),
                        name = "EFFECT")+
     labs(x = "Genomic Position (Mb)",
-         y = expression(-log[10](italic(p))))+
+         y = "-log10p") +
+         # y = expression(-log[10](italic(p))))+
     theme_bw(18)+
     xlim(c(xs/1e6, xe/1e6)) +
     theme(legend.position = "top",
           panel.grid = element_blank())
 
-print(gene_plot)
+# print(gene_plot)
+
+# plotly::ggplotly(gene_plot, tooltip = c("plotly_label_gene_name", "plotly_label_gene_ID", "plotly_label_variant")) %>% plotly::toWebGL()
+plotly::ggplotly(gene_plot, tooltip = "text")
     
     # ggsave(gene_plot,
     #        filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}.pdf"),
@@ -68,7 +74,7 @@ print(gene_plot)
 
 ```
 
-```{r}
+```{r, out.width = '100%', fig.height = 6}
 
 finemap <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.fastGWA")) %>%
   dplyr::mutate(CHR = as.factor(CHR),
@@ -119,9 +125,34 @@ print(ld_plot)
 
 ```
 
-#### Divergent regions
+
+<br>
+<br>
+
+#### All variants in interval
 
 ```{r}
+# All variants in interval
+var_info <- genes_in_region %>%
+    dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+    dplyr::select(MARKER, REF, ALT,WBGeneID, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
+                  STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+
+DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+    DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+    DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+
+```
+
+<br>
+<br>
+
+
+#### Divergent regions
+
+```{r, out.width = '100%'}
 
 # check whether there are user tested strains that have no divergent region data
 div_strain_list <- read.delim("Divergent_and_haplotype/div_isotype_list2.txt", header=FALSE, stringsAsFactors=FALSE) 
@@ -269,17 +300,19 @@ test$geno_group_count <- factor(test$geno_group_count, levels = rev(unique(test$
 
 test %>%
     ggplot2::ggplot(.) +
-    aes(x = pos, y = strain, fill = div) +
-    geom_tile() +
+    aes(x = pos, xend = pos+999, yend = strain, y = strain) +
+    ggplot2::geom_segment(aes(color = as.character(div)), size = 2) +
+    # ggplot2::geom_tile(aes(fill = as.character(div))) +
     theme_bw() +
     theme(axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           panel.grid = element_blank()) +
-    scale_fill_manual(values = c("1" = "indianred1","0" = "grey90","-1" = "dodgerblue3"), 
+    scale_color_manual(values = c("1" = "indianred1","0" = "grey90","-1" = "dodgerblue3"), 
                       labels = c("not divergent", "divergent from N2", "no divergent data")) +
     facet_grid(geno_group_count~., scales = "free_y", space = "free_y") +
     geom_vline(xintercept = round(QTL_Peak, digits = -3), linetype = "dashed") +
     labs(x = "Genomic position (Mb)", y = "Strain")
+
 
 
 # x_axis_label <- ComplexHeatmap::HeatmapAnnotation(
@@ -330,11 +363,11 @@ test %>%
 #### Haplotype
 
 <br>
-```{r, fig.height=20, fig.width=20}
+```{r, fig.height=30, fig.width=20}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
 haplotype_in_QTL_region <- read.delim("Divergent_and_haplotype/haplotype_in_QTL_region.txt", header=FALSE, stringsAsFactors=FALSE) %>% 
-    dplyr::select(-V13)
+    dplyr::select(-V12)
 
 names(haplotype_in_QTL_region) <- c("chromosome", "start", "stop", "haplotype", "isotype", "plotpoint", "segment", "color", "Chrom", "Region_start", "Region_end")
 
@@ -416,13 +449,16 @@ p1 <- ggplot2::ggplot(filter(plot_df),
                  color = haplotype)) +
     ggplot2::geom_segment(size = 3) +
     ggplot2::scale_color_manual(values = mcolor) +
-    ggplot2::xlab("Position") +
     ggplot2::theme_bw() +
     ggplot2::coord_cartesian(xlim=c(QTL_start, QTL_end)) +
     ggplot2::theme(legend.position="none") +
     ggplot2::geom_vline(xintercept = QTL_Peak) +
     ggplot2::facet_grid(geno_group ~ ., scales = "free", space = "free") + 
-    ggplot2::theme(panel.spacing = unit(1, "lines"))
+    ggplot2::theme(panel.spacing = unit(1, "lines"),
+                   strip.text = element_text(size = 30, face = "bold"),
+                   axis.text.x = element_text(size = 30),
+                   axis.title = element_text(size = 30, face = "bold")) +
+    ggplot2::labs(x = "Genomic position", y = "Isotype")
 
 
 #ggsave(paste0("haplotype_", QTL_Chrom, ".", QTL_Region_start, ".", QTL_Region_end, ".png"), p, height = 30, width = 8)
