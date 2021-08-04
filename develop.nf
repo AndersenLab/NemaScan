@@ -37,6 +37,7 @@ params.genes       = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
 params.gcp         = null
 download_vcf       = null
 params.annotation  = "bcsq"
+params.strains     = null
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping
@@ -58,7 +59,7 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
-    params.traitfile = "${workflow.projectDir}/input_data/elegans/phenotypes/FileS2_wipheno.tsv"
+    params.traitfile = "${workflow.projectDir}/input_data/elegans/phenotypes/abamectin_pheno.tsv"
 
     vcf_file = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
     vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
@@ -277,15 +278,6 @@ workflow {
 
         // Genotype matrix
         pheno_strains = fix_strain_names_bulk.out.phenotyped_strains_to_analyze
-        // pheno_strains.splitText().count().view()
-
-        // // check that there are at least 40 strains to map
-        // if(pheno_strains.splitText().count().toInteger() < 40) {
-        //     println """
-        //     Error: Please input more than 40 strains for a GWAS mapping.
-        //     """
-        //     System.exit(1)
-        // }
 
         vcf_file.spread(vcf_index)
                 .combine(pheno_strains) | vcf_to_geno_matrix
@@ -355,6 +347,17 @@ workflow {
 
         Channel.fromPath("${params.script_loc}")
             .combine(save_dir) | update_annotations
+
+    } else if(params.matrix) {
+
+        // only run geno matrix step - and fix isotype names if needed
+        Channel.fromPath("${params.strains}")
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/strain_isotype_lookup.tsv")) | fix_strain_names_alt
+        
+        pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
+
+        vcf_file.spread(vcf_index)
+                .combine(pheno_strains) | vcf_to_geno_matrix
 
     } else if(params.simulate) {
 
@@ -519,6 +522,26 @@ process fix_strain_names_bulk {
             echo "ERROR: Please provide at least 40 strains for a GWAS mapping."
             exit 1
         fi
+
+    """
+
+}
+
+process fix_strain_names_alt {
+
+    publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "*.txt"
+
+    input:
+        tuple file(phenotypes), file(isotype_lookup)
+
+    output:
+        path "Phenotyped_Strains.txt", emit: phenotyped_strains_to_analyze 
+        file("strain_issues.txt")
+
+    """
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Fix_Isotype_names_alt.R > Fix_Isotype_names_alt.R 
+        Rscript --vanilla Fix_Isotype_names_alt.R ${phenotypes} fix $isotype_lookup
 
     """
 
