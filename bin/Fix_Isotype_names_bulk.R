@@ -340,6 +340,18 @@ process_phenotypes <- function(df,
 # load trait file
 traits <- readr::read_tsv(args[1])
 
+# fix trait if needed (no space, no weird characters)
+cols <- colnames(traits)[2:length(colnames(traits))]
+new <- NULL
+for(c in cols) {
+    c1 <- stringr::str_split(c, "[^[:alnum:]]")[[1]]
+    c2 <- c1[c1 != ""]
+    c3 <- paste(c2, collapse = "_")
+    new <- c(new, c3)
+}
+
+colnames(traits) <- c("strain", new)
+
 # print messages to file
 sink("strain_issues.txt")
 sink(stdout(), type = "message")
