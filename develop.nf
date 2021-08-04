@@ -58,7 +58,7 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
-    params.traitfile = "${workflow.projectDir}/input_data/elegans/phenotypes/FileS2_wipheno.tsv"
+    params.traitfile = "${workflow.projectDir}/input_data/elegans/phenotypes/abamectin_pheno.tsv"
 
     vcf_file = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
     vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
@@ -277,15 +277,6 @@ workflow {
 
         // Genotype matrix
         pheno_strains = fix_strain_names_bulk.out.phenotyped_strains_to_analyze
-        // pheno_strains.splitText().count().view()
-
-        // // check that there are at least 40 strains to map
-        // if(pheno_strains.splitText().count().toInteger() < 40) {
-        //     println """
-        //     Error: Please input more than 40 strains for a GWAS mapping.
-        //     """
-        //     System.exit(1)
-        // }
 
         vcf_file.spread(vcf_index)
                 .combine(pheno_strains) | vcf_to_geno_matrix
