@@ -243,6 +243,8 @@ log.info "-----------------------------------------------------------"
 log.info "Run mapping profile?                    = ${params.maps}"
 log.info "Run simulation profile?                 = ${params.simulate}"
 log.info "Run annotation profile?                 = ${params.annotate}"
+log.info "-----------------------------------------------------------"
+log.info "Git info:                               = $workflow.repository - $workflow.revision [$workflow.commitId]"
 log.info ""
 }
 
