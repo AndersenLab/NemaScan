@@ -100,6 +100,28 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
 
+## Genomatrix Profile
+
+This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
+
+```
+nextflow run develop.nf -profile genomatrix --vcf 20210121 --strains input_data/elegans/phenotypes/strain_file.tsv
+```
+
+### --vcf
+
+CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+
+### --strains
+
+A file (.tsv) that contains a list of strains used for generating the genotype matrix. There is no header:
+
+```
+JU258
+ECA640
+...
+ECA250
+```
 
 ## Simulations Profile
 
