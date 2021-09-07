@@ -10,43 +10,70 @@ nextflow.preview.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
 
+/*
+~ ~ ~ > * Parameters: common to all analyses
+*/
+//params.trait_file   = null
+//params.vcf         = null
+params.help        = null
+if(params.simulate) {
+    params.e_mem   = "100"
+} else {
+    params.e_mem   = "10" // I noticed it was crashing with 100 gb for mappings... maybe too much allocation?
+}
+params.eigen_mem   = params.e_mem + " GB"
+//params.R_libpath   = "/projects/b1059/software/R_lib_3.6.0"
+params.out         = "Analysis_Results-${date}"
+params.debug       = null
+params.species     = "elegans"
+params.wbb         = "WS276"
+params.data_dir    = "${workflow.projectDir}/input_data/${params.species}"
+params.numeric_chrom = "${workflow.projectDir}/input_data/all_species/rename_chromosomes"
+params.sparse_cut  = 0.01
+params.group_qtl   = 1000
+params.ci_size     = 150
+params.sthresh     = "BF"
+params.p3d         = "TRUE"
+params.maf         = 0.05
+
 if(params.debug) {
     println """
         *** Using debug mode ***
     """
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
-    vcf = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
-    // params.trait_file = "${params.data_dir}/input_data/elegans/phenotypes/abamectin_pheno.tsv"
-        params.trait_file = "${params.data_dir}/20210822_normiglu.tsv"
+    vcf = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    params.trait_file = "${workflow.projectDir}/input_data/elegans/phenotypes/FileS2_wipheno.tsv"
     // debug can use same vcf for impute and normal
-    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
-    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
-    ann_file = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/WI.330_TEST.strain-annotation.bcsq.tsv")
+    impute_vcf = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
+    impute_vcf_index = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    ann_file = Channel.fromPath("${workflow.projectDir}/input_data/elegans/genotypes/WI.330_TEST.strain-annotation.bcsq.tsv")
 } else { 
-    // vcf = Channel.fromPath("${params.vcf}")
-    // vcf_index = Channel.fromPath("${params.vcf_index}")
-    // impute_vcf = Channel.fromPath("${params.impute_vcf}")
-    // impute_vcf_index = Channel.fromPath("${params.impute_vcf_index}")
-    // ann_file = Channel.fromPath("${params.ann_file}")
-        vcf_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
-
-        impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
-        impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
-                    ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.bcsq.tsv")
-
+    vcf = Channel.fromPath("${params.vcf}")
+    vcf_index = Channel.fromPath("${params.vcf_index}")
+    // debug can use same vcf for impute and normal
+    impute_vcf = Channel.fromPath("${params.impute_vcf}")
+    impute_vcf_index = Channel.fromPath("${params.impute_vcf_index}")
+    ann_file = Channel.fromPath("${params.ann_file}")
+    isotype_file = Channel.fromPath("${params.isotype_file}")
+    trait_file = Channel.fromPath("${params.trait_file}")
 }
 
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping
 */
+params.refflat   = "${params.data_dir}/annotations/c_${params.species}_${params.wbb}_refFlat.txt"
+params.freqUpper = 0.05
+params.minburden = 2
+params.genes     = "${workflow.projectDir}/bin/gene_ref_flat.Rda"
 
 
 if (params.help) {
     log.info '''
+
+
 O~~~     O~~                                   O~~ ~~
 O~ O~~   O~~                                 O~~    O~~
 O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
@@ -54,6 +81,9 @@ O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~
 O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
 O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
 O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+
+
+
     '''
     log.info "----------------------------------------------------------------"
     log.info "                      USAGE                                     "
@@ -142,6 +172,8 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     exit 1
 } else {
     log.info '''
+
+
 O~~~     O~~                                   O~~ ~~
 O~ O~~   O~~                                 O~~    O~~
 O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
@@ -149,17 +181,13 @@ O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~
 O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
 O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
 O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
-'''
+
+
+
+    '''
 log.info ""
 log.info "Trait File                              = ${params.trait_file}"
-log.info "Isotype File                            = ${params.isotype_file}"
-log.info "Annotation File                         = ${params.ann_file}"
-log.info ""
 log.info "VCF                                     = ${params.vcf}"
-log.info "VCF Index                               = ${params.vcf_index}"
-log.info "Impute VCF                              = ${params.impute_vcf}"
-log.info "Impute VCF Index                        = ${params.impute_vcf_index}"
-log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Isotype file                            = ${params.isotype_file}"
@@ -178,9 +206,8 @@ workflow {
     if(params.maps) {
 
         // Fix strain names
-        Channel.fromPath("${params.trait_file}")
-                .combine(Channel.fromPath("${params.isotype_file}"))
-                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
+        trait_file
+            .combine(isotype_file) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -188,40 +215,35 @@ workflow {
         // Genotype matrix
         pheno_strains = fix_strain_names_bulk.out.phenotyped_strains_to_analyze
 
-        vcf_file.combine(vcf_index)
+        vcf.spread(vcf_index)
                 .combine(pheno_strains) | vcf_to_geno_matrix
 
         // EIGEN
         contigs = Channel.from(["I", "II", "III", "IV", "V", "X"])
-        contigs.combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants
+        contigs.combine(vcf_to_geno_matrix.out) | chrom_eigen_variants
         chrom_eigen_variants.out.collect() | collect_eigen_variants
 
         // GWAS mapping
         pheno_strains
-            .combine(traits_to_map)
-            .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.numeric_chrom}")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+            .spread(traits_to_map)
+            .spread(vcf.spread(vcf_index))
+            .spread(Channel.fromPath("${params.numeric_chrom}")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
 
         // process GWAS mapping
         traits_to_map
-            .combine(collect_eigen_variants.out)
-            .combine(vcf_to_geno_matrix.out)
+            .spread(collect_eigen_variants.out)
+            .spread(vcf_to_geno_matrix.out)
             .combine(Channel.from("${params.p3d}"))
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
-            .join(gcta_lmm_exact_mapping.out)
-            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
+            .join(gcta_lmm_exact_mapping.out) | gcta_intervals_maps
 
         // plot
-        gcta_intervals_maps.out.maps_to_plot
-            .combine(Channel.fromPath("${params.bin_dir}/pipeline.plotting.mod.R")) | generate_plots 
+        gcta_intervals_maps.out.maps_to_plot | generate_plots 
 
         // LD b/w regions
-        gcta_intervals_maps.out.maps_to_plot
-            .combine(Channel.fromPath("${params.bin_dir}/LD_between_regions.R")) | LD_between_regions
+        gcta_intervals_maps.out.maps_to_plot | LD_between_regions
 
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
@@ -231,38 +253,27 @@ workflow {
         peaks
             .splitCsv(sep: '\t', skip: 1)
             .join(generate_plots.out.maps_from_plot, by: 2)
-            .combine(impute_vcf.combine(impute_vcf_index))
-            .combine(pheno_strains)
-            .combine(Channel.fromPath("${params.numeric_chrom}")) | prep_ld_files
+            .spread(impute_vcf.spread(impute_vcf_index))
+            .spread(pheno_strains)
+            .spread(Channel.fromPath("${params.numeric_chrom}")) | prep_ld_files
 
         //fine mapping
         prep_ld_files.out.finemap_preps
             .combine(ann_file)
-            .combine(Channel.fromPath("${params.genes}"))
-            .combine(Channel.fromPath("${params.bin_dir}/Finemap_QTL_Intervals.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
+            .combine(Channel.fromPath("${params.genes}"))| gcta_fine_maps
 
         // divergent regions and haplotypes
         peaks
-            .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/divergent_bins.bed"))
-            .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/divergent_df_isotype.bed"))
-            .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/haplotype_df_isotype.bed"))
-            .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/divergent_bins.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/divergent_df_isotype.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/haplotype_df_isotype.bed"))
+            .combine(Channel.fromPath("${params.data_dir}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
         // generate main html report
-         // generate html report - on gcp
-        peaks // QTL peaks (all traits)
-            .combine(traits_to_map) // trait names
-            .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-            .combine(collect_eigen_variants.out) // independent tests
-            .combine(vcf_to_geno_matrix.out) // genotype matrix
-            .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
-            .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
-            .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-            .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
-            .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
-            .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
-            .join(prep_ld_files.out.finemap_LD, remainder: true) | html_report_main // more finemap data prep
+        peaks
+            .spread(traits_to_map)
+            .combine(divergent_and_haplotype.out.div_done)
+            .join(gcta_fine_maps.out.finemap_done, by: 1, remainder: true) //| html_report_main
 
     } else if(params.annotate) {
 
@@ -270,8 +281,7 @@ workflow {
         save_dir = "${params.input_data}/${params.species}/annotations"
 
         Channel.fromPath("${params.script_loc}")
-            .combine(save_dir)
-            .combine(Channel.fromPath("${params.bin_dir}/update_annotations.R")) | update_annotations
+            .combine(save_dir) | update_annotations
 
     } else if(params.simulate) {
 
@@ -283,14 +293,13 @@ workflow {
 
         Channel.from(pop_file.collect { it.tokenize( ' ' ) })
             .map { SM, STRAINS -> [SM, STRAINS] }
-            .combine(vcf_fle.combine(vcf_index))
-            .combine(Channel.fromPath("${params.numeric_chrom}"))
-            .combine(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
+            .spread(vcf.spread(vcf_index))
+            .spread(Channel.fromPath("${params.numeric_chrom}"))
+            .spread(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
         contigs = Channel.from(["1", "2", "3", "4", "5", "6"])
-        contigs.combine(prepare_simulation_files.out.sim_geno)
-            .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
+        contigs.combine(prepare_simulation_files.out.sim_geno) | chrom_eigen_variants_sims
 
         chrom_eigen_variants_sims.out.sim_geno_eigen_join
             .groupTuple(by:[0,1,2]).
@@ -300,38 +309,32 @@ workflow {
         if(params.simulate_qtlloc){
 
             collect_eigen_variants_sims.out
-                .combine(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
-                .combine(Channel.fromPath("${params.simulate_qtlloc}"))
-                .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
-                .combine(Channel.from(1..params.simulate_reps))
-                .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_loc
+                .spread(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
+                .spread(Channel.fromPath("${params.simulate_qtlloc}"))
+                .spread(Channel.fromPath("${params.simulate_eff}").splitCsv())
+                .combine(Channel.from(1..params.simulate_reps)) | simulate_effects_loc
 
             sim_phen_inputs = simulate_effects_loc.out
 
         } else {
 
             collect_eigen_variants_sims.out
-                .combine(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
-                .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
-                .combine(Channel.from(1..params.simulate_reps))
-                .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_genome
+                .spread(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
+                .spread(Channel.fromPath("${params.simulate_eff}").splitCsv())
+                .combine(Channel.from(1..params.simulate_reps)) | simulate_effects_genome
 
             sim_phen_inputs = simulate_effects_genome.out
 
         }
 
         sim_phen_inputs
-            .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
+            .spread(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
 
         // simulation mappings
         simulate_map_phenotypes.out.gcta_intervals
-            .combine(Channel.from("${params.sthresh}"))
-            .combine(Channel.from("${params.group_qtl}"))
-            .combine(Channel.from("${params.ci_size}")) 
-            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO.R")) | get_gcta_intervals
+            .spread(Channel.from("${params.sthresh}"))
+            .spread(Channel.from("${params.group_qtl}"))
+            .spread(Channel.from("${params.ci_size}")) | get_gcta_intervals
     }
 
 }
@@ -354,13 +357,15 @@ process update_annotations {
     publishDir "${save_dir}", mode: 'copy'
 
     input:
-        tuple val(gtf_to_refflat), val(save_dir), file(update_annotations)
+        tuple val(gtf_to_refflat), val(save_dir)
 
     output:
-        tuple file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wbb}_refFlat.txt")
+        tuple file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wb_build}_refFlat.txt")
 
     """
-        Rscript --vanilla ${update_annotations} ${params.wbb} ${params.species} ${gtf_to_refflat}
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/update_annotations.R > update_annotations.R
+        Rscript --vanilla update_annotations.R ${params.wb_build} ${params.species} ${gtf_to_refflat}
     """
 
 }   
@@ -383,7 +388,6 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 process fix_strain_names_bulk {
 
     //executor 'local'
-    //machineType 'n1-standard-1'
 
     tag {"BULK TRAIT"}
 
@@ -391,15 +395,18 @@ process fix_strain_names_bulk {
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "strain_issues.txt"
 
     input:
-        tuple file(phenotypes), file(isotype_lookup), file(fix_isotype_names_bulk)
+        tuple file(phenotypes), file(isotype_lookup)
 
     output:
         path "pr_*.tsv", emit: fixed_strain_phenotypes 
         path "Phenotyped_Strains.txt", emit: phenotyped_strains_to_analyze 
-        path "strain_issues.txt", emit: strain_issues
+        file("strain_issues.txt")
 
     """
-        Rscript --vanilla ${fix_isotype_names_bulk} ${phenotypes} fix $isotype_lookup
+        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Fix_Isotype_names_bulk.R` > Fix_Isotype_names_bulk.R 
+
+        Rscript --vanilla Fix_Isotype_names_bulk.R ${phenotypes} fix $isotype_lookup
     """
 
 }
@@ -419,9 +426,9 @@ process vcf_to_geno_matrix {
 
     //executor 'local'
 
-    //machineType 'n1-standard-4'
-
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+
+    cpus 1
 
     input:
         tuple file(vcf), file(index), file(strains)
@@ -430,22 +437,27 @@ process vcf_to_geno_matrix {
         file("Genotype_Matrix.tsv") 
 
     """
+
         bcftools view -S ${strains} ${vcf} |\\
-        bcftools filter -i N_MISSING=0 -Oz --threads 5 -o Phenotyped_Strain_VCF.vcf.gz
+        bcftools filter -i N_MISSING=0 -Oz -o Phenotyped_Strain_VCF.vcf.gz
+
         tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
+
         plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
-              --threads 5 \\
-              --snps-only \\
-              --biallelic-only \\
-              --maf 0.05 \\
-              --set-missing-var-ids @:# \\
-              --indep-pairwise 50 10 0.8 \\
-              --geno \\
-              --allow-extra-chr
+            --snps-only \\
+            --biallelic-only \\
+            --maf 0.05 \\
+            --set-missing-var-ids @:# \\
+            --indep-pairwise 50 10 0.8 \\
+            --geno \\
+            --allow-extra-chr
+
         awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
         sort -k1,1d -k2,2n > markers.txt
+
         bcftools query -l Phenotyped_Strain_VCF.vcf.gz |\\
         sort > sorted_samples.txt 
+
         bcftools view -v snps \\
         -S sorted_samples.txt \\
         -R markers.txt \\
@@ -463,6 +475,7 @@ process vcf_to_geno_matrix {
         sed 's/0\\/1/NA/g' |\\
         sed 's/1\\/0/NA/g' |\\
         sed 's/.\\/./NA/g' > Genotype_Matrix.tsv
+
     """
 
 }
@@ -488,10 +501,11 @@ process chrom_eigen_variants {
 
     tag { CHROM }
 
-    // machineType 'n1-highmem-2'
+    cpus 6
+    memory params.eigen_mem
 
     input:
-        tuple val(CHROM), file(genotypes), file(get_genomatrix_eigen)
+        tuple val(CHROM), file(genotypes)
 
 
     output:
@@ -501,7 +515,9 @@ process chrom_eigen_variants {
     """
         cat Genotype_Matrix.tsv |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Get_GenoMatrix_Eigen.R` > Get_GenoMatrix_Eigen.R
+        Rscript --vanilla Get_GenoMatrix_Eigen.R ${CHROM}_gm.tsv ${CHROM}
     """
 
 }
@@ -514,9 +530,9 @@ process collect_eigen_variants {
 
     //executor 'local'
 
-    // machineType 'n1-standard-1'
-
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
+
+    cpus 1
 
     input:
         file(chrom_tests) //from sig_snps_geno_matrix.collect()
@@ -549,7 +565,7 @@ process collect_eigen_variants {
 
 process prepare_gcta_files {
 
-    // machineType 'n1-standard-4'
+    cpus 4
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -558,40 +574,44 @@ process prepare_gcta_files {
         tuple val(TRAIT), file("plink_formated_trats.tsv"), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped"), file("${TRAIT}.log")
 
     """
+
     bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
     bcftools view -S ${strains} |\\
-    bcftools filter -i N_MISSING=0 -Oz --threads 5 -o renamed_chroms.vcf.gz
+    bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
+
     tabix -p vcf renamed_chroms.vcf.gz
+
     plink --vcf renamed_chroms.vcf.gz \\
-          --threads 5 \\
-          --snps-only \\
-          --biallelic-only \\
-          --maf 0.05 \\
-          --set-missing-var-ids @:# \\
-          --indep-pairwise 50 10 0.8 \\
-          --geno \\
-          --not-chr MtDNA \\
-          --allow-extra-chr
+    --snps-only \\
+    --biallelic-only \\
+    --maf 0.05 \\
+    --set-missing-var-ids @:# \\
+    --indep-pairwise 50 10 0.8 \\
+    --geno \\
+    --not-chr MtDNA \\
+    --allow-extra-chr
+
     tail -n +2 ${traits} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_formated_trats.tsv
+
     plink --vcf renamed_chroms.vcf.gz \\
-          --threads 5 \\
-          --make-bed \\
-          --snps-only \\
-          --biallelic-only \\
-          --maf 0.05 \\
-          --set-missing-var-ids @:# \\
-          --extract plink.prune.in \\
-          --geno \\
-          --recode \\
-          --out ${TRAIT} \\
-          --allow-extra-chr \\
-          --pheno plink_formated_trats.tsv
+    --make-bed \\
+    --snps-only \\
+    --biallelic-only \\
+    --maf 0.05 \\
+    --set-missing-var-ids @:# \\
+    --extract plink.prune.in \\
+    --geno \\
+    --recode \\
+    --out ${TRAIT} \\
+    --allow-extra-chr \\
+    --pheno plink_formated_trats.tsv
+
     """
 }
 
 process gcta_grm {
 
-    // machineType 'n1-highmem-4'
+    cpus 4
 
     input:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log)
@@ -603,35 +623,20 @@ process gcta_grm {
         params.maps
 
     """
-    gcta64 --bfile ${TRAIT} \\
-           --autosome \\
-           --maf 0.05 \\
-           --make-grm \\
-           --out ${TRAIT}_gcta_grm \\
-           --thread-num 5
-    gcta64 --bfile ${TRAIT} \\
-           --autosome \\
-           --maf 0.05 \\
-           --make-grm-inbred \\
-           --out ${TRAIT}_gcta_grm_inbred \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm \\
-           --pheno plink_formated_trats.tsv \\
-           --reml \\
-           --out ${TRAIT}_heritability \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --pheno plink_formated_trats.tsv \\
-           --reml \\
-           --out ${TRAIT}_heritability_inbred \\
-           --thread-num 5
+
+    gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm --out ${TRAIT}_gcta_grm --thread-num 10
+    gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}_gcta_grm_inbred --thread-num 10
+
+    gcta64 --grm ${TRAIT}_gcta_grm --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability --thread-num 10
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability_inbred --thread-num 10
+
     """
 }
 
 
 process gcta_lmm_exact_mapping {
 
-    // machineType 'n1-highmem-4'
+    cpus 4
 
     publishDir "${params.out}/Mapping/Raw", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
@@ -649,28 +654,23 @@ process gcta_lmm_exact_mapping {
 
 
     """
-    gcta64 --grm ${TRAIT}_gcta_grm \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
+
+    gcta64 --grm ${TRAIT}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm
     gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
+        --grm ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm-exact \\
+        --pheno ${traits} \\
+        --maf ${params.maf}
+
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}_sparse_grm_inbred
     gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
+        --grm-sparse ${TRAIT}_sparse_grm \\
+        --bfile ${TRAIT} \\
+        --out ${TRAIT}_lmm-exact_inbred \\
+        --pheno ${traits} \\
+        --maf ${params.maf}
+
     """
 }
 
@@ -678,25 +678,26 @@ process gcta_lmm_exact_mapping {
 
 process gcta_intervals_maps {
 
-    // machineType 'n1-highmem-8'
-
     publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_mapping.tsv"
     publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region.tsv" //would be nice to put all these files per trait into one file
 
+    memory '48 GB'
 
     input:
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
-        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco), \
-        file(aggregate_mappings), file(find_aggregate_intervals_maps)
+        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco)
 
     output:
         tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping.tsv"), emit: maps_to_plot
         path "*AGGREGATE_qtl_region.tsv", emit: qtl_peaks
-        tuple file("*AGGREGATE_mapping.tsv"), val(TRAIT), emit: for_html
 
     """
-    Rscript --vanilla ${aggregate_mappings} ${lmmexact_loco} ${lmmexact_inbred}
-    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Aggregate_Mappings.R` > Aggregate_Mappings.R
+    Rscript --vanilla Aggregate_Mappings.R ${lmmexact_loco} ${lmmexact_inbred}
+
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Find_Aggregate_Intervals_Maps.R` > Find_Aggregate_Intervals_Maps.R
+    Rscript --vanilla Find_Aggregate_Intervals_Maps.R ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
+
     """
 }
 
@@ -709,14 +710,16 @@ process generate_plots {
     publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
 
     input:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping), file(pipeline_plotting_mod)
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping)
 
     output:
         tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping), emit: maps_from_plot
         file("*.png")
 
     """
-    Rscript --vanilla  ${pipeline_plotting_mod} ${aggregate_mapping} ${tests}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which pipeline.plotting.mod.R` > pipeline.plotting.mod.R
+    Rscript --vanilla pipeline.plotting.mod.R ${aggregate_mapping} ${tests}
+
     """
 }
 
@@ -726,14 +729,15 @@ process LD_between_regions {
   publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
 
   input:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping), file(ld_between_regions)
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping)
 
   output:
         tuple val(TRAIT), path("*LD_between_QTL_regions.tsv") optional true
         val TRAIT, emit: linkage_done
 
   """
-    Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping} ${TRAIT}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which LD_between_regions.R` > LD_between_regions.R 
+    Rscript --vanilla LD_between_regions.R ${geno} ${aggregate_mapping} ${TRAIT}
   """
 }
 
@@ -755,8 +759,6 @@ process LD_between_regions {
 
 process prep_ld_files {
 
-    // machineType 'n1-standard-4'
-
     tag {TRAIT}
 
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*ROI_Genotype_Matrix.tsv"
@@ -768,7 +770,6 @@ process prep_ld_files {
 
     output:
         tuple val(TRAIT), file(pheno), file("*ROI_Genotype_Matrix.tsv"), file("*LD.tsv"), file("*.bim"), file("*.bed"), file("*.fam"), emit: finemap_preps
-        tuple val(TRAIT), file("*ROI_Genotype_Matrix.tsv"), file("*LD.tsv"), emit: finemap_LD
 
     """
         echo "HELLO"
@@ -786,17 +787,19 @@ process prep_ld_files {
             end_pos=`echo \$p | cut -f5 -d' '`
         
         cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
+
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 |\\
         bcftools annotate --rename-chrs ${num_chroms} |\\
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
+
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
+        bcftools filter -i N_MISSING=0 -Oz |\\
         bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
+
         plink --vcf finemap.vcf.gz \\
-            --threads 5 \\
             --snps-only \\
             --maf 0.05 \\
             --biallelic-only \\
@@ -807,10 +810,12 @@ process prep_ld_files {
             --recode vcf-iid bgz \\
             --extract \$trait.\$chromosome.\$start_pos.\$end_pos.txt \\
             --out \$trait.\$chromosome.\$start_pos.\$end_pos
+
         nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
+
         chrom_num=`cat ${num_chroms} | grep -w \$chromosome | cut -f2 -d' '`
+
         plink --r2 with-freqs \\
-            --threads 5 \\
             --allow-extra-chr \\
             --snps-only \\
             --ld-window-r2 0 \\
@@ -821,7 +826,10 @@ process prep_ld_files {
             --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
             --set-missing-var-ids @:# \\
             --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
+
+
         cut \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld -f2-10 > \$trait.\$chromosome.\$start_pos.\$end_pos.LD.tsv
+
         bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
             sed 's/[[# 0-9]*]//g' |\\
             sed 's/:GT//g' |\\
@@ -842,52 +850,51 @@ process prep_ld_files {
 
 
 process gcta_fine_maps {
-    // machineType 'n2-highmem-8'
 
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*.fastGWA"
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes.tsv"
     publishDir "${params.out}/Fine_Mappings/Plots", mode: 'copy', pattern: "*.pdf"
 
+    memory '48 GB'
     
     //errorStrategy 'ignore'
 
     input:
-        tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam), file(annotation), file(genefile), file(finemap_qtl_intervals), file(plot_genes)
+        tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam), file(annotation), file(genefile)
 
     output:
         tuple file("*.fastGWA"), val(TRAIT), file("*.prLD_df.tsv"), file("*.pdf"), file("*_genes.tsv")
         //val true, emit: finemap_done
         tuple file("*_genes.tsv"), val(TRAIT), emit: finemap_done
-        tuple val(TRAIT), file("*.fastGWA"), file("*.prLD_df.tsv"), file("*_genes.tsv"), emit: finemap_html
 
     """
+
     tail -n +2 ${pheno} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_finemap_traits.tsv
+
     for i in *ROI_Genotype_Matrix.tsv;
-      do
-      chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
-      start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
-      stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
-      gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop \\
-              --autosome \\
-              --maf 0.05 \\
-              --make-grm-inbred \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred \\
-              --thread-num 9
-      gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred \\
-              --make-bK-sparse ${params.sparse_cut} \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred  \\
-              --thread-num 9
-      gcta64 --fastGWA-lmm-exact \\
-              --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred \\
-              --bfile ${TRAIT}.\$chr.\$start.\$stop  \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred \\
-              --pheno plink_finemap_traits.tsv \\
-              --maf ${params.maf} \\
-              --thread-num 9
-      
-      Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
-      Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${genefile} ${annotation}
-    done
+        do
+
+        chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
+        start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
+        stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
+
+        gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --thread-num 10
+        gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred
+        gcta64 --fastGWA-lmm-exact \\
+        --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred \\
+        --bfile ${TRAIT}.\$chr.\$start.\$stop  \\
+        --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred \\
+        --pheno plink_finemap_traits.tsv \\
+        --maf ${params.maf}
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which Finemap_QTL_Intervals.R`  > Finemap_QTL_Intervals.R 
+        Rscript --vanilla Finemap_QTL_Intervals.R  ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD.tsv
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - `which plot_genes.R`  > plot_genes.R 
+        Rscript --vanilla plot_genes.R  ${TRAIT}.\$chr.\$start.\$stop.prLD_df.tsv ${pheno} ${genefile} ${annotation}
+
+        done
+
     """
 }
 
@@ -908,16 +915,21 @@ process divergent_and_haplotype {
     tuple file("QTL_peaks.tsv"), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
   output:
-    tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list2.txt"), emit: div_hap_table
+    tuple file("all_QTL_bins.bed"), file("all_QTL_div.bed"), file("haplotype_in_QTL_region.txt"), file("div_isotype_list2.txt") //, emit: div_hap_table
     val true, emit: div_done
 
 
   """
   awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$4,\$6}' > QTL_region.bed
+
   bedtools intersect -wa -a ${divergent_bins} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins.bed
+
   bedtools intersect -a ${divergent_df_isotype} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div.bed
+
   bedtools intersect -a ${haplotype_df_isotype} -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt
+
   cp ${div_isotype_list} ./div_isotype_list2.txt
+
   """
 
 }
@@ -926,40 +938,31 @@ process divergent_and_haplotype {
 process html_report_main {
 
   //executor 'local'
-  tag {"${TRAIT} - HTML REPORT" }
+  errorStrategy 'ignore'
 
-  // machineType 'n1-highmem-2'
+  tag {TRAIT}
+  memory '16 GB'
+  
 
-  publishDir "${params.out}/Reports", pattern: "*.Rmd", overwrite: true
-  publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true
+  publishDir "${params.out}/Reports", mode: 'copy'
+
 
   input:
-    tuple val(TRAIT), file(qtl_peaks), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
-    file(ns_report_template_md), file(render_markdown), file(qtl_bins), file(qtl_div), \
-    file(haplotype_qtl), file(div_isotype), file(pmap), file(fastGWA), file(prLD), file(bcsq_genes), file(roi_geno), file(roi_ld)
+    tuple val(TRAIT), file("QTL_peaks.tsv"), file(pheno), val(div_done), file("genes.tsv")
 
   output:
     tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
 
 
   """
-    # edit the file paths for generating these reports
-    cat ${ns_report_md} | \\
-    sed "s+TRAIT_NAME_HOLDER+${TRAIT}+g" | \\
-    sed "s+Phenotypes/strain_issues.txt+${strain_issues}+g" | \\
-    sed "s+Genotype_Matrix/total_independent_tests.txt+${tests}+g" | \\
-    sed 's+paste0("Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping.tsv")+"${pmap}"+g' | \\
-    sed "s+Mapping/Processed/QTL_peaks.tsv+${qtl_peaks}+g" | \\
-    sed "s+Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
-    sed "s+NemaScan_Report_region_template.Rmd+NemaScan_Report_region_${TRAIT}.Rmd+g" > NemaScan_Report_${TRAIT}_main.Rmd
+    cat `which NemaScan_Report_main.Rmd` | sed "s/TRAIT_NAME_HOLDER/${TRAIT}/g" > NemaScan_Report_${TRAIT}_main.Rmd 
+    cat `which NemaScan_Report_region_template.Rmd` > NemaScan_Report_region_template.Rmd 
 
-    cat "${ns_report_template_md}" | \\
-    sed 's+Fine_Mappings/Data/++g' | \\
-    sed "s+Divergent_and_haplotype/div_isotype_list2.txt+${div_isotype}+g" | \\
-    sed "s+Divergent_and_haplotype/all_QTL_bins.bed+${qtl_bins}+g" | \\
-    sed "s+Divergent_and_haplotype/all_QTL_div.bed+${qtl_div}+g" | \\
-    sed "s+Divergent_and_haplotype/haplotype_in_QTL_region.txt+${haplotype_qtl}+g" > NemaScan_Report_region_${TRAIT}.Rmd
-    Rscript --vanilla ${render_markdown} NemaScan_Report_${TRAIT}_main.Rmd
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
+
+    # probably need to change root dir...
+    # Rscript -e "rmarkdown::render('NemaScan_Report_${TRAIT}_main.Rmd', knit_root_dir='gs://nf-pipeline/output/NemaScan-20210505/')"
+
   """
 }
 
@@ -989,10 +992,13 @@ process prepare_simulation_files {
 
 
     """
+
     bcftools annotate --rename-chrs num_chroms ${vcf} |\\
     bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
+
     tabix -p vcf renamed_chroms.vcf.gz
+
     plink --vcf renamed_chroms.vcf.gz \\
     --snps-only \\
     --biallelic-only \\
@@ -1002,6 +1008,7 @@ process prepare_simulation_files {
     --geno \\
     --not-chr MtDNA \\
     --allow-extra-chr
+
     plink --vcf renamed_chroms.vcf.gz \\
     --make-bed \\
     --snps-only \\
@@ -1013,10 +1020,13 @@ process prepare_simulation_files {
     --recode \\
     --out TO_SIMS \\
     --allow-extra-chr
+
     awk -F":" '\$1=\$1' OFS="\\t" plink.prune.in | \\
     sort -k1,1d -k2,2n > markers.txt
+
     bcftools query -l renamed_chroms.vcf.gz |\\
     sort > sorted_samples.txt
+
     bcftools view -v snps \\
     -S sorted_samples.txt \\
     -R markers.txt \\
@@ -1034,6 +1044,7 @@ process prepare_simulation_files {
     sed 's/0\\/1/NA/g' |\\
     sed 's/1\\/0/NA/g' |\\
     sed 's/.\\/./NA/g' > ${strain_set}_${MAF}_Genotype_Matrix.tsv
+
     """
 }
 
@@ -1050,7 +1061,7 @@ process chrom_eigen_variants_sims {
     memory params.eigen_mem
 
     input:
-        tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file(get_genomatrix_eigen)
+        tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF)
 
     output:
         tuple val(strain_set), val(strains), val(MAF), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), emit: sim_geno_meta
@@ -1060,9 +1071,11 @@ process chrom_eigen_variants_sims {
     """
         cat ${geno} |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${get_genomatrix_eigen} > Get_GenoMatrix_Eigen_.R
-        Rscript --vanilla Get_GenoMatrix_Eigen_.R ${CHROM}_gm.tsv ${CHROM}
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Get_GenoMatrix_Eigen.R > Get_GenoMatrix_Eigen.R
+        Rscript --vanilla Get_GenoMatrix_Eigen.R ${CHROM}_gm.tsv ${CHROM}
+
         mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
     """
 
@@ -1103,16 +1116,18 @@ process simulate_effects_loc {
     cpus 4
 
     input:
-        tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
+        tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP)
 
     output:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt")
 
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${create_causal_qtls} > create_causal_QTLs_.R
-        Rscript --vanilla create_causal_QTLs_.R ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/create_causal_QTLs.R > create_causal_QTLs.R
+        Rscript --vanilla create_causal_QTLs.R ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
+
         mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+
     """
 }
 
@@ -1124,7 +1139,7 @@ process simulate_effects_genome {
     cpus 4
 
     input:
-        tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP), file(create_causal_qtls)
+        tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP)
 
     output:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt")
@@ -1132,9 +1147,11 @@ process simulate_effects_genome {
 
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${create_causal_qtls} > create_causal_QTLs_.R
-        Rscript --vanilla create_causal_QTLs_.R ${bim} ${NQTL} ${effect_range}
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/create_causal_QTLs.R > create_causal_QTLs.R
+        Rscript --vanilla create_causal_QTLs.R ${bim} ${NQTL} ${effect_range}
+
         mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+
     """
 }
 
@@ -1165,13 +1182,14 @@ process simulate_map_phenotypes {
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), emit: gcta_intervals
 
     """
+
     gcta64 --bfile TO_SIMS \\
          --simu-qt \\
          --simu-causal-loci ${loci} \\
          --simu-hsq ${H2} \\
          --simu-rep 1 \\
-         --thread-num 5 \\
          --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims
+
     plink --bfile TO_SIMS \\
         --make-bed \\
         --snps-only \\
@@ -1183,47 +1201,37 @@ process simulate_map_phenotypes {
         --out TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
         --allow-extra-chr \\
         --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
-    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
-            --autosome --maf ${MAF} --make-grm \\
-            --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
-            --thread-num 5
-    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
-            --autosome --maf ${MAF} --make-grm-inbred \\
-            --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
-            --thread-num 5
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
-            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
-            --reml --out check_vp \\
-            --thread-num 5
+
+    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} --autosome --maf ${MAF} --make-grm --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm --thread-num 10
+    gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} --autosome --maf ${MAF} --make-grm-inbred --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --thread-num 10
+
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen --reml --out check_vp --thread-num 10
     vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
     if (( \$(echo "0.00001 > \$vp" |bc -l) ));
-      then
-        awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen > temp.phen;
-        rm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
-        mv temp.phen ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
+    then
+    awk '{print \$1, \$2, \$3*1000}' ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen > temp.phen;
+    rm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
+    mv temp.phen ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
     fi
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
-           --thread-num 5
+
+
+
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm
     gcta64 --mlma-loco \\
-           --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
-           --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
-           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact \\
-           --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
-           --maf ${MAF} \\
-           --thread-num 5
-    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
-          --make-bK-sparse ${params.sparse_cut} \\
-          --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred
-          --thread-num 5
+        --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
+        --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
+        --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact \\
+        --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
+        --maf ${MAF}
+
+    gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred
     gcta64 --fastGWA-lmm-exact \\
-          --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
-          --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
-          --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred \\
-          --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
-          --maf ${MAF}\\
-          --thread-num 5
+        --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
+        --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
+        --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred \\
+        --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
+        --maf ${MAF}
+
     """
 }
 
@@ -1238,8 +1246,7 @@ process get_gcta_intervals {
     memory '48 GB'
 
     input:
-    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
-    file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(aggregate_mappings), file(find_aggregate_intervals), file(find_gcta_intervals), file(find_gcta_intervals_loco)
+    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE)
 
     output:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_aggregate_mapping.tsv"), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta
@@ -1248,16 +1255,18 @@ process get_gcta_intervals {
 
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${aggregate_mappings} > Aggregate_Mappings_.R
-        Rscript --vanilla Aggregate_Mappings_.R ${lmmexact_loco} ${lmmexact_inbred}
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_aggregate_intervals} > Find_Aggregate_Intervals_.R
-        Rscript --vanilla Find_Aggregate_Intervals_.R ${gm} ${phenotypes} temp.aggregate.mapping.tsv ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} aggregate
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Aggregate_Mappings.R > Aggregate_Mappings.R
+        Rscript --vanilla Aggregate_Mappings.R ${lmmexact_loco} ${lmmexact_inbred}
+
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_Aggregate_Intervals.R > Find_Aggregate_Intervals.R
+        Rscript --vanilla Find_Aggregate_Intervals.R ${gm} ${phenotypes} temp.aggregate.mapping.tsv ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} aggregate
         
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_gcta_intervals} > Find_GCTA_Intervals_.R
-        Rscript --vanilla Find_GCTA_Intervals_.R ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_GCTA_Intervals.R > Find_GCTA_Intervals.R
+        Rscript --vanilla Find_GCTA_Intervals.R ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
         
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_gcta_intervals_loco} > Find_GCTA_Intervals_LOCO_.R
-        Rscript --vanilla Find_GCTA_Intervals_LOCO_.R ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
+        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${workflow.projectDir}/bin/Find_GCTA_Intervals_LOCO.R > Find_GCTA_Intervals_LOCO.R
+        Rscript --vanilla Find_GCTA_Intervals_LOCO.R ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
+
     """
 }
 
@@ -1269,20 +1278,30 @@ process get_gcta_intervals {
 ~ ~ > *                        * < ~ ~
 ~ > *                            * < ~
 ======================================
+
+
     gcta_qtl_to_ld
         .combine(emmma_qtl_to_ld, by: [0,1,2,3,4,5,6])
         .combine(simulated_phenotypes, by: [0,1,2,3,4,5,6])
         .combine(renamed_chrom_vcf_to_ld, by: [0,1,2])
         .into{peaks_to_ld}
+
+
     process extract_qtl_ld {
+
     cpus 1
+
     input:
     set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex) from peaks_to_ld
+
     output:
     set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex), file("*ROI_Genotype_Matrix.tsv"), file("*LD.tsv") into LD_files_to_finemap
+
     """
+
     cat *_qtl_region.tsv |\\
     awk '\$0 !~ "CHROM" {print}' > QTL_peaks.tsv
+
     filename='QTL_peaks.tsv'
     echo Start
     while read p; do
@@ -1292,11 +1311,14 @@ process get_gcta_intervals {
         peak_pos=`echo \$p | cut -f5 -d' '`
         end_pos=`echo \$p | cut -f6 -d' '`
         map_algo=`echo \$p | cut -f8 -d' '`
+
     bcftools view --regions \$chromosome:\$start_pos-\$end_pos -s ${strains} ${vcf} |\\
     bcftools filter -i N_MISSING=0 |\\
     awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
+
     bcftools view --regions \$chromosome:\$start_pos-\$end_pos -s ${strains} ${vcf} |\\
     bcftools filter -i N_MISSING=0 -Oz -o finemap.vcf.gz
+
     plink --vcf finemap.vcf.gz \\
         --snps-only \\
         --maf ${MAF} \\
@@ -1308,7 +1330,9 @@ process get_gcta_intervals {
         --recode vcf-iid bgz \\
         --extract \$trait.\$chromosome.\$start_pos.\$end_pos.txt \\
         --out \$trait.\$chromosome.\$start_pos.\$end_pos
+
     nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
+
     plink --r2 with-freqs \\
         --allow-extra-chr \\
         --snps-only \\
@@ -1320,9 +1344,12 @@ process get_gcta_intervals {
         --out \$trait.\$chromosome:\$start_pos-\$end_pos.QTL \\
         --set-missing-var-ids @:# \\
         --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
+
+
     sed 's/  \\t/g' \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld |\\
     cut -f2-10 |\\
     sed 's/^23/X/g' | sed 's/\\t23\\t/\\tX\\t/g' > \$trait.\$chromosome.\$start_pos.\$end_pos.\$map_algo.LD.tsv
+
     bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
         sed 's/[[# 0-9]*]//g' |\\
         sed 's/:GT//g' |\\
@@ -1337,23 +1364,34 @@ process get_gcta_intervals {
         sed 's/1\\/0/NA/g' |\\
         sed 's/.\\/./NA/g' |\\
         sed 's/^23/X/g' > \$trait.\$chromosome:\$start_pos-\$end_pos.\$map_algo.ROI_Genotype_Matrix.tsv
+
     done < \$filename
+
     """
 }
 */
 
 /*
 ------------ Run fine mapping
+
+
 process sim_fine_maps {
+
     echo 'true'
+
     input:
         set val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(lmmexact_peaks), file(lmmexact_inbred_peaks), file(emma_peaks), file(loci), file(phenotypes), file(vcf), file(vcfindex), file(roi_geno_matrix), file(roi_ld) from LD_files_to_finemap
+
+
     output:
+
+
     """
         for i in *ROI_Genotype_Matrix.tsv;
         do
             echo \$i
         done
+
     """
 }
 */
@@ -1371,6 +1409,7 @@ process sim_fine_maps {
 workflow.onComplete {
 
     summary = """
+
     Pipeline execution summary
     ---------------------------
     Completed at: ${workflow.complete}
@@ -1380,10 +1419,12 @@ workflow.onComplete {
     exit status : ${workflow.exitStatus}
     Error report: ${workflow.errorReport ?: '-'}
     Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
+
     { Parameters }
     ---------------------------
     Phenotype File                          = ${params.trait_file}
     VCF                                     = ${params.vcf}
+
     Significance Threshold                  = ${params.sthresh}
     P3D                                     = ${params.p3d}
     Max AF for Burden Mapping               = ${params.freqUpper}
@@ -1392,13 +1433,29 @@ workflow.onComplete {
     Number of SNVs to define CI             = ${params.ci_size}
     Eigen Memory allocation                 = ${params.eigen_mem}
     Path to R libraries.                    = ${params.R_libpath}
+
     Mapping                                 = ${params.maps}
     Simulation                              = ${params.simulate}
     Simulate QTL effects                    = ${params.simulate_qtlloc}
     Annotation                              = ${params.annotate}
     Result Directory                        = ${params.out}
+
     """
 
     println summary
 
+    def outlog = new File("${params.out}/log.txt")
+    outlog.newWriter().withWriter {
+        outlog << param_summary
+        outlog << summary
+    }
 }
+
+    // mail summary
+    //if (params.email) {
+    //    ['mail', '-s', 'cegwas2-nf', params.email].execute() << summary
+    //}
+
+
+
+
