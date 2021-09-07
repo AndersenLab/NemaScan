@@ -38,6 +38,7 @@ params.gcp         = null
 download_vcf       = null
 params.annotation  = "bcsq"
 params.strains     = null
+params.MAF         = 0.05
 
 /*
 ~ ~ ~ > * Parameters: for burden mapping
@@ -238,6 +239,7 @@ log.info ""
 log.info "Trait File                              = ${params.traitfile}"
 log.info "VCF                                     = ${params.vcf}"
 log.info "Significance Threshold                  = ${params.sthresh}"
+log.info "Minor allele frequency                  = ${params.MAF}"
 log.info "Result Directory                        = ${params.out}"
 log.info "-----------------------------------------------------------"
 log.info "Run mapping profile?                    = ${params.maps}"
@@ -579,7 +581,7 @@ process vcf_to_geno_matrix {
         plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
             --snps-only \\
             --biallelic-only \\
-            --maf 0.05 \\
+            --maf ${params.MAF} \\
             --set-missing-var-ids @:# \\
             --indep-pairwise 50 10 0.8 \\
             --geno \\
@@ -707,7 +709,7 @@ process prepare_gcta_files {
     plink --vcf renamed_chroms.vcf.gz \\
     --snps-only \\
     --biallelic-only \\
-    --maf 0.05 \\
+    --maf ${params.MAF} \\
     --set-missing-var-ids @:# \\
     --indep-pairwise 50 10 0.8 \\
     --geno \\
@@ -718,7 +720,7 @@ process prepare_gcta_files {
     --make-bed \\
     --snps-only \\
     --biallelic-only \\
-    --maf 0.05 \\
+    --maf ${params.MAF} \\
     --set-missing-var-ids @:# \\
     --extract plink.prune.in \\
     --geno \\
@@ -743,8 +745,8 @@ process gcta_grm {
         params.maps
 
     """
-    gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm --out ${TRAIT}_gcta_grm --thread-num 10
-    gcta64 --bfile ${TRAIT} --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}_gcta_grm_inbred --thread-num 10
+    gcta64 --bfile ${TRAIT} --autosome --maf ${params.MAF} --make-grm --out ${TRAIT}_gcta_grm --thread-num 10
+    gcta64 --bfile ${TRAIT} --autosome --maf ${params.MAF} --make-grm-inbred --out ${TRAIT}_gcta_grm_inbred --thread-num 10
     gcta64 --grm ${TRAIT}_gcta_grm --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability --thread-num 10
     gcta64 --grm ${TRAIT}_gcta_grm_inbred --pheno plink_formated_trats.tsv --reml --out ${TRAIT}_heritability_inbred --thread-num 10
     """
@@ -906,7 +908,7 @@ process prep_ld_files {
         bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
         plink --vcf finemap.vcf.gz \\
             --snps-only \\
-            --maf 0.05 \\
+            --maf ${params.MAF} \\
             --biallelic-only \\
             --allow-extra-chr \\
             --set-missing-var-ids @:# \\
@@ -973,7 +975,7 @@ process gcta_fine_maps {
         chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
         start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
         stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
-        gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop --autosome --maf 0.05 --make-grm-inbred --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --thread-num 10
+        gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop --autosome --maf ${params.MAF} --make-grm-inbred --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --thread-num 10
         gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred --make-bK-sparse ${params.sparse_cut} --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred
         gcta64 --fastGWA-lmm-exact \\
         --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred \\
