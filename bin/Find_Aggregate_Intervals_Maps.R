@@ -175,11 +175,11 @@ process_mapping_df <- function (mapping_df,
       
       SNPindex <- processed_mapping_df %>% 
         dplyr::filter(trait == phenotypes[i]) %>% 
-        dplyr::group_by(CHROM, trait) %>% 
+        dplyr::group_by(CHROM, trait) %>%
         dplyr::mutate(index = 1:n()) %>%
         dplyr::distinct(CHROM, POS, .keep_all = T) %>% 
-        dplyr::select(CHROM, POS, index) %>% 
-        dplyr::filter(POS == min(POS) | POS == max(POS))
+        dplyr::select(CHROM, POS, index)
+        # dplyr::filter(POS == min(POS) | POS == max(POS)) # is this necessary?
       
       findPks <- PeakDF %>% 
         dplyr::filter(trait == phenotypes[i]) %>% 
