@@ -112,7 +112,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
         # no feature_type
         ugly_genes_in_region %>%
             dplyr::select(MARKER = marker, CHROM = CHR, POS, REF, ALT, START_POS = start_pos, END_POS = end_pos, MAF_variant = maf_marker_b,
-                      GENE_NAME = gene_name, WBGeneID = gene_id,
+                      GENE_NAME = GENE, WBGeneID = gene_id,
                       WBFeature_ID = feature_id, TRANSCRIPT_BIOTYPE = BIOTYPE, CONSEQUENCE, VARIANT_IMPACT,
                       NUCLEOTIDE_CHANGE = DNA_CHANGE, AMINO_ACID_CHANGE, BLOSUM, Grantham, Percent_Protein,
                       STRAND, TRANSCRIPTION_START_POS = txstart, TRANSCRIPTION_END_POS = txend,
@@ -121,7 +121,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
     } else {
         ugly_genes_in_region %>%
             dplyr::select(MARKER = marker, CHROM = CHR, POS, REF, ALT, START_POS = start_pos, END_POS = end_pos,MAF_variant = maf_marker_b,
-                      GENE_NAME = gene_name, WBGeneID = gene_id, WBFeature_TYPE = feature_type,
+                      GENE_NAME = GENE, WBGeneID = gene_id, WBFeature_TYPE = feature_type,
                       WBFeature_ID = feature_id.x, VARIANT_IMPACT,
                       NUCLEOTIDE_CHANGE = DNA_CHANGE, AMINO_ACID_CHANGE,
                       STRAND = strand, TRANSCRIPTION_START_POS = txstart, TRANSCRIPTION_END_POS = txend,
