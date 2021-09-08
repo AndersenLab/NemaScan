@@ -569,6 +569,7 @@ process vcf_to_geno_matrix {
     //executor 'local'
 
     //machineType 'n1-standard-4'
+    label "med"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -579,7 +580,7 @@ process vcf_to_geno_matrix {
         file("Genotype_Matrix.tsv") 
 
     """
-        bcftools view -S ${strains} ${vcf} |\\
+        bcftools view -S ${strains} -Ou ${vcf} |\\
         bcftools filter -i N_MISSING=0 -Oz --threads 5 -o Phenotyped_Strain_VCF.vcf.gz
         tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
         plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
@@ -597,7 +598,7 @@ process vcf_to_geno_matrix {
         sort > sorted_samples.txt 
         bcftools view -v snps \\
         -S sorted_samples.txt \\
-        -R markers.txt \\
+        -R markers.txt -Ou \\
         Phenotyped_Strain_VCF.vcf.gz |\\
         bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' |\\
         sed 's/[[# 0-9]*]//g' |\\
@@ -638,6 +639,7 @@ process chrom_eigen_variants {
     tag { CHROM }
 
     // machineType 'n1-highmem-2'
+    label "large"
 
     input:
         tuple val(CHROM), file(genotypes), file(get_genomatrix_eigen)
@@ -663,6 +665,7 @@ process chrom_eigen_variants {
 process collect_eigen_variants {
 
     //executor 'local'
+    label "small"
 
     // machineType 'n1-standard-1'
 
@@ -700,6 +703,7 @@ process collect_eigen_variants {
 process prepare_gcta_files {
 
     // machineType 'n1-standard-4'
+    label "med"
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -709,7 +713,7 @@ process prepare_gcta_files {
 
     """
     bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
-    bcftools view -S ${strains} |\\
+    bcftools view -S ${strains} -Ou |\\
     bcftools filter -i N_MISSING=0 -Oz --threads 5 -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
@@ -742,6 +746,7 @@ process prepare_gcta_files {
 process gcta_grm {
 
     // machineType 'n1-highmem-4'
+    label "xl"
 
     input:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log)
@@ -782,6 +787,7 @@ process gcta_grm {
 process gcta_lmm_exact_mapping {
 
     // machineType 'n1-highmem-4'
+    label "xl"
 
     publishDir "${params.out}/Mapping/Raw", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
@@ -829,6 +835,7 @@ process gcta_lmm_exact_mapping {
 process gcta_intervals_maps {
 
     // machineType 'n1-highmem-8'
+    label "highmem"
 
     publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_mapping.tsv"
     publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region.tsv" //would be nice to put all these files per trait into one file
@@ -911,6 +918,7 @@ process LD_between_regions {
 process prep_ld_files {
 
     // machineType 'n1-standard-4'
+    label 'med'
 
     tag {TRAIT}
 
@@ -998,6 +1006,7 @@ process prep_ld_files {
 
 process gcta_fine_maps {
     // machineType 'n2-highmem-8'
+    label "highmem"
 
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*.fastGWA"
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes.tsv"
@@ -1084,6 +1093,7 @@ process html_report_main {
   tag {"${TRAIT} - HTML REPORT" }
 
   // machineType 'n1-highmem-2'
+  label "large"
 
   publishDir "${params.out}/Reports", pattern: "*.Rmd", overwrite: true, mode: 'copy'
   publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
