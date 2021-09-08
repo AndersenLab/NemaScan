@@ -277,10 +277,10 @@ process_phenotypes <- function(df,
             else {
                 message(glue::glue("WARNING: Non-isotype reference strain(s) {paste(df %>% dplyr::filter(!ref_strain) %>% dplyr::pull(strain) %>% unique(), collapse = ', ')} from isotype group {i} removed. To include this isotype in the analysis, you can (1) phenotype {i} or (2) evaluate the similarity of these strains and choose one representative for the group."))
             }
-            }
+        }
         # add to data
         fixed_issues <- dplyr::bind_rows(fixed_issues, fix)
-        }
+    }
     
     # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ # Summarize Replicate Data # ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ ## ~ ~ ~ #
     df_replicates_summarized <- fixed_issues %>%
@@ -378,4 +378,3 @@ write.table(fixed_names$strain,
             quote = F, col.names = F, row.names = F)
 
 sink()
-

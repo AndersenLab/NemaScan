@@ -111,7 +111,7 @@ process_strains <- function(df){
             }
             }
         # add to data
-        fixed_issues <- rbind(fixed_issues, fix)
+        fixed_issues <- dplyr::bind_rows(fixed_issues, fix)
         }
 
     return(fixed_issues %>% dplyr::select(strain = isotype))
