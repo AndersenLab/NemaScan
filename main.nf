@@ -6,8 +6,8 @@ if( !nextflow.version.matches('>20.0') ) {
     exit 1
 }
 
-//nextflow.preview.dsl=2
-nextflow.enable.dsl=2
+nextflow.preview.dsl=2
+// nextflow.enable.dsl=2
 
 
 date = new Date().format( 'yyyyMMdd' )
@@ -46,20 +46,20 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "330_TEST.vcf.gz"
-    params.traitfile = "${params.data_dir}/input_data/elegans/phenotypes/abamectin_pheno.tsv"
+    params.traitfile = "${params.data_dir}/input_data/c_elegans/phenotypes/abamectin_pheno.tsv"
     
-    vcf_file = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz")
+    vcf_index = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz.tbi")
     
     // debug can use same vcf for impute and normal
     impute_file = "330_TEST.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz")
-    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/330_TEST.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz")
+    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz.tbi")
     
-    ann_file = Channel.fromPath("${params.data_dir}/input_data/elegans/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
 
     // for genomatrix profile
-    params.strains = "${params.data_dir}/input_data/elegans/phenotypes/strain_file.tsv"
+    params.strains = "${params.data_dir}/input_data/c_elegans/phenotypes/strain_file.tsv"
 } else if(params.gcp) { 
     // use the data directly from google on gcp
     vcf_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
@@ -137,7 +137,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------"
     log.info ""
     log.info "nextflow main.nf --debug"
-    log.info "nextflow main.nf --traitfile input_data/elegans/phenotypes/PC1.tsv --vcf 20210121"
+    log.info "nextflow main.nf --traitfile input_data/c_elegans/phenotypes/PC1.tsv --vcf 20210121"
     log.info ""
     log.info "Profiles available:"
     log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
@@ -149,7 +149,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20210121 --traitfile input_data/elegans/phenotypes/PC1.tsv -profile mappings"
+    log.info "nextflow main.nf --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv -profile mappings"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
@@ -255,7 +255,7 @@ workflow {
 
         // Fix strain names
         Channel.fromPath("${params.traitfile}")
-                .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/strain_isotype_lookup.tsv"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
@@ -322,10 +322,10 @@ workflow {
 
             // divergent regions and haplotypes
             peaks
-                .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/divergent_bins.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/divergent_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/haplotype_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/divergent_bins.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/divergent_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/haplotype_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
             // generate main html report
             peaks // QTL peaks (all traits)
@@ -357,7 +357,7 @@ workflow {
 
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
-            .combine(Channel.fromPath("${params.data_dir}/input_data/elegans/isotypes/strain_isotype_lookup.tsv"))
+            .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/strain_isotype_lookup.tsv"))
             .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_alt.R")) | fix_strain_names_alt
         
         pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
