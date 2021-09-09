@@ -45,21 +45,21 @@ if(params.debug) {
         *** Using debug mode ***
     """
     // debug for now with small vcf
-    params.vcf = "330_TEST.vcf.gz"
-    params.traitfile = "${params.data_dir}/input_data/c_elegans/phenotypes/abamectin_pheno.tsv"
+    params.vcf = "${params.species}.test.vcf.gz"
+    params.traitfile = "${params.data_dir}/input_data/${params.species}/phenotypes/test_pheno.tsv"
     
-    vcf_file = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz")
-    vcf_index = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
+    vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
     
     // debug can use same vcf for impute and normal
-    impute_file = "330_TEST.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz")
-    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/330_TEST.vcf.gz.tbi")
+    impute_file = "${params.species}.test.vcf.gz" // just to print out for reference
+    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
+    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
     
-    ann_file = Channel.fromPath("${params.data_dir}/input_data/c_elegans/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
 
     // for genomatrix profile
-    params.strains = "${params.data_dir}/input_data/c_elegans/phenotypes/strain_file.tsv"
+    params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(params.gcp) { 
     // use the data directly from google on gcp
     vcf_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
@@ -79,23 +79,41 @@ if(params.debug) {
     download_vcf = true
     
 } else {
-    // use the vcf data from QUEST when a cendr date is provided
-
     // Check that params.vcf is valid
-    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
-        vcf_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901") {
+        // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
+        // check to make sure 20210901 is tropicalis
+        if("${params.vcf}" == "20210901") {
+            if("${params.species}" == "c_elegans" || "${params.species}" == "c_briggsae") {
+                println """
+                Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_tropicalis). Please enter a new vcf date or a new species to continue.
+                """
+                System.exit(1)
+            }
+        }
+        // check to make sure vcf matches species for elegans
+        if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+            if("${params.species}" == "c_briggsae" || "${params.species}" == "c_tropicalis") {
+                println """
+                Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_elegans). Please enter a new vcf date or a new species to continue.
+                """
+                System.exit(1)
+            }
+        }
+        // use the vcf data from QUEST when a cendr date is provided
+        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
 
         impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
-        impute_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
-        impute_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+        impute_vcf = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
+        impute_vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-        // check if cendr release date is not 20210121, use snpeff annotation
-        if("${params.vcf}" != "20210121") {
+        // check if cendr release date is before 20210121, use snpeff annotation
+        if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use --vcf 20210121"
-            ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
         } else {
-            ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
         }
     } else {
         // check that vcf file exists, if it does, use it. If not, throw error
@@ -116,7 +134,7 @@ if(params.debug) {
             impute_vcf = Channel.fromPath("${params.vcf}")
             impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
 
-            ann_file = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
         }
     }
 }
@@ -137,7 +155,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------"
     log.info ""
     log.info "nextflow main.nf --debug"
-    log.info "nextflow main.nf --traitfile input_data/c_elegans/phenotypes/PC1.tsv --vcf 20210121"
+    log.info "nextflow main.nf --traitfile input_data/${params.species}/phenotypes/PC1.tsv --vcf 20210121"
     log.info ""
     log.info "Profiles available:"
     log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
@@ -149,7 +167,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv -profile mappings"
+    log.info "nextflow main.nf --vcf 20210121 --traitfile input_data/${params.species}/phenotypes/PC1.tsv -profile mappings"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
@@ -220,6 +238,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
 log.info ""
 log.info "Trait File                              = ${params.traitfile}"
 log.info "Strain File                             = ${params.strains}"
+log.info "Species                                 = ${params.species}"
 log.info ""
 log.info "VCF                                     = ${params.vcf}"
 log.info "Impute VCF                              = ${impute_file}"
@@ -255,7 +274,7 @@ workflow {
 
         // Fix strain names
         Channel.fromPath("${params.traitfile}")
-                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/strain_isotype_lookup.tsv"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
@@ -322,10 +341,10 @@ workflow {
 
             // divergent regions and haplotypes
             peaks
-                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/divergent_bins.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/divergent_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/haplotype_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_bins.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/haplotype_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
             // generate main html report
             peaks // QTL peaks (all traits)
@@ -357,7 +376,7 @@ workflow {
 
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
-            .combine(Channel.fromPath("${params.data_dir}/input_data/c_elegans/isotypes/strain_isotype_lookup.tsv"))
+            .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
             .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_alt.R")) | fix_strain_names_alt
         
         pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
@@ -520,7 +539,14 @@ process fix_strain_names_bulk {
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_bulk 
+
+        # for now, don't fix isotypes for non elegans
+        if [[ ${params.species} == "c_elegans" ]]
+        then
         Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} fix $isotype_lookup
+        else
+        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} null $isotype_lookup
+        fi
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
