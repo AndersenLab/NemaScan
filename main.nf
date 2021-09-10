@@ -273,7 +273,7 @@ workflow {
     if(params.maps) {
 
         // Fix strain names
-        Channel.fromPath("${params.traitfile}")
+         Channel.fromPath("${params.traitfile}")
                 .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
@@ -541,12 +541,7 @@ process fix_strain_names_bulk {
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_bulk 
 
         # for now, don't fix isotypes for non elegans
-        if [[ ${params.species} == "c_elegans" ]]
-        then
         Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} fix $isotype_lookup
-        else
-        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} null $isotype_lookup
-        fi
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
