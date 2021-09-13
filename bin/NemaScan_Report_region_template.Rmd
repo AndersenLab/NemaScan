@@ -135,7 +135,7 @@ print(ld_plot)
 # All variants in interval
 var_info <- genes_in_region %>%
     dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
-    dplyr::select(MARKER, REF, ALT,WBGeneID, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+    dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
     dplyr::distinct() %>%
     dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
                   STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
