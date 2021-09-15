@@ -62,14 +62,14 @@ if(params.debug) {
     params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(params.gcp) { 
     // use the data directly from google on gcp
-    vcf_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://elegansvariation.orgreleases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
 
     impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
-    impute_vcf_index = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
+    impute_vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-    ann_file = Channel.fromPath("gs://caendr-data/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from cendr.
     params.vcf = "20210121"
