@@ -590,7 +590,7 @@ process vcf_to_geno_matrix {
     //executor 'local'
 
     //machineType 'n1-standard-4'
-    label "med"
+    label "large"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -724,7 +724,7 @@ process collect_eigen_variants {
 process prepare_gcta_files {
 
     // machineType 'n1-standard-4'
-    label "med"
+    label "large"
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
