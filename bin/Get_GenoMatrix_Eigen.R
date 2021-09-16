@@ -39,10 +39,10 @@ lapply(chrom_geno, nrow)
 eigenvalues <- list()
 for(chrom in 1:length(chrom_geno)){
   
-  # initialize parameters for while loop
-  test_eigenvalues <- 100
+  # initialize parameters for while loop - used to be 100
+  test_eigenvalues <- 50
   significant_eigenvalues <- test_eigenvalues
-  eigen_increment <- 100
+  eigen_increment <- 50
   
   while (significant_eigenvalues == test_eigenvalues) {
     
