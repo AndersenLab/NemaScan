@@ -8,7 +8,7 @@ GWA Mapping and Simulation with _C. elegans, C. tropicalis, and C. briggsae_
 
 ## Software Requirements
 
-* This pipeline requires Nextflow version 20.0+. On QUEST, you can access this version by loading the `nf20` conda environment prior to running the pipeline command:
+* This pipeline requires Nextflow version 20.0+. On QUEST, you can access this version by loading the `nf20_env` conda environment prior to running the pipeline command:
 
 ```
 module load python/anaconda3.6
@@ -51,7 +51,9 @@ nextflow self-update
 
 # Usage
 
-## Downloading NemaScan
+## Recommended: running remote from GitHub
+For reproducible pipelines, it is recommended to run NemaScan **without cloning the repo**. In this manner, you can also choose which branch and/or commit you wish to run. However, you can always clone the repo with:
+
 ```
 git clone https://github.com/AndersenLab/NemaScan.git
 ```
@@ -61,10 +63,10 @@ git clone https://github.com/AndersenLab/NemaScan.git
 If you are trying to run a GWAS mapping with NemaScan, it might be a good idea to first run the debug test. This test takes only a few minutes and if it completes successfully, there is a good chance your real data run will also finish.
 
 ```
-nextflow run develop.nf --debug
+nextflow run andersenlab/nemascan --debug
 ```
 
-To display the help message, run `nextflow develop.nf --help` 
+To display the help message, run `nextflow andersenlab/nemascan --help` 
 
 # Profiles and Parameters
 
@@ -73,11 +75,26 @@ To display the help message, run `nextflow develop.nf --help`
 This is the standard profile for running NemaScan. Use this profile to perform a genome-wide analysis with your trait of interest. To be explicit, you can use `-profile mappings`, however if no profile is provided, the pipeline will default to this one.
 
 ```
-nextflow run develop.nf -profile mappings --vcf 20210121 --traitfile input_data/elegans/phenotypes/PC1.tsv
+nextflow run andersenlab/nemascan -profile mappings --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv
 ```
+
+*NOTE: you can also run specific branches or previous git commits easily. This can be especially useful to ensure that the version of NemaScan that you use doesn't change as you prepare your manuscript even if the code is updated.*
+
+All you need to do is add a `-r XXX` to the end of your command, where `XXX` can be either (1) name of git branch, (2) name of git repo release, or (3) git commit ID
+
+**For all runs, you can find the exact git commit used to run your analysis in the Nextflow report output after each run**
+
+```
+nextflow run andersenlab/nemascan --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv -r fa7046475fcfd06a49b375b4ef24a761f5133600
+
+```
+
 ### --vcf
 
 CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+
+#### Notes on VCF
+*If you want to use a custom VCF, you may provide the full path to the vcf in place of the CeNDR release date. This custom VCF will be used for BOTH GWA mapping and fine-mapping steps (instead of the imputed vcf).*
 
 ### --traitfile
 
@@ -92,6 +109,8 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 #### Optional Mapping Parameters
 
+* `--species` - Choose between `c_elegans` (DEFAULT), `c_tropicalis` or `c_briggsae`
+
 * `--sthresh` - This determines the signficance threshold required for performing post-mapping analysis of a QTL. `BF` corresponds to Bonferroni correction, `EIGEN` corresponds to correcting for the number of independent markers in your data set, and `user-specified` corresponds to a user-defined threshold, where you replace user-specified with a number. For example `--sthresh=4` will set the threshold to a `-log10(p)` value of 4. We recommend using the strict `BF` correction as a first pass to see what the resulting data looks like. If the pipeline stops at the `summarize_maps` process, no significant QTL were discovered with the input threshold. You might want to consider lowering the threshold if this occurs. (Default: `BF`)
 
 * `--out` - A user-specified output directory name. (Default: `Analysis_Results-{date}`)
@@ -100,12 +119,14 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
 
+* `--maf` - The minor allele frequency for filtering variants to use for gwas mapping
+
 ## Genomatrix Profile
 
 This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
 
 ```
-nextflow run develop.nf -profile genomatrix --vcf 20210121 --strains input_data/elegans/phenotypes/strain_file.tsv
+nextflow run andersenlab/nemascan -profile genomatrix --vcf 20210121 --strains input_data/c_elegans/phenotypes/strain_file.tsv
 ```
 
 ### --vcf
@@ -128,7 +149,7 @@ ECA250
 This profile uses simulations to establish GWA performance benchmarks. Users can specify the heritability of simulated traits, the number of QTL underlying simulated traits of interest, the strains the user intends to use in a prospective GWA mapping experiment, or the location of previously detected QTL. Understanding the null expectations of GWA mappings within given parameter spaces may provide experimenters with additional guidance before initiating an experiment, or serve as a validation tool for previous mappings.
 
 ```
-nextflow develop.nf -profile simulations --vcf 20210121 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
+nextflow andersenlab/nemascan -profile simulations --vcf 20210121 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
 module load R/3.6.3
 Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 ```
@@ -164,11 +185,37 @@ A TSV file specifying the population in which to simulate GWA mappings. Multiple
 
 ## Annotations Profile (in development)
 
-`nextflow develop.nf --vcf 20210121 -profile annotations --species briggsae --wb_build WS270`
+`nextflow andersenlab/nemascan --vcf 20210121 -profile annotations --species briggsae --wb_build WS270`
 
 * `--species` - specifies what species information to download from WormBase (options: elegans, briggsae, tropicalis).
 
 * `--wb_build` - specifies what WormBase build to download annotation information from (format: WSXXX, where XXX is a number greater than 270 and less than 277).
+
+## GWA Mapping with Docker Profile
+
+This profile uses a docker image instead of local conda environments to perform the GWA mapping. Use this profile if you have issue with conda on QUEST or if you are running the pipeline outside of quest. *NOTE: Docker or singularity is required*
+
+**On QUEST:**
+```
+module load singularity
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile mappings_docker
+```
+
+**Local**
+*make sure you have installed docker and that it is actively running. See [here](http://andersenlab.org/dry-guide/latest/pipeline-docker/) for help.*
+
+```
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile mappings_docker
+
+```
+
+## GCP Profile
+
+This profile is used to run GWA mappings on CeNDR using the GCP platform. Check out more on how to develop, test, and run nextflow on GCP [here](http://andersenlab.org/dry-guide/latest/pipeline-GCPconfig/).
+
+```
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile gcp
+```
 
 # Input Data Folder Structure (`NemaScan/input_data`)
 
@@ -181,18 +228,15 @@ all_species
   ├── simulate_nqtl.csv
   ├── simulate_strains.tsv
   ├── simulate_locations.bed
-briggsae
-  ├── annotations
-      ├── GTF file
-      ├── refFlat file
-elegans
+c_elegans (repeated for c_tropicalis and c_briggsae)
   ├── genotypes  
       ├── test_vcf
       ├── test_vcf_index
       ├── test_bcsq_annotation
   ├── phenotypes
       ├── PC1.tsv
-      ├── abamectin_pheno.tsv
+      ├── strain_file.tsv
+      ├── test_pheno.tsv
   ├── annotations
       ├── GTF file
       ├── refFlat file
@@ -202,10 +246,6 @@ elegans
       ├── divergent_df_isotype.bed
       ├── haplotype_df_isotype.bed
       ├── strain_isotype_lookup.tsv
-tropicalis
-  ├── annotations
-      ├── GTF file
-      ├── refFlat file
 ```
 
 # Mapping Output Folder Structure
