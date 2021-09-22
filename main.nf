@@ -70,6 +70,7 @@ if(params.debug) {
     impute_vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
     ann_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+    params.strains = "input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from cendr.
     params.vcf = "20210121"
