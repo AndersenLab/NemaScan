@@ -25,6 +25,4 @@ if [[ -z "${VCF_VERSION}" ]]; then
   echo "VCF_VERSION environment variable is not set - defaulting to ${VCF_VERSION}"
 fi
 
-cd /nemarun/
-
 nextflow run main.nf -profile gcp --traitfile ${TRAIT_FILE} --vcf ${VCF_VERSION} --workDir ${WORK_DIR} --out ${OUTPUT_DIR}
