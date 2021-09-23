@@ -55,9 +55,9 @@ nextflow self-update
 ## Provisioning a Virtual Machine in Google Cloud
 You can create a virtual machine from the existing template: [nemascan-test-vm](https://console.cloud.google.com/compute/instanceTemplates/list?project=andersen-lab). 
 
-Click on Actions -> Create VM
+Click on **Actions** -> **Create VM**
 
-Scroll to the bottom of the page and click 'Create'
+Scroll to the bottom of the page and click **'Create'**
 
 Once the VM has been created, it should appear in the [list](https://console.cloud.google.com/compute/instances?project=andersen-lab). 
 
@@ -165,8 +165,10 @@ If the container is built successfully you should be able to see the details wit
 docker image list
 ```
 example:
+```
 REPOSITORY                     TAG       IMAGE ID       CREATED          SIZE
 andersenlab/nemascan-nxf       latest    bb4f296feec8   26 seconds ago   1.88GB
+```
 
 
 Now you can begin testing. To start the container and open a terminal prompt, substitute your container version's IMAGE ID value in the command below:
