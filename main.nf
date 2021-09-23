@@ -20,6 +20,7 @@ params.help = null
 params.debug = null
 download_vcf = null
 params.finemap = true
+params.mediation = null
 params.species = "c_elegans"
 params.data_dir = "${workflow.projectDir}" // this is different for gcp
 params.annotation = "bcsq"
@@ -321,6 +322,40 @@ workflow {
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
+
+        // run mediation with gaotian's eqtl
+        if(params.mediation) {
+
+            File transcripteqtl_all = new File("${workflow.projectDir}/bin/eQTL6545forMed.tsv")
+            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
+
+
+            traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
+                .flatten()
+                .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .map { tch,logPvalue,TRAIT,tstart,tpeak,tend,var_exp,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,var_exp,h2] }
+                .combine(traits_to_mediate, by: 0)
+                .combine(Channel.from(transcript_eqtl)) | mediation_data
+
+            mediation_data.out
+                .combine(vcf_to_geno_matrix.out)
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv")) | multi_mediation
+
+            multi_mediation.out.eQTL_gene
+                 .splitCsv(sep: '\t')
+                 .combine(mediation_data.out, by: [0,1,2])
+                 .combine(vcf_to_geno_matrix.out) 
+                 .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv")) | simple_mediation
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .combine(simple_mediation.out.collect().toList())
+                .combine(multi_mediation.out.result_multi_mediate.collect().toList()).view() | summary_mediation
+
+        }
 
         // easiest case: don't run finemap, divergent, or html if params.finemap = false
         if(params.finemap) {
@@ -1151,6 +1186,108 @@ process html_report_main {
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${render_markdown}  > render_markdown 
     Rscript --vanilla render_markdown NemaScan_Report_${TRAIT}_main.Rmd
   """
+}
+
+/*
+======================================
+~ > *                            * < ~
+~ ~ > *                        * < ~ ~
+~ ~ ~ > *      MEDIATION      * < ~ ~ ~
+~ ~ > *                        * < ~ ~
+~ > *                            * < ~
+======================================
+*/
+
+
+process mediation_data {
+ 
+    executor 'local'
+    tag {TRAIT}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), val(transcript_eqtl)
+
+    output:
+        tuple val(TRAIT),val(tch),val(tpeak),val(tstart),val(tend), file("${TRAIT}_scaled_mapping.tsv"),file("${TRAIT}_${tch}_${tpeak}_eqtl.tsv")
+
+    """
+    Rscript --vanilla `which mediaton_input.R` ${TRAIT} ${t_file} ${tch} ${tstart} ${tend} ${tpeak} ${transcript_eqtl}
+
+    """
+}
+
+
+process multi_mediation {
+
+    cpus 1
+    memory '2 GB'
+    label "mediation"
+
+    tag {"${TRAIT}_${tch}_${tpeak}"}
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(texpression)
+
+
+    output:
+        path "${TRAIT}_${tch}_${tpeak}_medmulti.tsv", emit: result_multi_mediate optional true
+        path "${TRAIT}_${tch}_${tpeak}_elist.tsv", emit: eQTL_gene optional true
+
+
+    """
+    Rscript --vanilla `which multi_mediation.R` ${geno} ${texpression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+    
+    """
+}
+
+
+process simple_mediation {
+ 
+    cpus 1
+    memory '2 GB'
+    tag {"${TRAIT}_${gene}"}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak),val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression)
+
+    output:
+        file("${TRAIT}_${tch}_${tpeak}_${gene}_med.tsv") 
+
+    """
+    Rscript --vanilla `which simple_mediation.R` ${gene} ${geno} ${expression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+
+    """
+}
+
+
+process summary_mediation {
+
+    cpus 2
+    memory '32 GB'
+    label "mediation"
+
+    publishDir "${params.out}/Mediation/file_summary", mode: 'copy', pattern: "*mediation.tsv"
+    publishDir "${params.out}/Mediation/plot_summary", mode: 'copy', pattern: "*plot.png"
+
+    input:
+     tuple val(tch), val(marker), val(TRAIT), val(tstart), val(tpeak), val(tend), val(var_exp), val(h2), \
+     file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
+
+
+    output:
+        tuple val(TRAIT), file("${TRAIT}_mediation.tsv")  
+        file("*plot.png") optional true
+
+
+    """
+    cat ${TRAIT}_*medmulti.tsv > ${TRAIT}_multi_mediation_analysis.tsv
+    cat ${TRAIT}_*med.tsv  > ${TRAIT}_indiv_mediation_analysis.tsv
+
+    Rscript --vanilla `which summary_mediation.R` ${TRAIT}_multi_mediation_analysis.tsv ${TRAIT}_indiv_mediation_analysis.tsv ${TRAIT}
+
+    """
 }
 
 
