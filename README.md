@@ -205,7 +205,7 @@ nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile map
 *make sure you have installed docker and that it is actively running. See [here](http://andersenlab.org/dry-guide/latest/pipeline-docker/) for help.*
 
 ```
-nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile mappings_docker
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile local
 
 ```
 
@@ -306,8 +306,9 @@ Reports
 * `traitname_lmm-exact.loco.mlma` - Raw mapping results from GCTA's mlma program using a kinship matrix constructed from all chromosomes except for the chromosome containing each tested variant
 
 #### Processed
-* `traitname_LMM_EXACT_INBRED_mapping.tsv` - Processed mapping results from lmm-exact_inbred raw mappings. Contains additional information nested such as 1) rough intervals (see parameters for calculation) and estimates of the variance explained by the detected QTL 2) phenotype information and genotype status for each strain at the detected QTL.
-* `traitname_lmm-exact.loco.mlma` - Processed mapping results from lmm-exact.loco.mlma raw mappings. Contains same additional information as above.
+* `traitname_AGGREGATE_mapping.tsv` - Combined processed mapping results from lmm-exact_inbred and lmm-exact.loco.mlma raw mappings. Contains additional information nested such as 1) rough intervals (see parameters for calculation) and estimates of the variance explained by the detected QTL 2) phenotype information and genotype status for each strain at the detected QTL.
+* `traitname_AGGREGATE_qtl_region.tsv` - Contains only QTL information for each mapping. If no QTL are detected, an empty data frame is written.
+* `QTL_peaks.tsv` - contains QTL information for each mapping for all traits combined.
 ##### QTL_Regions
 * `traitname_*_qtl_region.tsv` - Contains only QTL information for each mapping. If no QTL are detected, an empty data frame is written.
 
