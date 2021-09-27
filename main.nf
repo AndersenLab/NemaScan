@@ -167,6 +167,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "gcp                   Profile                Perform GWA mappings on GCP (used for cendr)"
     log.info "genomatrix            Profile                Generate a genotype matrix given a set of strains"
     log.info "mappings_docker       Profile                Perform GWA mappings using a docker container for reproducibility"
+    log.info "local                 Profile                Perform GWA mappings using a docker container with low memory and cpu avail. (need --finemap false)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
@@ -251,6 +252,7 @@ log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Minor allele frequency                  = ${params.maf}"
+log.info "Mediation run?                          = ${params.mediation}"
 log.info ""
 }
 
