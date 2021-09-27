@@ -23,26 +23,26 @@ transcript_list <- eqtl_infor %>%
   dplyr::distinct()
 
 
- 
+
 # transcript level
-  
-  texpression_pheno_raw <- data.table::fread(args[2])
-  
-  texpression_pheno <- texpression_pheno_raw %>% 
-    gather(trait2,value,-strain) %>% 
-    dplyr::mutate(trait=sub("(^X)(.*)","\\2",trait2)) %>% 
-    dplyr::select(strain,trait,value) %>% 
-    dplyr::filter(strain %in% trait_phenotype$strain) %>% 
-    dplyr::filter(trait %in% transcript_list$trait) %>% 
-    na.omit() 
+
+texpression_pheno_raw <- data.table::fread(args[2])
+
+texpression_pheno <- texpression_pheno_raw %>% 
+  gather(trait2,value,-strain) %>% 
+  dplyr::mutate(trait=sub("(^X)(.*)","\\2",trait2)) %>% 
+  dplyr::select(strain,trait,value) %>% 
+  dplyr::filter(strain %in% trait_phenotype$strain) %>% 
+  dplyr::filter(trait %in% transcript_list$trait) %>% 
+  na.omit() 
 
 
-  
-  # processed pheno data
-  trait_pheno_all <- trait_phenotype%>% 
-    dplyr::rename(trait=tr) %>% 
-    dplyr::filter(strain %in% texpression_pheno$strain)
-  
+
+# processed pheno data
+trait_pheno_all <- trait_phenotype%>% 
+  dplyr::rename(trait=tr) %>% 
+  dplyr::filter(strain %in% texpression_pheno$strain)
+
 
 
 
@@ -73,7 +73,7 @@ multimed_trait_list=list()
 for(trss in unique(texpression_pheno$trait)) {
   
   
-   
+  
   t_lgmtpm_gwas_all <- texpression_pheno %>% 
     dplyr::filter(trait==trss) 
   
