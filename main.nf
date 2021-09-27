@@ -102,8 +102,11 @@ if(params.debug) {
             }
         }
         // use the vcf data from QUEST when a cendr date is provided
-        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+        //vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+        // vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+
 
         impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
         impute_vcf = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
@@ -338,22 +341,26 @@ workflow {
                 .splitCsv(sep: '\t', skip: 1)
                 .map { tch,logPvalue,TRAIT,tstart,tpeak,tend,var_exp,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,var_exp,h2] }
                 .combine(traits_to_mediate, by: 0)
-                .combine(Channel.from(transcript_eqtl)) | mediation_data
+                .combine(Channel.from(transcript_eqtl))
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/mediaton_input.R")) | mediation_data
 
             mediation_data.out
                 .combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv")) | multi_mediation
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/multi_mediation.R")) | multi_mediation
 
             multi_mediation.out.eQTL_gene
                  .splitCsv(sep: '\t')
                  .combine(mediation_data.out, by: [0,1,2])
                  .combine(vcf_to_geno_matrix.out) 
-                 .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv")) | simple_mediation
+                 .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${workflow.projectDir}/bin/simple_mediation.R")) | simple_mediation
 
             peaks
                 .splitCsv(sep: '\t', skip: 1)
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/summary_mediation.R"))
                 .combine(simple_mediation.out.collect().toList())
-                .combine(multi_mediation.out.result_multi_mediate.collect().toList()).view() | summary_mediation
+                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
 
         }
 
@@ -1206,13 +1213,15 @@ process mediation_data {
     label "mediation"
 
     input:
-        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), val(transcript_eqtl)
+        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), \
+        val(transcript_eqtl), file(mediation_input)
 
     output:
         tuple val(TRAIT),val(tch),val(tpeak),val(tstart),val(tend), file("${TRAIT}_scaled_mapping.tsv"),file("${TRAIT}_${tch}_${tpeak}_eqtl.tsv")
 
     """
-    Rscript --vanilla `which mediaton_input.R` ${TRAIT} ${t_file} ${tch} ${tstart} ${tend} ${tpeak} ${transcript_eqtl}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${mediation_input} > mediation_input 
+    Rscript --vanilla mediation_input ${TRAIT} ${t_file} ${tch} ${tstart} ${tend} ${tpeak} ${transcript_eqtl}
 
     """
 }
@@ -1227,7 +1236,7 @@ process multi_mediation {
     tag {"${TRAIT}_${tch}_${tpeak}"}
 
     input:
-        tuple val(TRAIT),val(tch),val(tpeak), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(texpression)
+        tuple val(TRAIT),val(tch),val(tpeak), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(texpression), file("multi_mediation")
 
 
     output:
@@ -1236,7 +1245,8 @@ process multi_mediation {
 
 
     """
-    Rscript --vanilla `which multi_mediation.R` ${geno} ${texpression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${multi_mediation} > multi_mediation_file 
+    Rscript --vanilla multi_mediation_file ${geno} ${texpression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
     
     """
 }
@@ -1250,13 +1260,14 @@ process simple_mediation {
     label "mediation"
 
     input:
-        tuple val(TRAIT),val(tch),val(tpeak),val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression)
+        tuple val(TRAIT),val(tch),val(tpeak),val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression), file(simple_mediation)
 
     output:
         file("${TRAIT}_${tch}_${tpeak}_${gene}_med.tsv") 
 
     """
-    Rscript --vanilla `which simple_mediation.R` ${gene} ${geno} ${expression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${simple_mediation} > simple_mediation_file 
+    Rscript --vanilla simple_mediation_file ${gene} ${geno} ${expression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
 
     """
 }
@@ -1273,7 +1284,7 @@ process summary_mediation {
 
     input:
      tuple val(tch), val(marker), val(TRAIT), val(tstart), val(tpeak), val(tend), val(var_exp), val(h2), \
-     file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
+     file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
 
 
     output:
@@ -1285,7 +1296,8 @@ process summary_mediation {
     cat ${TRAIT}_*medmulti.tsv > ${TRAIT}_multi_mediation_analysis.tsv
     cat ${TRAIT}_*med.tsv  > ${TRAIT}_indiv_mediation_analysis.tsv
 
-    Rscript --vanilla `which summary_mediation.R` ${TRAIT}_multi_mediation_analysis.tsv ${TRAIT}_indiv_mediation_analysis.tsv ${TRAIT}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summary_mediation} > summary_mediation_file 
+    Rscript --vanilla summary_mediation_file ${TRAIT}_multi_mediation_analysis.tsv ${TRAIT}_indiv_mediation_analysis.tsv ${TRAIT}
 
     """
 }
