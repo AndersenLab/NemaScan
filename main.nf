@@ -20,6 +20,7 @@ params.help = null
 params.debug = null
 download_vcf = null
 params.finemap = true
+params.mediation = true
 params.species = "c_elegans"
 params.data_dir = "${workflow.projectDir}" // this is different for gcp
 params.annotation = "bcsq"
@@ -62,8 +63,8 @@ if(params.debug) {
     params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(params.gcp) { 
     // use the data directly from google on gcp
-    vcf_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
     impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
     impute_vcf = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
@@ -101,8 +102,11 @@ if(params.debug) {
             }
         }
         // use the vcf data from QUEST when a cendr date is provided
-        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+        // vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+        // vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+
 
         impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
         impute_vcf = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
@@ -163,6 +167,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "gcp                   Profile                Perform GWA mappings on GCP (used for cendr)"
     log.info "genomatrix            Profile                Generate a genotype matrix given a set of strains"
     log.info "mappings_docker       Profile                Perform GWA mappings using a docker container for reproducibility"
+    log.info "local                 Profile                Perform GWA mappings using a docker container with low memory and cpu avail. (need --finemap false)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
@@ -247,6 +252,7 @@ log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Minor allele frequency                  = ${params.maf}"
+log.info "Mediation run?                          = ${params.mediation}"
 log.info ""
 }
 
@@ -321,6 +327,44 @@ workflow {
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
+
+        // run mediation with gaotian's eqtl
+        if(params.mediation) {
+
+            File transcripteqtl_all = new File("${workflow.projectDir}/bin/eQTL6545forMed.tsv")
+            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
+
+
+            traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
+                .flatten()
+                .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .map { tch,logPvalue,TRAIT,tstart,tpeak,tend,var_exp,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,var_exp,h2] }
+                .combine(traits_to_mediate, by: 0)
+                .combine(Channel.from(transcript_eqtl))
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/mediaton_input.R")) | mediation_data
+
+            mediation_data.out
+                .combine(vcf_to_geno_matrix.out)
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/multi_mediation.R")) | multi_mediation
+
+            multi_mediation.out.eQTL_gene
+                 .splitCsv(sep: '\t')
+                 .combine(mediation_data.out, by: [0,1,2])
+                 .combine(vcf_to_geno_matrix.out) 
+                 .combine(Channel.fromPath("${workflow.projectDir}/bin/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${workflow.projectDir}/bin/simple_mediation.R")) | simple_mediation
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .combine(Channel.fromPath("${workflow.projectDir}/bin/summary_mediation.R"))
+                .combine(simple_mediation.out.collect().toList())
+                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
+
+        }
 
         // easiest case: don't run finemap, divergent, or html if params.finemap = false
         if(params.finemap) {
@@ -1151,6 +1195,113 @@ process html_report_main {
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${render_markdown}  > render_markdown 
     Rscript --vanilla render_markdown NemaScan_Report_${TRAIT}_main.Rmd
   """
+}
+
+/*
+======================================
+~ > *                            * < ~
+~ ~ > *                        * < ~ ~
+~ ~ ~ > *      MEDIATION      * < ~ ~ ~
+~ ~ > *                        * < ~ ~
+~ > *                            * < ~
+======================================
+*/
+
+
+process mediation_data {
+ 
+    executor 'local'
+    tag {TRAIT}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), \
+        val(transcript_eqtl), file(mediation_input)
+
+    output:
+        tuple val(TRAIT),val(tch),val(tpeak),val(tstart),val(tend), file("${TRAIT}_scaled_mapping.tsv"),file("${TRAIT}_${tch}_${tpeak}_eqtl.tsv")
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${mediation_input} > mediation_input 
+    Rscript --vanilla mediation_input ${TRAIT} ${t_file} ${tch} ${tstart} ${tend} ${tpeak} ${transcript_eqtl}
+
+    """
+}
+
+
+process multi_mediation {
+
+    cpus 1
+    memory '2 GB'
+    label "mediation"
+
+    tag {"${TRAIT}_${tch}_${tpeak}"}
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(texpression), file("multi_mediation")
+
+
+    output:
+        path "${TRAIT}_${tch}_${tpeak}_medmulti.tsv", emit: result_multi_mediate optional true
+        path "${TRAIT}_${tch}_${tpeak}_elist.tsv", emit: eQTL_gene optional true
+
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${multi_mediation} > multi_mediation_file 
+    Rscript --vanilla multi_mediation_file ${geno} ${texpression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+    
+    """
+}
+
+
+process simple_mediation {
+ 
+    cpus 1
+    memory '2 GB'
+    tag {"${TRAIT}_${gene}"}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak),val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression), file(simple_mediation)
+
+    output:
+        file("${TRAIT}_${tch}_${tpeak}_${gene}_med.tsv") 
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${simple_mediation} > simple_mediation_file 
+    Rscript --vanilla simple_mediation_file ${gene} ${geno} ${expression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+
+    """
+}
+
+
+process summary_mediation {
+
+    cpus 2
+    memory '32 GB'
+    label "mediation"
+
+    publishDir "${params.out}/Mediation/file_summary", mode: 'copy', pattern: "*mediation.tsv"
+    publishDir "${params.out}/Mediation/plot_summary", mode: 'copy', pattern: "*plot.png"
+
+    input:
+     tuple val(tch), val(marker), val(TRAIT), val(tstart), val(tpeak), val(tend), val(var_exp), val(h2), \
+     file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
+
+
+    output:
+        tuple val(TRAIT), file("${TRAIT}_mediation.tsv")  
+        file("*plot.png") optional true
+
+
+    """
+    cat ${TRAIT}_*medmulti.tsv > ${TRAIT}_multi_mediation_analysis.tsv
+    cat ${TRAIT}_*med.tsv  > ${TRAIT}_indiv_mediation_analysis.tsv
+
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summary_mediation} > summary_mediation_file 
+    Rscript --vanilla summary_mediation_file ${TRAIT}_multi_mediation_analysis.tsv ${TRAIT}_indiv_mediation_analysis.tsv ${TRAIT}
+
+    """
 }
 
 
