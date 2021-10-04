@@ -20,8 +20,10 @@ params.help = null
 params.debug = null
 download_vcf = null
 params.finemap = true
+params.mediation = true
 params.species = "c_elegans"
-params.data_dir = "${workflow.projectDir}" // this is different for gcp
+params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
+params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.annotation = "bcsq"
 params.out = "Analysis_Results-${date}"
 
@@ -35,7 +37,7 @@ params.group_qtl = 1000
 params.ci_size = 150
 params.sthresh = "BF"
 params.p3d = "TRUE"
-params.genes = "${params.data_dir}/bin/gene_ref_flat.Rda"
+params.genes = "${params.bin_dir}/gene_ref_flat.Rda"
 params.cores = 4
 
 
@@ -46,24 +48,24 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "${params.species}.test.vcf.gz"
-    params.traitfile = "${params.data_dir}/input_data/${params.species}/phenotypes/test_pheno.tsv"
+    params.traitfile = "${params.data_dir}/${params.species}/phenotypes/test_pheno.tsv"
     
-    vcf_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
-    vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
+    vcf_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
+    vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
     
     // debug can use same vcf for impute and normal
     impute_file = "${params.species}.test.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
-    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
+    impute_vcf = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
+    impute_vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
     
-    ann_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
 
     // for genomatrix profile
-    params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
+    params.strains = "${params.data_dir}/${params.species}/phenotypes/strain_file.tsv"
 } else if(params.gcp) { 
     // use the data directly from google on gcp
-    vcf_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
     impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
     impute_vcf = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
@@ -102,8 +104,11 @@ if(params.debug) {
             }
         }
         // use the vcf data from QUEST when a cendr date is provided
-        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+        // vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
+        // vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
+        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+
 
         impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
         impute_vcf = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
@@ -164,6 +169,7 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "gcp                   Profile                Perform GWA mappings on GCP (used for cendr)"
     log.info "genomatrix            Profile                Generate a genotype matrix given a set of strains"
     log.info "mappings_docker       Profile                Perform GWA mappings using a docker container for reproducibility"
+    log.info "local                 Profile                Perform GWA mappings using a docker container with low memory and cpu avail. (need --finemap false)"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
@@ -248,6 +254,7 @@ log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Minor allele frequency                  = ${params.maf}"
+log.info "Mediation run?                          = ${params.mediation}"
 log.info ""
 }
 
@@ -275,8 +282,8 @@ workflow {
 
         // Fix strain names
          Channel.fromPath("${params.traitfile}")
-                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
-                .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
+                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -290,14 +297,14 @@ workflow {
         // EIGEN
         contigs = Channel.from(["I", "II", "III", "IV", "V", "X"])
         contigs.combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${params.data_dir}/bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants
+                .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants
         chrom_eigen_variants.out.collect() | collect_eigen_variants
 
         // GWAS mapping
         pheno_strains
             .combine(traits_to_map)
             .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
 
         // process GWAS mapping
         traits_to_map
@@ -308,20 +315,58 @@ workflow {
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
             .join(gcta_lmm_exact_mapping.out)
-            .combine(Channel.fromPath("${params.data_dir}/bin/Aggregate_Mappings.R"))
-            .combine(Channel.fromPath("${params.data_dir}/bin/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
+            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
 
         // plot
         gcta_intervals_maps.out.maps_to_plot
-            .combine(Channel.fromPath("${params.data_dir}/bin/pipeline.plotting.mod.R")) | generate_plots 
+            .combine(Channel.fromPath("${params.bin_dir}/pipeline.plotting.mod.R")) | generate_plots 
 
         // LD b/w regions
         gcta_intervals_maps.out.maps_to_plot
-            .combine(Channel.fromPath("${params.data_dir}/bin/LD_between_regions.R")) | LD_between_regions
+            .combine(Channel.fromPath("${params.bin_dir}/LD_between_regions.R")) | LD_between_regions
 
         // summarize all peaks
         peaks = gcta_intervals_maps.out.qtl_peaks
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
+
+        // run mediation with gaotian's eqtl
+        if(params.mediation) {
+
+            File transcripteqtl_all = new File("${params.bin_dir}/eQTL6545forMed.tsv")
+            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
+
+
+            traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
+                .flatten()
+                .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .map { tch,logPvalue,TRAIT,tstart,tpeak,tend,var_exp,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,var_exp,h2] }
+                .combine(traits_to_mediate, by: 0)
+                .combine(Channel.from(transcript_eqtl))
+                .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
+
+            mediation_data.out
+                .combine(vcf_to_geno_matrix.out)
+                .combine(Channel.fromPath("${params.bin_dir}/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${params.bin_dir}/multi_mediation.R")) | multi_mediation
+
+            multi_mediation.out.eQTL_gene
+                 .splitCsv(sep: '\t')
+                 .combine(mediation_data.out, by: [0,1,2])
+                 .combine(vcf_to_geno_matrix.out) 
+                 .combine(Channel.fromPath("${params.bin_dir}/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
+
+            peaks
+                .splitCsv(sep: '\t', skip: 1)
+                .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
+                .combine(simple_mediation.out.collect().toList())
+                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
+
+        }
 
         // easiest case: don't run finemap, divergent, or html if params.finemap = false
         if(params.finemap) {
@@ -331,21 +376,21 @@ workflow {
                 .join(generate_plots.out.maps_from_plot, by: 2)
                 .combine(impute_vcf.combine(impute_vcf_index))
                 .combine(pheno_strains)
-                .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prep_ld_files
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files
 
             //fine mapping
             prep_ld_files.out.finemap_preps
                 .combine(ann_file)
                 .combine(Channel.fromPath("${params.genes}"))
-                .combine(Channel.fromPath("${params.data_dir}/bin/Finemap_QTL_Intervals.R"))
-                .combine(Channel.fromPath("${params.data_dir}/bin/plot_genes.R")) | gcta_fine_maps
+                .combine(Channel.fromPath("${params.bin_dir}/Finemap_QTL_Intervals.R"))
+                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
 
             // divergent regions and haplotypes
             peaks
-                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_bins.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/haplotype_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
             // generate main html report
             peaks // QTL peaks (all traits)
@@ -353,9 +398,9 @@ workflow {
                 .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
                 .combine(collect_eigen_variants.out) // independent tests
                 .combine(vcf_to_geno_matrix.out) // genotype matrix
-                .combine(Channel.fromPath("${params.data_dir}/bin/NemaScan_Report_main.Rmd"))
-                .combine(Channel.fromPath("${params.data_dir}/bin/NemaScan_Report_region_template.Rmd"))
-                .combine(Channel.fromPath("${params.data_dir}/bin/render_markdown.R"))
+                .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
+                .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
+                .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                 .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
                 .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
                 .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
@@ -371,14 +416,14 @@ workflow {
 
         Channel.fromPath("${params.script_loc}")
             .combine(save_dir)
-            .combine(Channel.fromPath("${params.data_dir}/bin/update_annotations.R")) | update_annotations
+            .combine(Channel.fromPath("${params.bin_dir}/update_annotations.R")) | update_annotations
 
     } else if(params.matrix) {
 
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
-            .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
-            .combine(Channel.fromPath("${params.data_dir}/bin/Fix_Isotype_names_alt.R")) | fix_strain_names_alt
+            .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
+            .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_alt.R")) | fix_strain_names_alt
         
         pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
 
@@ -393,13 +438,13 @@ workflow {
         Channel.from(pop_file.collect { it.tokenize( ' ' ) })
             .map { SM, STRAINS -> [SM, STRAINS] }
             .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes"))
+            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes"))
             .combine(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
         contigs = Channel.from(["1", "2", "3", "4", "5", "6"])
         contigs.combine(prepare_simulation_files.out.sim_geno)
-            .combine(Channel.fromPath("${params.data_dir}/bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
+            .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
 
         chrom_eigen_variants_sims.out.sim_geno_eigen_join
             .groupTuple(by:[0,1,2]).
@@ -413,7 +458,7 @@ workflow {
                 .combine(Channel.fromPath("${params.simulate_qtlloc}"))
                 .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
                 .combine(Channel.from(1..params.simulate_reps))
-                .combine(Channel.fromPath("${params.data_dir}/bin/create_causal_QTLs.R")) | simulate_effects_loc
+                .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_loc
 
             sim_phen_inputs = simulate_effects_loc.out
 
@@ -423,7 +468,7 @@ workflow {
                 .combine(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
                 .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
                 .combine(Channel.from(1..params.simulate_reps))
-                .combine(Channel.fromPath("${params.data_dir}/bin/create_causal_QTLs.R")) | simulate_effects_genome
+                .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_genome
 
             sim_phen_inputs = simulate_effects_genome.out
 
@@ -437,10 +482,10 @@ workflow {
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}")) 
-            .combine(Channel.fromPath("${params.data_dir}/bin/Aggregate_Mappings.R"))
-            .combine(Channel.fromPath("${params.data_dir}/bin/Find_Aggregate_Intervals.R"))
-            .combine(Channel.fromPath("${params.data_dir}/bin/Find_GCTA_Intervals.R"))
-            .combine(Channel.fromPath("${params.data_dir}/bin/Find_GCTA_Intervals_LOCO.R")) | get_gcta_intervals
+            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO.R")) | get_gcta_intervals
     }
 
 }
@@ -1152,6 +1197,113 @@ process html_report_main {
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${render_markdown}  > render_markdown 
     Rscript --vanilla render_markdown NemaScan_Report_${TRAIT}_main.Rmd
   """
+}
+
+/*
+======================================
+~ > *                            * < ~
+~ ~ > *                        * < ~ ~
+~ ~ ~ > *      MEDIATION      * < ~ ~ ~
+~ ~ > *                        * < ~ ~
+~ > *                            * < ~
+======================================
+*/
+
+
+process mediation_data {
+ 
+    executor 'local'
+    tag {TRAIT}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), \
+        val(transcript_eqtl), file(mediation_input)
+
+    output:
+        tuple val(TRAIT),val(tch),val(tpeak),val(tstart),val(tend), file("${TRAIT}_scaled_mapping.tsv"),file("${TRAIT}_${tch}_${tpeak}_eqtl.tsv")
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${mediation_input} > mediation_input 
+    Rscript --vanilla mediation_input ${TRAIT} ${t_file} ${tch} ${tstart} ${tend} ${tpeak} ${transcript_eqtl}
+
+    """
+}
+
+
+process multi_mediation {
+
+    cpus 1
+    memory '2 GB'
+    label "mediation"
+
+    tag {"${TRAIT}_${tch}_${tpeak}"}
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(texpression), file("multi_mediation")
+
+
+    output:
+        path "${TRAIT}_${tch}_${tpeak}_medmulti.tsv", emit: result_multi_mediate optional true
+        path "${TRAIT}_${tch}_${tpeak}_elist.tsv", emit: eQTL_gene optional true
+
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${multi_mediation} > multi_mediation_file 
+    Rscript --vanilla multi_mediation_file ${geno} ${texpression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+    
+    """
+}
+
+
+process simple_mediation {
+ 
+    cpus 1
+    memory '2 GB'
+    tag {"${TRAIT}_${gene}"}
+    label "mediation"
+
+    input:
+        tuple val(TRAIT),val(tch),val(tpeak),val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression), file(simple_mediation)
+
+    output:
+        file("${TRAIT}_${tch}_${tpeak}_${gene}_med.tsv") 
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${simple_mediation} > simple_mediation_file 
+    Rscript --vanilla simple_mediation_file ${gene} ${geno} ${expression} ${pheno} ${tch} ${tpeak} ${TRAIT} ${tr_eqtl}
+
+    """
+}
+
+
+process summary_mediation {
+
+    cpus 2
+    memory '32 GB'
+    label "mediation"
+
+    publishDir "${params.out}/Mediation/file_summary", mode: 'copy', pattern: "*mediation.tsv"
+    publishDir "${params.out}/Mediation/plot_summary", mode: 'copy', pattern: "*plot.png"
+
+    input:
+     tuple val(tch), val(marker), val(TRAIT), val(tstart), val(tpeak), val(tend), val(var_exp), val(h2), \
+     file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
+
+
+    output:
+        tuple val(TRAIT), file("${TRAIT}_mediation.tsv")  
+        file("*plot.png") optional true
+
+
+    """
+    cat ${TRAIT}_*medmulti.tsv > ${TRAIT}_multi_mediation_analysis.tsv
+    cat ${TRAIT}_*med.tsv  > ${TRAIT}_indiv_mediation_analysis.tsv
+
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summary_mediation} > summary_mediation_file 
+    Rscript --vanilla summary_mediation_file ${TRAIT}_multi_mediation_analysis.tsv ${TRAIT}_indiv_mediation_analysis.tsv ${TRAIT}
+
+    """
 }
 
 
