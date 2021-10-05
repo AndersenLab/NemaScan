@@ -31,7 +31,6 @@ COPY nextflow.config /nemascan/nextflow.config
 COPY main.nf /nemascan/main.nf
 COPY conf/* /nemascan/conf/
 COPY bin/* /nemascan/bin/
-COPY input_data/* /nemascan/input_data/
 
 
 # add nextflow and nemarun directory to te system path and make them executable
