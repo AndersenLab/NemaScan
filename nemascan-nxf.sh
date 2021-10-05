@@ -25,4 +25,10 @@ if [[ -z "${VCF_VERSION}" ]]; then
   echo "VCF_VERSION environment variable is not set - defaulting to ${VCF_VERSION}"
 fi
 
-nextflow run main.nf -profile gcp --traitfile ${TRAIT_FILE} --vcf ${VCF_VERSION} --workDir ${WORK_DIR} --out ${OUTPUT_DIR}
+nextflow run main.nf \
+  -profile gcp \
+  --traitfile "${TRAIT_FILE}" \
+  --vcf "${VCF_VERSION}" \
+  --work_dir "${WORK_DIR}" \
+  --out "${OUTPUT_DIR}" \
+  --data_dir "gs://nf-pipelines/NemaScan/new_input_data/input_data/"
