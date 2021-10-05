@@ -233,14 +233,21 @@ andersenlab/nemascan-nxf   latest              bb4f296feec8        4 hours ago  
 google/cloud-sdk           slim                d6d0a7854ac3        28 hours ago        1.16GB
 ```
 
-Substitute your IMAGE ID, then tag the container with the docker hub repository, container name, and an updated version:
+Substitute your IMAGE ID, then tag the container with the docker hub repository, container name, and version number. You can also omit the version number to make the selected version the default (or 'latest')
+```
+docker tag bb4f296feec8 andersenlab/nemascan-nxf
+```
 ```
 docker tag bb4f296feec8 andersenlab/nemascan-nxf:v0.01
 ```
 
-Then publish the container to docker hub:
+Publish the container to docker hub with a version tag:
 ```
 docker push andersenlab/nemascan-nxf:v0.01
+```
+You can also publish the container to docker hub without a version number if you want it to be the default ('latest') version:
+```
+docker push andersenlab/nemascan-nxf
 ```
 
 **Remember to Stop the VM and Delete it when you are done to avoid excess charges!!!**
