@@ -27,7 +27,7 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
                   log10p = -log(P))
 phenotypes <- readr::read_tsv(args[2])
 
-load(file = args[3])
+gene_ref_flat <- readr::read_tsv(args[3])
 
 analysis_trait <- colnames(phenotypes)[2]
 

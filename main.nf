@@ -36,7 +36,7 @@ params.group_qtl = 1000
 params.ci_size = 150
 params.sthresh = "BF"
 params.p3d = "TRUE"
-params.genes = "${params.bin_dir}/gene_ref_flat.Rda"
+params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 params.cores = 4
 
 
@@ -330,7 +330,7 @@ workflow {
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
 
         // run mediation with gaotian's eqtl
-        if(params.mediation) {
+        if(params.mediation & params.species == "c_elegans") {
 
             File transcripteqtl_all = new File("${params.bin_dir}/eQTL6545forMed.tsv")
             transcript_eqtl = transcripteqtl_all.getAbsolutePath()
