@@ -9,6 +9,7 @@ require(GenomicRanges)
 # [1] = project directory
 args <- commandArgs(trailingOnly = TRUE)
 setwd(paste(args[1],"Simulations",sep = "/"))
+baseDir <- paste0(paste(strsplit(getwd(), split = "/")[[1]][1:(length(strsplit(eval(getwd()), split = "/")[[1]])-2)],collapse = "/"),"/")
 today <- format(Sys.time(), '%Y%m%d')
 
 # Simulated QTLs and Effects
@@ -51,11 +52,11 @@ simulation.metrics <- function(x){
    
    # Genotype Matrix
    
-   complete.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
-                           args[1],
-                           "/Genotype_Matrix/",
-                           paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
-                     header = T) %>%
+   complete.effects <- data.table::fread(paste(baseDir, 
+                                               args[1],
+                                               "/Genotype_Matrix/",
+                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                         header = T) %>%
       tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
       dplyr::filter(QTL %in% effects$QTL) %>%
       dplyr::select(-CHROM, -POS) %>%
@@ -69,7 +70,7 @@ simulation.metrics <- function(x){
    
    
    if(nrow(complete.effects) == nrow(effects)){
-      genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+      genos.effects <- data.table::fread(paste(baseDir,
                                                args[1],
                                                "/Genotype_Matrix/",
                                                paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
@@ -89,7 +90,7 @@ simulation.metrics <- function(x){
          dplyr::filter(QTL %in% complete.effects$QTL) %>%
          droplevels()
       
-      genos.effects <- data.table::fread(paste("/projects/b1059/projects/Sam/NemaScan/",
+      genos.effects <- data.table::fread(paste(baseDir,
                                                args[1],
                                                "/Genotype_Matrix/",
                                                paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
