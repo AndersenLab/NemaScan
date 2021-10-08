@@ -104,8 +104,6 @@ if(params.debug) {
         }
         // use the vcf data from QUEST when a cendr date is provided
         vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-        // vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz")
-        // vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.hard-filter.isotype.vcf.gz.tbi")
         vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
 
@@ -586,7 +584,7 @@ process fix_strain_names_bulk {
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_bulk 
 
         # for now, don't fix isotypes for non elegans
-        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} fix $isotype_lookup
+        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} "fix" $isotype_lookup
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
