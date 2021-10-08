@@ -16,7 +16,7 @@ today <- format(Sys.time(), '%Y%m%d')
 effects <- list.files(pattern = "sims.par",recursive = T)
 print("Gathered Simulated QTL")
 iterations <- purrr::map(effects, .f = function(x){
-   paste(strsplit(strsplit(x,split = "/")[[1]][4],split = "_")[[1]][1:6], collapse = "_") # QUEST
+   paste(strsplit(strsplit(x,split = "/")[[1]][length(strsplit(x,split = "/")[[1]])],split = "_")[[1]][1:6], collapse = "_") # QUEST
 })
 
 # Assessing Mapping Performance
