@@ -34,7 +34,6 @@ params.maf = 0.05
 params.sparse_cut = 0.05
 params.group_qtl = 1000
 params.ci_size = 150
-params.sthresh = "BF"
 params.p3d = "TRUE"
 params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 params.cores = 4
