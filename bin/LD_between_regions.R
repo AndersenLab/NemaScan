@@ -44,6 +44,7 @@ if ( nrow(ld_snps) > 1 ) {
     scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(r^2)) + 
     theme(axis.title = element_blank(),
           axis.text = element_text(colour = "black")) + 
-    labs(title = paste0("Linkage Disequilibrium: ",TRAIT)) +
+    labs(title = paste0("Linkage Disequilibrium: ",TRAIT))
+  
     ggsave(filename = paste0(TRAIT,"_LD.plot.png"), width = 7, height = 7)
 }

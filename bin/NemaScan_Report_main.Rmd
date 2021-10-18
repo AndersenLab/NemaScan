@@ -80,9 +80,8 @@ independent_test_cutoff <- -log10(0.05/total_independent_tests[[1]])
 * #### Every dot is a SNV marker.
 
 * #### SNVs are colored red if they pass the genome-wide corrected significance threshold:
-    * If Bonferroni-corrected significance (BF) threshold were used: the horizontal solid line corresponds to BF threshold, and the horizontal dash line corresponds to EIGEN threshold (see below). If user supplied threshold exists, it will replace the BF threshold.
-    * If Eigen-decomposition significance threshold were used, the horizontal solid line overlaps with the dash line and corresponds to the EIGEN threshold, which corrects for the number of independent markers in your data set.
-
+    * The horizontal solid line corresponds to Bonferroni (BF) threshold
+    * The horizontal dash line corresponds to EIGEN threshold (see below), which corrects for the number of independent markers in your data set.
 
 ```{r, fig.height=4.5, fig.width=12}
 # load processed mapping data. 
@@ -145,7 +144,7 @@ man.plot <-  ggplot2::ggplot() +
                        alpha = 0.25) +
    #ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
     scale_x_continuous(expand = c(0, 0), breaks = c(5, 10, 15, 20)) +
-   ggplot2::geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 2) + 
+   ggplot2::geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 1) + 
    ggplot2::geom_hline(data = BF.frame, aes(yintercept = EIGEN), linetype = 3) + 
    ggplot2::labs(x = "Genomic position (Mb)",
                  y = expression(-log[10](italic(p)))) +
@@ -197,9 +196,9 @@ if (file.info("Mapping/Processed/QTL_peaks.tsv")$size != 0) {
     } else {
 
         # only show results for regions < 5 Mb for now
-        QTL_peaks <- QTL_peaks %>%
-            dplyr::mutate(Region_width = endPOS - startPOS) %>%
-            dplyr::filter(Region_width < 5000000)
+        # QTL_peaks <- QTL_peaks %>%
+        #     dplyr::mutate(Region_width = endPOS - startPOS) %>%
+        #     dplyr::filter(Region_width < 5000000)
         
         if (nrow(QTL_peaks)==0) {
             print("Significant QTL regions are too wide for plotting")
