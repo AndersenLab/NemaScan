@@ -391,7 +391,10 @@ nested.pxg.dat <- processed_mapping %>%
     dplyr::distinct() %>%
     dplyr::filter(CHROM==QTL_chrom, peakPOS==QTL_Peak) %>%  
     dplyr::mutate(value=as.numeric(value)) %>% 
-    dplyr::inner_join(ref_alt_annotation, by="strain") %>%
+    dplyr::inner_join(ref_alt_div, by="strain") %>%
+    dplyr::distinct(marker, strain, allele, div, .keep_all = T) %>%
+    dplyr::group_by(marker, strain, allele) %>%
+    dplyr::filter(div == max(div)) %>%
     dplyr::mutate(startPOS = startPOS/1000000,
                   peakPOS = peakPOS/1000000,
                   endPOS = endPOS/1000000) %>%
@@ -402,7 +405,7 @@ nested.pxg.dat <- processed_mapping %>%
                                             allele == "1" ~ "ALT",
                                             TRUE ~ "NA"),
                   allele = factor(allele, levels = c("REF", "ALT")))
-    
+
 CB.N2.code <- nested.pxg.dat %>%
     dplyr::select(strain, allele) %>%
     dplyr::distinct() %>%
@@ -427,7 +430,7 @@ plot <- nested.pxg.dat %>%
     ggrepel::geom_text_repel(data = nested.pxg.dat[which(nested.pxg.dat$strain %in% c("N2","CB4856")),], aes(label = strain), colour = "black", 
                   box.padding = 1, point.padding = 0.1) + 
     ggplot2::theme(legend.position = "bottom") +
-    ggplot2::facet_wrap(~is_div, labeller = labeller(is_div = 
+    ggplot2::facet_wrap(~div, labeller = labeller(div = 
                                                 c("-1" = "no div data",
                                                   "0" = "not divergent",
                                                   "1" = "divergent from N2")) ) +
