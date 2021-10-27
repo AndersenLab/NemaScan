@@ -25,6 +25,7 @@ params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.annotation = "bcsq"
 params.out = "Analysis_Results-${date}"
+params.fix = "fix"
 
 
 /*
@@ -279,7 +280,8 @@ workflow {
         // Fix strain names
          Channel.fromPath("${params.traitfile}")
                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
-                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R")) | fix_strain_names_bulk
+                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
+                .combine(Channel.from("${params.fix}")) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -419,7 +421,8 @@ workflow {
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
             .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
-            .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_alt.R")) | fix_strain_names_alt
+            .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_alt.R"))
+            .combine(Channel.from("${params.fix}")) | fix_strain_names_alt
         
         pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
 
@@ -571,7 +574,7 @@ process fix_strain_names_bulk {
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "strain_issues.txt"
 
     input:
-        tuple file(phenotypes), file(isotype_lookup), file(fix_script)
+        tuple file(phenotypes), file(isotype_lookup), file(fix_script), val(run_fix)
 
     output:
         path "pr_*.tsv", emit: fixed_strain_phenotypes 
@@ -583,7 +586,7 @@ process fix_strain_names_bulk {
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_bulk 
 
         # for now, don't fix isotypes for non elegans
-        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} "fix" $isotype_lookup
+        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} $run_fix $isotype_lookup
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
@@ -601,7 +604,7 @@ process fix_strain_names_alt {
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "*.txt"
 
     input:
-        tuple file(phenotypes), file(isotype_lookup), file(fix_script)
+        tuple file(phenotypes), file(isotype_lookup), file(fix_script), val(run_fix)
 
     output:
         path "Phenotyped_Strains.txt", emit: phenotyped_strains_to_analyze 
@@ -610,7 +613,7 @@ process fix_strain_names_alt {
     """
         # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
         echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_alt 
-        Rscript --vanilla Fix_Isotype_names_alt ${phenotypes} fix $isotype_lookup
+        Rscript --vanilla Fix_Isotype_names_alt ${phenotypes} $run_fix $isotype_lookup
 
     """
 
@@ -1156,7 +1159,9 @@ process html_report_main {
   tag {"${TRAIT} - HTML REPORT" }
 
   // machineType 'n1-highmem-2'
-  label "large"
+  // label "large"
+  cpus 8
+  memory "16.GB"
 
   publishDir "${params.out}/Reports", pattern: "*.Rmd", overwrite: true, mode: 'copy'
   publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
