@@ -364,8 +364,33 @@ if(args[2] == "fix"){
     fixed_names <- traits
 }
 
-for(i in 1:(ncol(fixed_names)-1)){
-    t_df <- fixed_names[,c(1,i+1)]
+# scale phenotypes
+scaled <- fixed_names %>%
+    tidyr::pivot_longer(-strain, names_to = "trait", values_to = "phenotype") %>%
+    dplyr::group_by(trait) %>%
+    # dplyr::mutate(max_pheno = max(phenotype),
+    #               scaled_pheno = dplyr::case_when(max_pheno < 0.01 ~ phenotype*1e4,
+    #                                               TRUE ~ phenotype)) %>%
+    dplyr::mutate(scaled_pheno = scale(phenotype)) %>%
+    dplyr::select(strain, trait, scaled_pheno) %>%
+    tidyr::pivot_wider(names_from = "trait", values_from = "scaled_pheno")
+
+# test <- fixed_names %>%
+#     tidyr::pivot_longer(-strain, names_to = "trait", values_to = "phenotype") %>%
+#     dplyr::group_by(trait) %>%
+#     dplyr::mutate(max_pheno = max(phenotype)) %>%
+#     dplyr::filter(max_pheno < 0.01) %>%
+#     dplyr::distinct(trait) %>%
+#     dplyr::pull(trait)
+
+# is it better to just center and scale all phenotypes? but I don't want to take away from the real phenotype value if that is important (for the pxg plots)
+# if(length(test) > 0) {
+    print("Note: All phenotypes were scaled to center at zero with a standard deviation of one.")
+    # print(paste(test, collapse = ", "))
+# }
+
+for(i in 1:(ncol(scaled)-1)){
+    t_df <- scaled[,c(1,i+1)]
     colnames(t_df)[2] <- gsub(colnames(t_df)[2], pattern = "\\.", replacement = "_")
     trait_name <- colnames(t_df)[2]
     write.table(t_df, 
@@ -373,7 +398,7 @@ for(i in 1:(ncol(fixed_names)-1)){
                 quote = F, col.names = T, row.names = F, sep="\t")
 }
 
-write.table(fixed_names$strain, 
+write.table(scaled$strain, 
             file = glue::glue("Phenotyped_Strains.txt"),
             quote = F, col.names = F, row.names = F)
 

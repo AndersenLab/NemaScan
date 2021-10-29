@@ -328,6 +328,10 @@ workflow {
         peaks = gcta_intervals_maps.out.qtl_peaks
             .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
 
+        peaks
+            .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
+            .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
+
         // run mediation with gaotian's eqtl
         if(params.mediation & params.species == "c_elegans") {
 
@@ -858,7 +862,8 @@ process gcta_lmm_exact_mapping {
     publishDir "${params.out}/Mapping/Raw", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
 
-    errorStrategy 'ignore'
+    // why?
+    // errorStrategy 'ignore'
 
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
@@ -923,6 +928,23 @@ process gcta_intervals_maps {
     
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_aggregate_intervals_maps} > Find_Aggregate_Intervals_Maps
     Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} temp.aggregate.mapping.tsv ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE
+    """
+}
+
+process summarize_mapping {
+
+    publishDir "${params.out}/Plots", mode: 'copy'
+
+    input:
+        tuple file(qtl_peaks), file(chr_lens), file(summarize_mapping_file)
+
+    output:
+        file("Summarized_mappings.pdf")
+
+    """
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summarize_mapping_file} > summarize_mapping_file
+    Rscript --vanilla summarize_mapping_file ${qtl_peaks} ${chr_lens}
+
     """
 }
 
