@@ -8,7 +8,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # args <- c("~/Downloads/QTL_peaks.tsv", "~/Downloads/c_elegans_chr_lengths.tsv")
 
-goodtraits <- readr::read_tsv(args[1])
+goodtraits <- readr::read_tsv(args[1], col_types = c('cccnnnnn'))
 chr_lens <- readr::read_tsv(args[2]) %>%
     dplyr::select(CHROM, startPOS = start, endPOS = stop) %>%
     dplyr::mutate(trait = goodtraits$trait[1])
