@@ -27,6 +27,7 @@ goodtraits%>%
     geom_segment(data=chr_lens,aes(x = 0, y = trait, xend = endPOS/1e6, yend = trait), size = 2.5, alpha = 0) +
     geom_point(fill = "red", colour = "black",size = 2, alpha = 1, shape = 25)+
     xlab("Genomic Position (Mb)") + ylab("") +
+    scale_x_continuous(expand = c(0, 0), breaks = c(5, 10, 15, 20)) +
     theme(strip.background = element_rect(colour = "black", fill = "white",
                                           size = 0.75, linetype = "solid")) +
     theme_bw(15) + 
