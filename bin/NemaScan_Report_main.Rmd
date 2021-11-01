@@ -73,7 +73,8 @@ total_independent_tests <- read.table("Genotype_Matrix/total_independent_tests.t
 independent_test_cutoff <- -log10(0.05/total_independent_tests[[1]])
 
 # are we going to run mediation?
-whether_mediate <- "MEDIATION"
+whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
+
 
 ```
 
