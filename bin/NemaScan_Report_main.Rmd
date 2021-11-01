@@ -36,7 +36,6 @@ library("tidyverse", lib.loc = library.path)
 library("plotly", lib.loc = library.path)
 library("DT", lib.loc = library.path)
 library("ggbeeswarm", lib.loc = library.path)
-# library("ComplexHeatmap", lib.loc = library.path)
 library("knitr", lib.loc = library.path)
 library("ggrepel", lib.loc = library.path)
 library("genetics", lib.loc = library.path)
@@ -72,6 +71,9 @@ trait_name <- "TRAIT_NAME_HOLDER"
 total_independent_tests <- read.table("Genotype_Matrix/total_independent_tests.txt", quote="\"", comment.char="", stringsAsFactors=FALSE)
 
 independent_test_cutoff <- -log10(0.05/total_independent_tests[[1]])
+
+# are we going to run mediation?
+whether_mediate <- "MEDIATION"
 
 ```
 
@@ -368,7 +370,7 @@ print("Not enough QTL regions to calculate linkage")
 <br>
 <br>
 
-## Divergent region, haplotype, and fine mapping for each significant QTL region 
+## Divergent region, haplotype, fine mapping, and mediation for each significant QTL region 
 Only for regions less than 5 Mb in size
 
 ```{r}

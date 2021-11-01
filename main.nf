@@ -403,10 +403,12 @@ workflow {
                 .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                 .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                 .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                .combine(Channel.from("${params.mediation}")) // true or false - plot mediaton?
                 .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
                 .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
                 .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
-                .join(prep_ld_files.out.finemap_LD, remainder: true) | html_report_main // more finemap data prep
+                .join(prep_ld_files.out.finemap_LD, remainder: true)
+                .join(summary_mediation.out.final_mediation) | html_report_main // more finemap data prep
         }
 
 
@@ -1181,17 +1183,16 @@ process html_report_main {
   tag {"${TRAIT} - HTML REPORT" }
 
   // machineType 'n1-highmem-2'
-  // label "large"
-  cpus 8
-  memory "16.GB"
+  label "xl"
 
   publishDir "${params.out}/Reports", pattern: "*.Rmd", overwrite: true, mode: 'copy'
   publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
 
   input:
     tuple val(TRAIT), file(qtl_peaks), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
-    file(ns_report_template_md), file(render_markdown), file(qtl_bins), file(qtl_div), \
-    file(haplotype_qtl), file(div_isotype), file(pmap), file(fastGWA), file(prLD), file(bcsq_genes), file(roi_geno), file(roi_ld)
+    file(ns_report_template_md), file(render_markdown), val(mediate), file(qtl_bins), file(qtl_div), \
+    file(haplotype_qtl), file(div_isotype), file(pmap), file(fastGWA), file(prLD), file(bcsq_genes), file(roi_geno), file(roi_ld), \
+    file(mediation_summary)
 
   output:
     tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
@@ -1201,6 +1202,7 @@ process html_report_main {
     # edit the file paths for generating these reports
     cat ${ns_report_md} | \\
     sed "s+TRAIT_NAME_HOLDER+${TRAIT}+g" | \\
+    sed "s+MEDIATION+${mediate}+g" | \\
     sed "s+Phenotypes/strain_issues.txt+${strain_issues}+g" | \\
     sed "s+Genotype_Matrix/total_independent_tests.txt+${tests}+g" | \\
     sed 's+paste0("Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping.tsv")+"${pmap}"+g' | \\
@@ -1213,6 +1215,7 @@ process html_report_main {
     sed "s+Divergent_and_haplotype/div_isotype_list2.txt+${div_isotype}+g" | \\
     sed "s+Divergent_and_haplotype/all_QTL_bins.bed+${qtl_bins}+g" | \\
     sed "s+Divergent_and_haplotype/all_QTL_div.bed+${qtl_div}+g" | \\
+    sed 's+glue::glue("Mediation/file_summary/{trait_name}_mediation.tsv")+"${mediation_summary}"+g' | \\
     sed "s+Divergent_and_haplotype/haplotype_in_QTL_region.txt+${haplotype_qtl}+g" > NemaScan_Report_region_${TRAIT}.Rmd
     
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
@@ -1315,7 +1318,7 @@ process summary_mediation {
 
 
     output:
-        tuple val(TRAIT), file("${TRAIT}_mediation.tsv")  
+        tuple val(TRAIT), file("${TRAIT}_mediation.tsv"), emit: final_mediation
         file("*plot.png") optional true
 
 

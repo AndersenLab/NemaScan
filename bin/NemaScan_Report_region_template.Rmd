@@ -157,10 +157,71 @@ DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDef
 <br>
 <br>
 
+#### Mediation analysis
+
+Mediation analysis was performed to analyze if gene expression variation is significantly correlated with the phenotype (overlap of phenotype QTL with expression QTL). Top candidates whose expression might mediate the phenotype QTL are shown below. (*Note: expression data currently unpublished*)
+
+```{r, eval = whether_mediate}
+
+# plot mediation
+# plot
+summarized_med <- readr::read_tsv(glue::glue("Mediation/file_summary/{trait_name}_mediation.tsv"))
+
+medprop_all <- summarized_med %>% 
+  dplyr::mutate(e_peak=as.numeric(e_peak),
+                estimate=as.numeric(estimate),
+                prob=as.numeric(prob)) %>% 
+  dplyr::filter(var == "prop_med") %>% 
+  dplyr::filter(estimate >=0 & estimate<=1) %>% 
+  dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_"))
+
+
+med  <- summarized_med %>% 
+  dplyr::select(-c("var","estimate","ci_lower","ci_upper","prob")) %>% 
+  dplyr::distinct() %>% 
+  dplyr::mutate(e_peak=as.numeric(e_peak),
+                multi_abs_est=as.numeric(multi_abs_est),
+                multi_padjust=as.numeric(multi_padjust)) %>% 
+  dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_")) %>% 
+  dplyr::mutate(mediator=paste(mediator,mediator_gene,sep = "_")) %>% 
+  dplyr::mutate(q99 = quantile(multi_abs_est, probs = 0.99)[[1]]) %>% 
+  dplyr::mutate(prop_med=ifelse(gene_gwas_qtl %in% medprop_all$gene_gwas_qtl, "0 ≤ prop_med ≤ 1","NA"),
+                q99_mediator=ifelse(multi_abs_est>q99 & prop_med=="0 ≤ prop_med ≤ 1",mediator,NA)) %>% 
+  dplyr::filter(multi_padjust<0.05)
+
+
+if (length(unique(med$q99_mediator)) > 1) {
+  
+  
+med_detailed_plot <- ggplot(med,aes(x=e_peak/1e6,y=multi_abs_est,color=q99_mediator )) +
+  geom_point( size=2) +
+  labs(x = "Genomic position (Mb)", y = "Mediation estimate") +
+  scale_alpha_continuous(range = c(1, 0.1)) +
+  geom_hline(aes(yintercept = q99), color = "grey") +
+  theme_bw(10) +
+  theme( panel.grid = element_blank(),
+         panel.background = element_blank(), 
+         #  legend.position = "none",
+         axis.text = element_text(size=10,color="black"),
+         axis.title = element_text(size=10, color="black"),
+         strip.text = element_text(size=10, color = "black")) +
+  facet_grid(eQTL_classification~gwchr,scales = "free_x")
+
+print(med_detailed_plot)
+
+# ggsave(med_detailed_plot, filename = paste(tr,"_emed_detailed_plot.png",sep = ""),  units = "in",height = 10, width =  10)
+
+} else {
+  print("No significant mediators to report")
+}
+
+
+```
+
 
 #### Divergent regions
 
-```{r, out.width = '100%'}
+```{r, out.width = '100%', fig.height=30, fig.width=20}
 
 # genome bin table
 all_QTL_bins <- read.delim("Divergent_and_haplotype/all_QTL_bins.bed", header=FALSE, stringsAsFactors=FALSE)%>%
@@ -236,7 +297,7 @@ ref_alt_div %>%
   ggplot2::ggplot(.) +
   aes(x = start, xend = end, yend = strain, y = strain) +
   ggplot2::geom_segment(aes(color = as.character(div)), size = 2) +
-  theme_bw() +
+  theme_bw(12) +
   theme(#axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         panel.grid = element_blank()) +
