@@ -143,6 +143,7 @@ if(params.debug) {
 }
 
 
+
 if (params.help) {
     log.info '''
 O~~~     O~~                                   O~~ ~~
@@ -398,7 +399,7 @@ workflow {
                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
-            if(params.mediation) {
+            if(params.mediation & params.species == "c_elegans") {
                 // generate main html report
                 peaks // QTL peaks (all traits)
                     .combine(traits_to_map) // trait names

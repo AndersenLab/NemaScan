@@ -103,58 +103,70 @@ if(num_traits > 1){
 }
 
 ## MANHATTAN PLOTS ##
-for.plot <- processed_mapping %>%
+for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
   dplyr::filter(CHROM != "MtDNA") %>%
   dplyr::mutate(algorithm = as.factor(algorithm))
 
-BF <- processed_mapping %>% 
+BF <- combined.mappings %>% 
     dplyr::group_by(trait) %>% 
     dplyr::filter(log10p != 0) %>% 
+    dplyr::distinct(marker, log10p) %>%
     dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>%
     dplyr::ungroup() %>%
     dplyr::select(BF) %>%
     unique(.) %>%
   as.numeric()
 
-
-# ntests <- data.table::fread(tests) %>%
-#  as.numeric()
-# EIGEN <- -log10(0.05/ntests)
-BF.frame <- processed_mapping %>%
+ntests <- data.table::fread(tests) %>% 
+  as.numeric()
+EIGEN <- -log10(0.05/ntests)
+BF.frame <- combined.mappings %>%
   dplyr::select(trait) %>%
   dplyr::filter(!duplicated(trait)) %>%
-  dplyr::mutate(BF = BF, EIGEN  = independent_test_cutoff)
+  dplyr::mutate(BF = BF, EIGEN  = EIGEN, user = unique(combined.mappings$BF))
 
-for.plot.ann <- for.plot %>%
-  dplyr::mutate(sig = case_when(log10p > BF.frame$BF ~ "BF",
-                                log10p > BF.frame$EIGEN ~ "EIGEN",
-                                TRUE ~ "NONSIG"))
+# if user selected a different threshold, use that, otherwise plot BF and EIGEN
+if(BF.frame$user %in% c(BF.frame$BF, BF.frame$EIGEN)) {
+  for.plot.ann <- for.plot %>%
+    dplyr::mutate(sig = case_when(log10p > BF.frame$BF ~ "BF",
+                                  log10p > BF.frame$EIGEN ~ "EIGEN",
+                                  TRUE ~ "NONSIG"))
+  
+  sig.colors <- c("red","#EE4266", "black")
+  names(sig.colors) <- c("BF","EIGEN", "NONSIG")
+} else {
+  for.plot.ann <- for.plot %>%
+    dplyr::mutate(sig = case_when(log10p > BF.frame$user ~ "user",
+                                  TRUE ~ "NONSIG"))
+  
+  sig.colors <- c("red", "black")
+  names(sig.colors) <- c("user", "NONSIG")
+}
 
-sig.colors <- c("red","#EE4266")
-names(sig.colors) <- c("BF","EIGEN")
+test <- BF.frame %>%
+    tidyr::pivot_longer(BF:user) %>%
+    dplyr::distinct() %>%
+    dplyr::filter(name %in% names(sig.colors))
 
-man.plot <-  ggplot2::ggplot() + 
-   ggplot2::theme_bw() + 
-   ggplot2::geom_point(data = for.plot.ann[which(for.plot.ann$sig != "NONSIG"),], 
-                       mapping = aes(x = POS/1000000, 
-                                     y = log10p,
-                                     colour = sig)) +
-   ggplot2::scale_colour_manual(values = sig.colors) + 
-   ggplot2::geom_point(data = for.plot[which(for.plot.ann$sig == "NONSIG"),], 
-                       mapping = aes(x = POS/1000000, 
-                           y = log10p), 
-                       alpha = 0.25) +
-   #ggplot2::scale_y_continuous(expand = c(0,0), limits = c(0,BF + 1)) +
-    scale_x_continuous(expand = c(0, 0), breaks = c(5, 10, 15, 20)) +
-   ggplot2::geom_hline(data = BF.frame, aes(yintercept = BF), linetype = 1) + 
-   ggplot2::geom_hline(data = BF.frame, aes(yintercept = EIGEN), linetype = 3) + 
-   ggplot2::labs(x = "Genomic position (Mb)",
-                 y = expression(-log[10](italic(p)))) +
-   ggplot2::theme(legend.position = "none", 
-                  panel.grid = element_blank()) + 
-   ggplot2::facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
-   ggplot2::ggtitle(BF.frame$trait)
+man.plot <- ggplot() + 
+  theme_bw() + 
+  geom_point(data = for.plot.ann, 
+             mapping = aes(x = POS/1000000, 
+                           y = log10p,
+                           colour = sig,
+                           alpha = sig)) +
+  scale_alpha_manual(values = c("BF" = 1, "EIGEN" = 1, "user" = 1, "NONSIG" = 0.25)) +
+  scale_colour_manual(values = sig.colors) + 
+  scale_x_continuous(expand = c(0, 0), breaks = c(5, 10, 15, 20)) +
+  geom_hline(data = test, aes(yintercept = value, linetype = name)) + 
+  scale_linetype_manual(values = c("BF" = 1, "EIGEN" = 3, "user" = 2)) +
+  labs(x = "Genomic position (Mb)",
+       y = expression(-log[10](italic(p)))) +
+  theme(legend.position = "none", 
+        panel.grid = element_blank()) + 
+  facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
+  ggtitle(BF.frame$trait)
 
 
 # save the plot to file. keep this code for user to create plots with their own styles
