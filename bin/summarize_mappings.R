@@ -8,7 +8,7 @@ args <- commandArgs(trailingOnly = TRUE)
 
 # args <- c("~/Downloads/QTL_peaks.tsv", "~/Downloads/c_elegans_chr_lengths.tsv")
 
-goodtraits <- readr::read_tsv(args[1], col_types = c('cccnnnnn'))
+goodtraits <- readr::read_tsv(args[1], col_types = c('ccncnnnnn'))
 chr_lens <- readr::read_tsv(args[2]) %>%
     dplyr::select(CHROM, startPOS = start, endPOS = stop) %>%
     dplyr::mutate(trait = goodtraits$trait[1])
@@ -19,13 +19,13 @@ goodtraits%>%
     ggplot()+
     aes(x=peakPOS/1E6, y=trait)+
     theme_bw() +
-    # scale_fill_gradient(high = "#D7263D", low = "#0072B2",
-    #                     name = expression(-log[10](italic(p))))+
-    # scale_color_gradient(high = "#D7263D", low = "#0072B2",
-    #                      name = expression(-log[10](italic(p))))+
-    geom_segment(aes(x = startPOS/1e6, y = trait, xend = endPOS/1e6, yend = trait), color = "red", size = 2, alpha = 1) +
+    scale_fill_gradient(high = "#D7263D", low = "#0072B2",
+                        name = expression(-log[10](italic(p))))+
+    scale_color_gradient(high = "#D7263D", low = "#0072B2",
+                         name = expression(-log[10](italic(p))))+
+    geom_segment(aes(x = startPOS/1e6, y = trait, xend = endPOS/1e6, yend = trait, color = log10p), size = 2, alpha = 1) +
     geom_segment(data=chr_lens,aes(x = 0, y = trait, xend = endPOS/1e6, yend = trait), size = 2.5, alpha = 0) +
-    geom_point(fill = "red", colour = "black",size = 2, alpha = 1, shape = 25)+
+    geom_point(aes(fill = log10p), colour = "black",size = 2, alpha = 1, shape = 25)+
     xlab("Genomic Position (Mb)") + ylab("") +
     scale_x_continuous(expand = c(0, 0), breaks = c(5, 10, 15, 20)) +
     theme(strip.background = element_rect(colour = "black", fill = "white",

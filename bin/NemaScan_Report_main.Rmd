@@ -103,12 +103,12 @@ if(num_traits > 1){
 }
 
 ## MANHATTAN PLOTS ##
-for.plot <- combined.mappings %>%
+for.plot <- processed_mapping %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
   dplyr::filter(CHROM != "MtDNA") %>%
   dplyr::mutate(algorithm = as.factor(algorithm))
 
-BF <- combined.mappings %>% 
+BF <- processed_mapping %>% 
     dplyr::group_by(trait) %>% 
     dplyr::filter(log10p != 0) %>% 
     dplyr::distinct(marker, log10p) %>%
@@ -118,13 +118,11 @@ BF <- combined.mappings %>%
     unique(.) %>%
   as.numeric()
 
-ntests <- data.table::fread(tests) %>% 
-  as.numeric()
-EIGEN <- -log10(0.05/ntests)
-BF.frame <- combined.mappings %>%
+EIGEN <- independent_test_cutoff
+BF.frame <- processed_mapping %>%
   dplyr::select(trait) %>%
   dplyr::filter(!duplicated(trait)) %>%
-  dplyr::mutate(BF = BF, EIGEN  = EIGEN, user = unique(combined.mappings$BF))
+  dplyr::mutate(BF = BF, EIGEN  = EIGEN, user = unique(processed_mapping$BF))
 
 # if user selected a different threshold, use that, otherwise plot BF and EIGEN
 if(BF.frame$user %in% c(BF.frame$BF, BF.frame$EIGEN)) {
