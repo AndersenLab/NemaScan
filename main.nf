@@ -340,7 +340,7 @@ workflow {
         // run mediation with gaotian's eqtl
         if(params.mediation & params.species == "c_elegans") {
 
-            File transcripteqtl_all = new File("${params.bin_dir}/eQTL6545forMed.tsv")
+            File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
             transcript_eqtl = transcripteqtl_all.getAbsolutePath()
 
 
@@ -350,25 +350,26 @@ workflow {
 
             peaks
                 .splitCsv(sep: '\t', skip: 1)
-                .map { tch,logPvalue,TRAIT,tstart,tpeak,tend,var_exp,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,var_exp,h2] }
+                .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
                 .combine(traits_to_mediate, by: 0)
                 .combine(Channel.from(transcript_eqtl))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
             mediation_data.out
                 .combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${params.bin_dir}/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/multi_mediation.R")) | multi_mediation
 
             multi_mediation.out.eQTL_gene
                  .splitCsv(sep: '\t')
                  .combine(mediation_data.out, by: [0,1,2])
                  .combine(vcf_to_geno_matrix.out) 
-                 .combine(Channel.fromPath("${params.bin_dir}/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                  .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
             peaks
                 .splitCsv(sep: '\t', skip: 1)
+                .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
                 .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
                 .combine(simple_mediation.out.collect().toList())
                 .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
@@ -380,7 +381,7 @@ workflow {
             // prep LD files
             peaks
                 .splitCsv(sep: '\t', skip: 1)
-                .join(generate_plots.out.maps_from_plot, by: 2)
+                .join(generate_plots.out.maps_from_plot, by: 3)
                 .combine(impute_vcf.combine(impute_vcf_index))
                 .combine(pheno_strains)
                 .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files

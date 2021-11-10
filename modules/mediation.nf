@@ -16,7 +16,7 @@ process mediation_data {
     label "mediation"
 
     input:
-        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(marker),val(logPvalue), val(var_exp),file(t_file), \
+        tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), file(t_file), \
         val(transcript_eqtl), file(mediation_input)
 
     output:
@@ -86,7 +86,7 @@ process summary_mediation {
     publishDir "${params.out}/Mediation/plot_summary", mode: 'copy', pattern: "*plot.png"
 
     input:
-     tuple val(tch), val(marker), val(TRAIT), val(tstart), val(tpeak), val(tend), val(var_exp), val(h2), \
+     tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), \
      file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
 
 

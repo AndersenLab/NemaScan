@@ -27,7 +27,7 @@ process generate_plots {
         tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping), file(pipeline_plotting_mod)
 
     output:
-        tuple file(geno), file(pheno), val(TRAIT), file(aggregate_mapping), emit: maps_from_plot
+        tuple file(geno), file(pheno), file(aggregate_mapping), val(TRAIT),  emit: maps_from_plot
         file("*.png")
 
     """
@@ -80,7 +80,7 @@ process prep_ld_files {
     publishDir "${params.out}/Fine_Mappings/Data", mode: 'copy', pattern: "*LD.tsv"
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), \
+        tuple val(TRAIT), val(CHROM), val(marker), val(log10p), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), file(geno), \
         file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(phenotype), file(num_chroms)
 
     output:
@@ -231,7 +231,7 @@ process divergent_and_haplotype {
 
 
   """
-  awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$4,\$6}' > QTL_region.bed
+  awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$5,\$7}' > QTL_region.bed
   bedtools intersect -wa -a ${divergent_bins} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins.bed
   bedtools intersect -a ${divergent_df_isotype} -b QTL_region.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div.bed
   bedtools intersect -a ${haplotype_df_isotype} -b QTL_region.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region.txt

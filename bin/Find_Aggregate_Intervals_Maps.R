@@ -323,7 +323,7 @@ result <- narrowh2(phenotype_data)
 # extract interval information
 qtl_region <- processed_mapping %>%
   na.omit() %>%
-  dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id) %>%
+  dplyr::distinct(CHROM, marker, log10p, trait, startPOS,	peakPOS,	endPOS, peak_id) %>%
   dplyr::mutate(narrow_h2 = result)
 
 # save processed mapping data
