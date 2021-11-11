@@ -140,17 +140,32 @@ print(ld_plot)
 #### All variants in interval
 
 ```{r}
-# All variants in interval
-var_info <- genes_in_region %>%
-    dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
-    dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
-    dplyr::distinct() %>%
-    dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
-                  STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
 
-DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
-    DT::formatStyle("STRAIN","white-space"="nowrap") %>%
-    DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+if(species == "c_elegans") {
+  # All variants in interval
+  var_info <- genes_in_region %>%
+      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
+                    STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+  
+  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+} else {
+  # All variants in interval
+  var_info <- genes_in_region %>%
+      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+  
+  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+}
+
 
 ```
 
@@ -227,7 +242,7 @@ if(whether_mediate) {
 
 #### Divergent regions
 
-```{r, out.width = '100%', fig.height=30, fig.width=20}
+```{r, out.width = '100%', fig.height=30, fig.width=20, eval = div}
 
 # genome bin table
 all_QTL_bins <- read.delim("Divergent_and_haplotype/all_QTL_bins.bed", header=FALSE, stringsAsFactors=FALSE)%>%
@@ -316,13 +331,21 @@ ref_alt_div %>%
 
 ```
 
+
+```{r, eval = !div}
+
+print(glue::glue("Divergent regions not yet calculated for {species}"))
+split_by_div = FALSE
+
+```
+
 <br>
 <br>
 
 #### Haplotype
 
 <br>
-```{r, fig.height=30, fig.width=20}
+```{r, fig.height=30, fig.width=20, eval = div}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
 haplotype_in_QTL_region <- read.delim("Divergent_and_haplotype/haplotype_in_QTL_region.txt", header=FALSE, stringsAsFactors=FALSE) %>% 
@@ -444,6 +467,12 @@ print(p1)
 ```
 <br>
 <br>
+
+```{r, eval = !div}
+
+print(glue::glue("Haplotypes not yet calculated for {species}"))
+
+```
 
 ```{r, eval=split_by_div, results="asis"}
 cat("\n#### Phenotype x Genotype split by divergent region")

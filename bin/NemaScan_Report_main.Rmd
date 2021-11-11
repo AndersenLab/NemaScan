@@ -67,6 +67,14 @@ if(length(new) == 0) {
 # in nextflow use sed to edit this field and make a copy of the .rmd for each trait
 trait_name <- "TRAIT_NAME_HOLDER"
 
+species <- "SPECIES"
+
+if(species == "c_elegans") {
+  div <- TRUE
+} else {
+  div <- FALSE
+}
+
 # load independent tests result
 total_independent_tests <- read.table("Genotype_Matrix/total_independent_tests.txt", quote="\"", comment.char="", stringsAsFactors=FALSE)
 
