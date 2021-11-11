@@ -254,7 +254,7 @@ process html_report_main {
 
   input:
     tuple val(TRAIT), file(qtl_peaks), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
-    file(ns_report_template_md), file(render_markdown), val(mediate), file(qtl_bins), file(qtl_div), \
+    file(ns_report_template_md), file(render_markdown), val(mediate), val(species), file(qtl_bins), file(qtl_div), \
     file(haplotype_qtl), file(div_isotype), file(pmap), file(fastGWA), file(prLD), file(bcsq_genes), file(roi_geno), file(roi_ld), \
     file(mediation_summary)
 
@@ -266,6 +266,7 @@ process html_report_main {
     # edit the file paths for generating these reports
     cat ${ns_report_md} | \\
     sed "s+TRAIT_NAME_HOLDER+${TRAIT}+g" | \\
+    sed "s+SPECIES+${species}+g" | \\
     sed "s+MEDIATION+${mediate}+g" | \\
     sed "s+Phenotypes/strain_issues.txt+${strain_issues}+g" | \\
     sed "s+Genotype_Matrix/total_independent_tests.txt+${tests}+g" | \\

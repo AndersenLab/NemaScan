@@ -27,6 +27,13 @@ params.annotation = "bcsq"
 params.out = "Analysis_Results-${date}"
 params.fix = "fix"
 
+// mediation only with c_elegans
+if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
+    med = false
+} else {
+    med = params.mediation
+}
+
 
 /*
 ~ ~ ~ > * Parameters setup - MAPPING
@@ -82,13 +89,22 @@ if(params.debug) {
     
 } else {
     // Check that params.vcf is valid
-    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901") {
+    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
         // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
         // check to make sure 20210901 is tropicalis
         if("${params.vcf}" == "20210901") {
             if("${params.species}" == "c_elegans" || "${params.species}" == "c_briggsae") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_tropicalis). Please enter a new vcf date or a new species to continue.
+                """
+                System.exit(1)
+            }
+        }
+        // check to make sure vcf matches species for briggsae
+        if("${params.vcf}" == "20210803") {
+            if("${params.species}" == "c_elegans" || "${params.species}" == "c_tropicalis") {
+                println """
+                Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_briggsae). Please enter a new vcf date or a new species to continue.
                 """
                 System.exit(1)
             }
@@ -252,7 +268,7 @@ log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
 log.info "Minor allele frequency                  = ${params.maf}"
-log.info "Mediation run?                          = ${params.mediation}"
+log.info "Mediation run?                          = ${med}"
 log.info ""
 }
 
@@ -338,7 +354,7 @@ workflow {
             .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
 
         // run mediation with gaotian's eqtl
-        if(params.mediation & params.species == "c_elegans") {
+        if(med) {
 
             File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
             transcript_eqtl = transcripteqtl_all.getAbsolutePath()
@@ -394,28 +410,47 @@ workflow {
                 .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
 
             // divergent regions and haplotypes
-            peaks
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
-
-            if(params.mediation & params.species == "c_elegans") {
-                // generate main html report
-                peaks // QTL peaks (all traits)
-                    .combine(traits_to_map) // trait names
-                    .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-                    .combine(collect_eigen_variants.out) // independent tests
-                    .combine(vcf_to_geno_matrix.out) // genotype matrix
-                    .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
-                    .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
-                    .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                    .combine(Channel.from("${params.mediation}")) // true or false - plot mediaton?
-                    .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
-                    .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
-                    .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
-                    .join(prep_ld_files.out.finemap_LD, remainder: true)
-                    .join(summary_mediation.out.final_mediation) | html_report_main // more finemap data prep 
+            // only for elegans right now
+            if(params.species == "c_elegans") {
+                peaks
+                    .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
+                    .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
+                    .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
+                    .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+                if(med) {
+                    // generate main html report
+                    peaks // QTL peaks (all traits)
+                        .combine(traits_to_map) // trait names
+                        .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
+                        .combine(collect_eigen_variants.out) // independent tests
+                        .combine(vcf_to_geno_matrix.out) // genotype matrix
+                        .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
+                        .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
+                        .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                        .combine(Channel.from(med)) // true or false - plot mediaton?
+                        .combine(Channel.from("${params.species}"))
+                        .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
+                        .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
+                        .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
+                        .join(prep_ld_files.out.finemap_LD, remainder: true)
+                        .join(summary_mediation.out.final_mediation) | html_report_main // more finemap data prep
+                } else {
+                    // generate main html report
+                    peaks // QTL peaks (all traits)
+                        .combine(traits_to_map) // trait names
+                        .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
+                        .combine(collect_eigen_variants.out) // independent tests
+                        .combine(vcf_to_geno_matrix.out) // genotype matrix
+                        .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
+                        .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
+                        .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                        .combine(Channel.from(med)) // true or false - plot mediaton?
+                        .combine(Channel.from("${params.species}"))
+                        .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
+                        .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
+                        .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
+                        .join(prep_ld_files.out.finemap_LD, remainder: true) | html_report_main // more finemap data prep
+                }  
             } else {
                 // generate main html report
                 peaks // QTL peaks (all traits)
@@ -426,16 +461,16 @@ workflow {
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                    .combine(Channel.from("${params.mediation}")) // true or false - plot mediaton?
-                    .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
+                    .combine(Channel.from(med)) // true or false - plot mediaton?
+                    .combine(Channel.from("${params.species}"))
+                    // don't have divergent files, so make them fake lol
+                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
+                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
                     .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
                     .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
-                    .join(prep_ld_files.out.finemap_LD, remainder: true) | html_report_main // more finemap data prep 
+                    .join(prep_ld_files.out.finemap_LD, remainder: true)| html_report_main // more finemap data prep 
             }
-            
         }
-
-
 
     } else if(params.annotate) {
 
