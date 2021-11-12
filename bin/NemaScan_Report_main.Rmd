@@ -93,6 +93,7 @@ whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
 * #### SNVs are colored red if they pass the genome-wide corrected significance threshold:
     * The horizontal solid line corresponds to Bonferroni (BF) threshold
     * The horizontal dash line corresponds to EIGEN threshold (see below), which corrects for the number of independent markers in your data set.
+    * If you selected a custom threshold, only this threshold is shown as a dotted line.
 
 ```{r, fig.height=4.5, fig.width=12}
 # load processed mapping data. 
