@@ -140,17 +140,32 @@ print(ld_plot)
 #### All variants in interval
 
 ```{r}
-# All variants in interval
-var_info <- genes_in_region %>%
-    dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
-    dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
-    dplyr::distinct() %>%
-    dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
-                  STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
 
-DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
-    DT::formatStyle("STRAIN","white-space"="nowrap") %>%
-    DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+if(species == "c_elegans") {
+  # All variants in interval
+  var_info <- genes_in_region %>%
+      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
+                    STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+  
+  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+} else {
+  # All variants in interval
+  var_info <- genes_in_region %>%
+      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+  
+  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+}
+
 
 ```
 
@@ -163,57 +178,63 @@ Mediation analysis was performed to analyze if gene expression variation is sign
 
 ```{r, eval = whether_mediate}
 
-# plot mediation
-# plot
-summarized_med <- readr::read_tsv(glue::glue("Mediation/file_summary/{trait_name}_mediation.tsv"))
+if(whether_mediate) {
+    # plot mediation
+    # plot
+    summarized_med <- readr::read_tsv(glue::glue("Mediation/file_summary/{trait_name}_mediation.tsv"))
 
-medprop_all <- summarized_med %>% 
-  dplyr::mutate(e_peak=as.numeric(e_peak),
-                estimate=as.numeric(estimate),
-                prob=as.numeric(prob)) %>% 
-  dplyr::filter(var == "prop_med") %>% 
-  dplyr::filter(estimate >=0 & estimate<=1) %>% 
-  dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_"))
-
-
-med  <- summarized_med %>% 
-  dplyr::select(-c("var","estimate","ci_lower","ci_upper","prob")) %>% 
-  dplyr::distinct() %>% 
-  dplyr::mutate(e_peak=as.numeric(e_peak),
-                multi_abs_est=as.numeric(multi_abs_est),
-                multi_padjust=as.numeric(multi_padjust)) %>% 
-  dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_")) %>% 
-  dplyr::mutate(mediator=paste(mediator,mediator_gene,sep = "_")) %>% 
-  dplyr::mutate(q99 = quantile(multi_abs_est, probs = 0.99)[[1]]) %>% 
-  dplyr::mutate(prop_med=ifelse(gene_gwas_qtl %in% medprop_all$gene_gwas_qtl, "0 ≤ prop_med ≤ 1","NA"),
-                q99_mediator=ifelse(multi_abs_est>q99 & prop_med=="0 ≤ prop_med ≤ 1",mediator,NA)) %>% 
-  dplyr::filter(multi_padjust<0.05)
+    medprop_all <- summarized_med %>% 
+      dplyr::mutate(e_peak=as.numeric(e_peak),
+                    estimate=as.numeric(estimate),
+                    prob=as.numeric(prob)) %>% 
+      dplyr::filter(var == "prop_med") %>% 
+      dplyr::filter(estimate >=0 & estimate<=1) %>% 
+      dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_"))
 
 
-if (length(unique(med$q99_mediator)) > 1) {
-  
-  
-med_detailed_plot <- ggplot(med,aes(x=e_peak/1e6,y=multi_abs_est,color=q99_mediator )) +
-  geom_point( size=2) +
-  labs(x = "Genomic position (Mb)", y = "Mediation estimate") +
-  scale_alpha_continuous(range = c(1, 0.1)) +
-  geom_hline(aes(yintercept = q99), color = "grey") +
-  theme_bw(10) +
-  theme( panel.grid = element_blank(),
-         panel.background = element_blank(), 
-         #  legend.position = "none",
-         axis.text = element_text(size=10,color="black"),
-         axis.title = element_text(size=10, color="black"),
-         strip.text = element_text(size=10, color = "black")) +
-  facet_grid(eQTL_classification~gwchr,scales = "free_x")
+    med  <- summarized_med %>% 
+      dplyr::select(-c("var","estimate","ci_lower","ci_upper","prob")) %>% 
+      dplyr::distinct() %>% 
+      dplyr::mutate(e_peak=as.numeric(e_peak),
+                    multi_abs_est=as.numeric(multi_abs_est),
+                    multi_padjust=as.numeric(multi_padjust)) %>% 
+      dplyr::mutate(gene_gwas_qtl=paste(mediator,gwchr,gwpeak, sep = "_")) %>% 
+      dplyr::mutate(mediator=paste(mediator,mediator_gene,sep = "_")) %>% 
+      dplyr::mutate(q99 = quantile(multi_abs_est, probs = 0.99)[[1]]) %>% 
+      dplyr::mutate(prop_med=ifelse(gene_gwas_qtl %in% medprop_all$gene_gwas_qtl, "0 ≤ prop_med ≤ 1","NA"),
+                    q99_mediator=ifelse(multi_abs_est>q99 & prop_med=="0 ≤ prop_med ≤ 1",mediator,NA)) %>% 
+      dplyr::filter(multi_padjust<0.05)
 
-print(med_detailed_plot)
 
-# ggsave(med_detailed_plot, filename = paste(tr,"_emed_detailed_plot.png",sep = ""),  units = "in",height = 10, width =  10)
+    if (length(unique(med$q99_mediator)) > 1) {
+      
+      
+    med_detailed_plot <- ggplot(med,aes(x=e_peak/1e6,y=multi_abs_est,color=q99_mediator )) +
+      geom_point( size=2) +
+      labs(x = "Genomic position (Mb)", y = "Mediation estimate") +
+      scale_alpha_continuous(range = c(1, 0.1)) +
+      geom_hline(aes(yintercept = q99), color = "grey") +
+      theme_bw(10) +
+      theme( panel.grid = element_blank(),
+            panel.background = element_blank(), 
+            #  legend.position = "none",
+            axis.text = element_text(size=10,color="black"),
+            axis.title = element_text(size=10, color="black"),
+            strip.text = element_text(size=10, color = "black")) +
+      facet_grid(eQTL_classification~gwchr,scales = "free_x")
 
+    print(med_detailed_plot)
+
+    # ggsave(med_detailed_plot, filename = paste(tr,"_emed_detailed_plot.png",sep = ""),  units = "in",height = 10, width =  10)
+
+    } else {
+      print("No significant mediators to report")
+    }
 } else {
-  print("No significant mediators to report")
+    print("Mediation was not performed for this analysis.")
 }
+
+
 
 
 ```
@@ -221,7 +242,7 @@ print(med_detailed_plot)
 
 #### Divergent regions
 
-```{r, out.width = '100%', fig.height=30, fig.width=20}
+```{r, out.width = '100%', fig.height=30, fig.width=20, eval = div}
 
 # genome bin table
 all_QTL_bins <- read.delim("Divergent_and_haplotype/all_QTL_bins.bed", header=FALSE, stringsAsFactors=FALSE)%>%
@@ -310,13 +331,21 @@ ref_alt_div %>%
 
 ```
 
+
+```{r, eval = !div}
+
+print(glue::glue("Divergent regions not yet calculated for {species}"))
+split_by_div = FALSE
+
+```
+
 <br>
 <br>
 
 #### Haplotype
 
 <br>
-```{r, fig.height=30, fig.width=20}
+```{r, fig.height=30, fig.width=20, eval = div}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
 haplotype_in_QTL_region <- read.delim("Divergent_and_haplotype/haplotype_in_QTL_region.txt", header=FALSE, stringsAsFactors=FALSE) %>% 
@@ -438,6 +467,12 @@ print(p1)
 ```
 <br>
 <br>
+
+```{r, eval = !div}
+
+print(glue::glue("Haplotypes not yet calculated for {species}"))
+
+```
 
 ```{r, eval=split_by_div, results="asis"}
 cat("\n#### Phenotype x Genotype split by divergent region")
