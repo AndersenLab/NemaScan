@@ -144,7 +144,7 @@ if(params.debug) {
         } else {
             // if it DOES exist
             println """
-            WARNING: Using a non-CeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping.
+            WARNING: Using a non-CeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
             """
             vcf_file = Channel.fromPath("${params.vcf}")
             vcf_index = Channel.fromPath("${params.vcf}.tbi")
@@ -153,7 +153,17 @@ if(params.debug) {
             impute_vcf = Channel.fromPath("${params.vcf}")
             impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
 
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+            //choose default cendr date based on species for ann_file
+            if(params.species == "c_elegans") {
+                default_date = "20210121"
+            } else if(params.species == "c_briggsae") {
+                default_date = "20210803"
+            } else {
+                default_date = "20210901"
+            }
+
+            // this does not work for another species...
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.${params.annotation}.tsv")
         }
     }
 }
