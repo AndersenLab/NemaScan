@@ -31,10 +31,10 @@ COPY nextflow.config /nemascan/nextflow.config
 COPY main.nf /nemascan/main.nf
 COPY conf/* /nemascan/conf/
 COPY bin/* /nemascan/bin/
+COPY modules/* /nemascan/modules/
 
 
 # add nextflow and nemarun directory to te system path and make them executable
 ENV PATH="/nemascan:${PATH}"
 RUN chmod +x /nemascan/nemascan-nxf.sh /nemascan/nextflow
 
-WORKDIR /nemascan
