@@ -10,12 +10,6 @@ args <- commandArgs(trailingOnly = TRUE)
 # 2 - ROI geno matrix
 # 3 - ld file
 
-## test ##
-# setwd("~/Documents/projects/NemaScan_Performance/data")
-# args <- c("median_dauer.X.13839330.14647661.finemap_inbred.fastGWA", 
-#           "median_dauer.X:13839330-14647661.ROI_Genotype_Matrix.tsv",
-#           "median_dauer.X.13839330.14647661.LD.tsv")
-
 save_name <- gsub(".LD.tsv", "", args[3])
 finemap <- data.table::fread(args[1]) %>%
   dplyr::mutate(CHR = as.factor(CHR),

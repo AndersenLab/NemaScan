@@ -45,13 +45,12 @@ gene_plot <- ggplot(gene_df) +
                      y = VARIANT_LOG10p+max_logp,
                      yend = VARIANT_LOG10p-max_logp,
                      color = VARIANT_IMPACT), data = variant_df) +
-    scale_color_manual(values = c("MODIFIER" = "gray50",
-                                  "LOW" = "gray30",
-                                  "MODERATE" = "orange",
+    # if snpeff, need to add back moderate and modifier
+    scale_color_manual(values = c("LOW" = "gray30",
                                   "HIGH" = "red",
                                   "Linker" = "gray80", 
                                   "Intergenic" = "gray80"),
-                       breaks = c("HIGH", "MODERATE", "LOW", "MODIFIER", "Intergenic"),
+                       breaks = c("HIGH", "LOW", "Intergenic"),
                        name = "EFFECT")+
     labs(x = "Genomic Position (Mb)",
          y = "-log10p") +

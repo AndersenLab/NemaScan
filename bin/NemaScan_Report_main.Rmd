@@ -52,7 +52,7 @@ All strain names were converted to the corresponding isotype name, which can be 
 
 strain_issues <- readLines("Phenotypes/strain_issues.txt")
 
-new <- grep(strain_issues, "WARNING:", value = T)
+new <- grep("WARNING:|Note:", strain_issues, value = T)
 if(length(new) == 0) {
   print("No strain issues to report")
 } else {

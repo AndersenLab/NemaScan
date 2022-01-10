@@ -9,12 +9,6 @@ library(tidyverse)
 # 4 = annotation file
 
 args <- commandArgs(trailingOnly = TRUE)
-## test ##
-# setwd("~/Documents/projects/NemaScan_Performance/data")
-# args <- c("mean_dauer.III.11186807.12133161.prLD_df.tsv",
-#           "pr_mean_dauer.tsv",
-#           "gene_ref_flat.Rda",
-#           "WI.20210121.bcsq-annotation.tsv")
 
 pr_trait_ld <- data.table::fread(args[1]) %>%
     dplyr::mutate(CHR = case_when(CHR == 1 ~ "I",
@@ -155,7 +149,8 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
     max_logp <- unique(max(variant_df$log10p, na.rm = T))/150
     
-    gene_plot <- ggplot(gene_df) +
+    if(ann_type == "bcsq") {
+      gene_plot <- ggplot(gene_df) +
         geom_vline(aes(xintercept = peak_variant/1e6),
                    linetype=3, color = "cyan")+
         geom_segment(aes(x = ifelse(strand == "+", txstart/1e6, txend/1e6),
@@ -168,6 +163,33 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
                          y = log10p+max_logp,
                          yend = log10p-max_logp,
                          color = VARIANT_IMPACT), data = variant_df) +
+        # remove moderate and modifier - we prob won't run snpeff anyways?
+        scale_color_manual(values = c("LOW" = "gray30",
+                                      "HIGH" = "red",
+                                      "Intergenic" = "gray80"),
+                           breaks = c("HIGH", "LOW", "Intergenic"),
+                           name = "EFFECT")+
+        labs(x = "Genomic Position (Mb)",
+             y = expression(-log[10](italic(p))))+
+        theme_bw(18)+
+        xlim(c(xs/1e6, xe/1e6)) +
+        theme(legend.position = "top",
+              panel.grid = element_blank())
+    } else {
+      gene_plot <- ggplot(gene_df) +
+        geom_vline(aes(xintercept = peak_variant/1e6),
+                   linetype=3, color = "cyan")+
+        geom_segment(aes(x = ifelse(strand == "+", txstart/1e6, txend/1e6),
+                         xend = ifelse(strand == "+", txend/1e6, txstart/1e6),
+                         y = log10p,
+                         yend = log10p),
+                     arrow = arrow(length = unit(5, "points")), size = 1) +
+        geom_segment(aes(x = POS/1e6,
+                         xend = POS/1e6,
+                         y = log10p+max_logp,
+                         yend = log10p-max_logp,
+                         color = VARIANT_IMPACT), data = variant_df) +
+        # remove moderate and modifier - we prob won't run snpeff anyways?
         scale_color_manual(values = c("MODIFIER" = "gray50",
                                       "LOW" = "gray30",
                                       "MODERATE" = "orange",
@@ -181,6 +203,8 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         xlim(c(xs/1e6, xe/1e6)) +
         theme(legend.position = "top",
               panel.grid = element_blank())
+    }
+    
     
     ggsave(gene_plot,
            filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}.pdf"),
