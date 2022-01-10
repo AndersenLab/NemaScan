@@ -135,6 +135,10 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--maf` - The minor allele frequency for filtering variants to use for gwas mapping
 
+* `--finemap` - Defaults to *true*, can change to *false* if you want to skip the finemapping steps.
+
+* `--mediation` - Defaults to *true*, can change to *false* if you want to skip mediation.
+
 ## Genomatrix Profile
 
 This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
