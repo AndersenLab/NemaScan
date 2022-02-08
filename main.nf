@@ -23,7 +23,6 @@ params.finemap = true
 params.species = "c_elegans"
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
-params.annotation = "bcsq"
 params.out = "Analysis_Results-${date}"
 params.fix = "fix"
 
@@ -64,7 +63,7 @@ if(params.debug) {
     impute_vcf = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
     impute_vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
     
-    ann_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/WI.330_TEST.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/WI.330_TEST.strain-annotation.tsv")
 
     // for genomatrix profile
     params.strains = "${params.data_dir}/${params.species}/phenotypes/strain_file.tsv"
@@ -77,19 +76,19 @@ if(params.debug) {
     impute_vcf = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
     impute_vcf_index = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-    ann_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+    ann_file = Channel.fromPath("gs://elegansvariation.org/releases/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv")
     params.strains = "input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from cendr.
-    params.vcf = "20210121"
-    vcf_file = "20210121 - CeNDR"
-    vcf_index = "20210121 - CeNDR"
-    impute_file = "20210121 - CeNDR"
+    params.vcf = "20220216"
+    vcf_file = "20220216 - CeNDR"
+    vcf_index = "20220216 - CeNDR"
+    impute_file = "20220216 - CeNDR"
     download_vcf = true
     
 } else {
     // Check that params.vcf is valid
-    if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
+    if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
         // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
         // check to make sure 20210901 is tropicalis
         if("${params.vcf}" == "20210901") {
@@ -110,7 +109,7 @@ if(params.debug) {
             }
         }
         // check to make sure vcf matches species for elegans
-        if("${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+        if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             if("${params.species}" == "c_briggsae" || "${params.species}" == "c_tropicalis") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_elegans). Please enter a new vcf date or a new species to continue.
@@ -129,10 +128,10 @@ if(params.debug) {
 
         // check if cendr release date is before 20210121, use snpeff annotation
         if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
-            println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use --vcf 20210121"
+            println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
             ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
         } else {
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.${params.annotation}.tsv")
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
         }
     } else {
         // check that vcf file exists, if it does, use it. If not, throw error
@@ -155,7 +154,7 @@ if(params.debug) {
 
             //choose default cendr date based on species for ann_file
             if(params.species == "c_elegans") {
-                default_date = "20210121"
+                default_date = "20220216"
             } else if(params.species == "c_briggsae") {
                 default_date = "20210803"
             } else {
@@ -163,7 +162,7 @@ if(params.debug) {
             }
 
             // this does not work for another species...
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.${params.annotation}.tsv")
+            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
         }
     }
 }
@@ -273,7 +272,6 @@ log.info "Species                                 = ${params.species}"
 log.info ""
 log.info "VCF                                     = ${params.vcf}"
 log.info "Impute VCF                              = ${impute_file}"
-log.info "Annotation type                         = ${params.annotation}"
 log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
