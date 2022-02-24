@@ -158,7 +158,8 @@ process_mapping_df <- function (mapping_df,
         dplyr::mutate(peaks = cumsum(aboveBF)) %>%
         dplyr::filter(aboveBF == 1) %>%
         dplyr::group_by(CHROM, trait) %>%
-        dplyr::mutate(nBF = n()) %>% dplyr::group_by(CHROM, trait) %>%
+        dplyr::mutate(nBF = n()) %>% 
+        dplyr::group_by(CHROM, trait) %>%
         dplyr::arrange(CHROM, POS)
 
       SNPindex <- processed_mapping_df %>%
@@ -190,8 +191,7 @@ process_mapping_df <- function (mapping_df,
           }
         }
         intervals[[i]] <- findPks %>% dplyr::ungroup()
-      }
-      else {
+      } else {
         findPks$pID <- 1
         for (j in 2:nrow(findPks)) {
           findPks$pID[j] <- ifelse(abs(findPks$index[j] - findPks$index[j - 1]) < snp_grouping & findPks$CHROM[j] == findPks$CHROM[j - 1],
@@ -287,7 +287,7 @@ readr::write_tsv(processed_mapping,
 # extract interval information
 qtl_region <- processed_mapping %>%
   na.omit() %>%
-  dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id)
+  dplyr::distinct(CHROM, marker, trait, startPOS, peakPOS, endPOS, peak_id)
 
 # save processed mapping data
 readr::write_tsv(qtl_region,
