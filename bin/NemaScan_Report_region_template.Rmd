@@ -81,7 +81,9 @@ if(QTL_end - QTL_start < 5e6) {
 
 ```
 
-```{r, out.width = '100%', fig.height = 6}
+```{r, out.width = '100%', fig.height = 6, eval = F}
+
+# skip this for now, plot not necessary and it takes up lots of memory running
 
 finemap <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.fastGWA")) %>%
   dplyr::mutate(CHR = as.factor(CHR),
