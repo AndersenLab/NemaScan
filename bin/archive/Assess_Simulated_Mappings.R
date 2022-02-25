@@ -116,8 +116,8 @@ simulation.metrics <- function(x){
       data.frame(QTL, simulated.variance.exp)
    }
    simQTL.variance.explained <- purrr::map2(genos.effects$data, 
-              genos.effects$QTL, 
-              var.exp) %>%
+                                            genos.effects$QTL, 
+                                            var.exp) %>%
       Reduce(rbind,.)
    
    effects <- effects %>%
