@@ -161,7 +161,8 @@ simulation.metrics <- function(x){
       # Join Interval Metrics with Simulated Variant Mapping Results
       effects.scores <- effects %>%
          dplyr::full_join(., simulated.mapping.results.scores) %>%
-         dplyr::filter(!duplicated(QTL))
+         dplyr::filter(!duplicated(QTL),
+                       !is.na(log10p))
       
       # Genomic Ranges: Interval Information
       peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
@@ -226,7 +227,8 @@ simulation.metrics <- function(x){
 
    effects.scores <- effects %>%
       dplyr::full_join(., simulated.mapping.results.scores) %>%
-      dplyr::filter(!duplicated(QTL))
+      dplyr::filter(!duplicated(QTL),
+                    !is.na(log10p))
 
    peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
                                    ranges = IRanges::IRanges(start = peak.info$startPOS,
@@ -289,7 +291,8 @@ simulation.metrics <- function(x){
 
       effects.scores <- effects %>%
          dplyr::full_join(., simulated.mapping.results.scores) %>%
-         dplyr::filter(!duplicated(QTL))
+         dplyr::filter(!duplicated(QTL),
+                       !is.na(log10p))
 
       peaks <- GenomicRanges::GRanges(seqnames = peak.info$CHROM,
                                       ranges = IRanges::IRanges(start = peak.info$startPOS,
