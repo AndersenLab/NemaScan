@@ -167,7 +167,9 @@ process_mapping_df <- function (mapping_df,
         dplyr::mutate(index = 1:n()) %>%
         dplyr::distinct(CHROM, POS, .keep_all = T) %>%
         dplyr::select(CHROM, POS, index) %>%
+        dplyr::group_by(CHROM) %>% # add because we want the min and max position for each chrom
         dplyr::filter(POS == min(POS) | POS == max(POS))
+      
 
       findPks <- PeakDF %>%
         dplyr::filter(trait == phenotypes[i]) %>%
