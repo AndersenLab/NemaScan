@@ -247,7 +247,7 @@ process html_report_main {
   tag {"${TRAIT} - HTML REPORT" }
 
   // machineType 'n1-highmem-2'
-  label "xl"
+  label "highmem"
 
   publishDir "${params.out}/Reports", pattern: "*.Rmd", overwrite: true, mode: 'copy'
   publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
