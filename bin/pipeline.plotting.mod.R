@@ -79,8 +79,7 @@ tests <- args[2]
 ## MANHATTAN PLOTS ##
 for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
-  dplyr::filter(CHROM != "MtDNA") %>%
-  dplyr::mutate(algorithm = as.factor(algorithm))
+  dplyr::filter(CHROM != "MtDNA")
 
 BF <- combined.mappings %>% 
     dplyr::group_by(trait) %>% 

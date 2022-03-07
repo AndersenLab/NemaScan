@@ -34,6 +34,7 @@ process multi_mediation {
 
     cpus 1
     memory '2 GB'
+    errorStrategy 'ignore'
     label "mediation"
 
     tag {"${TRAIT}_${tch}_${tpeak}"}
