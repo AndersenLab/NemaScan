@@ -11,7 +11,7 @@ dependencies:
   - plink=1.90b6.12
   - bedtools=2.29.2
   #- gcta=1.92.3
-  - r=3.6.3
+  - r=4.0.1
   - r-devtools
   - r-data.table
   - r-DT
