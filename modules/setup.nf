@@ -26,7 +26,7 @@ process pull_vcf {
         wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz
         tabix -p vcf WI.${params.vcf}.impute.isotype.vcf.gz
 
-        wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.bcsq.tsv
+        wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv
 
     """
 }
