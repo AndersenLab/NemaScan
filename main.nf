@@ -344,7 +344,6 @@ workflow {
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
             .join(gcta_lmm_exact_mapping.out)
-            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
 
         // plot

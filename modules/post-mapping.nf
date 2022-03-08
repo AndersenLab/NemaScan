@@ -192,9 +192,14 @@ process gcta_fine_maps {
               --make-bK-sparse ${params.sparse_cut} \\
               --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred  \\
               --thread-num 9
+      gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred \\
+              --pca 1 \\
+              --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred  \\
+              --thread-num 9
       gcta64 --fastGWA-lmm-exact \\
               --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred \\
-              --bfile ${TRAIT}.\$chr.\$start.\$stop  \\
+              --bfile ${TRAIT}.\$chr.\$start.\$stop \\
+              --qcovar ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred.eigenvec \\
               --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred \\
               --pheno plink_finemap_traits.tsv \\
               --maf ${params.maf} \\
