@@ -1,4 +1,4 @@
-FROM continuumio/miniconda
+FROM continuumio/miniconda3
 MAINTAINER Katie Evans <kathryn.evans@northwestern.edu>
 
 COPY conda.yml .
