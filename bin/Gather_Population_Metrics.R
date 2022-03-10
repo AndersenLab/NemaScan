@@ -10,8 +10,10 @@ today <- format(Sys.time(), '%Y%m%d')
 sweeps <- data.table::fread("/projects/b1059/projects/Sam/NemaScan/bin/sweep_summary_20210121.tsv") %>%
    dplyr::rename(strain = isotype)
 
-strainsets <- data.table::fread(paste0("/projects/b1059/projects/Sam/NemaScan/", 
-                        args[1]), header = F) %>%
+# strainsets <- data.table::fread(paste0("/projects/b1059/projects/Sam/NemaScan/", 
+#                         args[1])) %>%
+strainsets <- read.table(paste0("/projects/b1059/projects/Sam/NemaScan/", 
+                         args[1])) %>%
    dplyr::rename(strain_set = V1, strains = V2) %>%
    dplyr::group_by(strain_set) %>%
    tidyr::nest()
@@ -63,7 +65,7 @@ population.metrics <- function(x,y){
       
 }
 population.metrics.df <- purrr::map2(strainsets$data, strainsets$strain_set, population.metrics) %>%
-   Reduce(rbind,.)
+   Reduce(full_join,.)
 save(population.metrics.df, file = paste0(args[2],"NemaScan_Population_Metrics_",today,".RData"))
 
 # strain.summary <- function(x){
