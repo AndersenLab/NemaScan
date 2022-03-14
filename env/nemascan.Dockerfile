@@ -8,5 +8,5 @@ RUN \
 
 # install other tools not avalible on conda cloud
 RUN apt-get update && apt-get install -y procps  
-RUN Rscript -e "install.packages('roperators',dependencies=TRUE, repos='http://cran.us.r-project.org')"
-RUN Rscript -e "devtools::install_version('tidyverse', version = '1.3.0', repos = 'http://cran.us.r-project.org')"
+# RUN Rscript -e "install.packages('roperators',dependencies=TRUE, repos='http://cran.us.r-project.org')"
+# RUN Rscript -e "devtools::install_version('tidyverse', version = '1.3.0', repos = 'http://cran.us.r-project.org')"
