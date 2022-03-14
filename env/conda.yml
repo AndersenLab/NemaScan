@@ -14,12 +14,12 @@ dependencies:
   - r-devtools
   - r-data.table
   - r-DT
-  # - r-genetics
-  # - r-ggbeeswarm
-  # - r-ggnewscale
-  # - r-ggrepel
-  # - r-knitr
-  # - r-rmarkdown
+  - r-genetics
+  - r-ggbeeswarm
+  - r-ggnewscale
+  - r-ggrepel
+  - r-knitr
+  - r-rmarkdown
   # - r-plotly
   # - r-RSpectra
   # - r-sommer
