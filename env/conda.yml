@@ -24,8 +24,8 @@ dependencies:
   - r-RSpectra
   - r-sommer
   - r-coop
-  # - r-Rcpp
-  # - r-cowplot
-  # - r-valr
+  - r-Rcpp
+  - r-cowplot
+  - r-valr
 
 #  - bioconductor-ComplexHeatmap=2.4.2
