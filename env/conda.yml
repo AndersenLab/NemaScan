@@ -24,7 +24,7 @@ dependencies:
   - r-RSpectra
   - r-sommer
   - r-coop
-  - r-Rcpp
+  # - r-Rcpp
   - r-cowplot
   - r-valr
 
