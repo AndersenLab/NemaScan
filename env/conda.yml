@@ -20,10 +20,10 @@ dependencies:
   - r-ggrepel
   - r-knitr
   - r-rmarkdown
-  # - r-plotly
-  # - r-RSpectra
-  # - r-sommer
-  # - r-coop
+  - r-plotly
+  - r-RSpectra
+  - r-sommer
+  - r-coop
   # - r-Rcpp
   # - r-cowplot
   # - r-valr
