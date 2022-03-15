@@ -12,3 +12,4 @@ RUN apt-get update && apt-get install -y procps
 # RUN Rscript -e "install.packages('valr', dependencies=TRUE, repos='http://cran.us.r-project.org')"
 # RUN Rscript -e "install.packages('tidyverse', dependencies=TRUE, repos='http://cran.us.r-project.org')"
 RUN conda install r-tidyverse
+RUN conda install r-valr
