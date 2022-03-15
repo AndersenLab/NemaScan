@@ -22,17 +22,17 @@ if [[ -z "${DATA_DIR}" ]]; then
 fi
 
 if [[ -z "${GOOGLE_PROJECT}" ]]; then
-  DATA_DIR=${DEFAULT_GOOGLE_PROJECT}
+  GOOGLE_PROJECT=${DEFAULT_GOOGLE_PROJECT}
   echo "GOOGLE_PROJECT environment variable is not set - defaulting to ${GOOGLE_PROJECT}"
 fi
 
 if [[ -z "${GOOGLE_ZONE}" ]]; then
-  DATA_DIR=${DEFAULT_GOOGLE_ZONE}
+  GOOGLE_ZONE=${DEFAULT_GOOGLE_ZONE}
   echo "GOOGLE_ZONE environment variable is not set - defaulting to ${GOOGLE_ZONE}"
 fi
 
 if [[ -z "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" ]]; then
-  DATA_DIR=${DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL}
+  GOOGLE_SERVICE_ACCOUNT_EMAIL=${DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL}
   echo "GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is not set - defaulting to ${GOOGLE_SERVICE_ACCOUNT_EMAIL}"
 fi
 
