@@ -92,7 +92,7 @@ process prep_ld_files {
         cat ${aggregate_mapping} |\\
         awk '\$0 !~ "\\tNA\\t" {print}' |\\
         awk '!seen[\$1,\$12,\$19,\$20,\$21]++' |\\
-        awk 'NR>1{print \$1, \$12, \$19, \$20, \$21}' OFS="\\t" > ${TRAIT}_QTL_peaks.tsv
+        awk 'NR>1{print \$1, \$11, \$18, \$19, \$20}' OFS="\\t" > ${TRAIT}_QTL_peaks.tsv
         filename='${TRAIT}_QTL_peaks.tsv'
         echo Start
         while read p; do 
