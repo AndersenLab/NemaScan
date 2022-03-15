@@ -88,6 +88,9 @@ whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
 
 
 ## Manhattan plot
+
+This analysis was run using GCTA-ALGORITHM.
+
 * #### Every dot is a SNV marker.
 
 * #### SNVs are colored red if they pass the genome-wide corrected significance threshold:

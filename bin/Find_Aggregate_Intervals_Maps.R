@@ -41,11 +41,25 @@ phenotype_data <- data.table::fread(args[2]) %>%
   as.data.frame()
 
 # load GCTA mapping data
-map_df <- data.table::fread(args[3]) %>%
-  dplyr::rename(marker = SNP, 
-                CHROM = CHR,
-                POS = POS) %>%
-  dplyr::mutate(log10p = -log10(P))
+if(args[9] == "inbred") {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = CHR,
+                  POS = POS) %>%
+    dplyr::mutate(log10p = -log10(P)) %>%
+    dplyr::select(-N)
+} else {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = Chr,
+                  POS = bp,
+                  BETA = b,
+                  P = p,
+                  SE = se, 
+                  AF1 = Freq) %>%
+    dplyr::mutate(log10p = -log10(P))
+}
+
 
 # load genotype matrix
 genotype_matrix <- readr::read_tsv(args[1]) %>%
@@ -298,7 +312,7 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 
 # save processed mapping data
 readr::write_tsv(processed_mapping,
-                 c(paste("processed",args[8],"mapping.tsv", sep = "_")),
+                 c(paste0("processed_",args[8],"_mapping_", args[9], ".tsv")),
                  col_names = T)
 
 # add narrow-sense heritability point estimate
@@ -328,5 +342,5 @@ qtl_region <- processed_mapping %>%
 
 # save processed mapping data
 readr::write_tsv(qtl_region, 
-                 c(paste(args[8],"qtl_region.tsv", sep = "_")),
+                 c(paste0(args[8],"_qtl_region_", args[9], ".tsv")),
                  col_names = T)
