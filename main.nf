@@ -446,7 +446,7 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                        .combine(Channel.fromPath("${params.algorithm}"))
+                        .combine(Channel.from("${params.algorithm}"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
                         .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
@@ -464,7 +464,7 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                        .combine(Channel.fromPath("${params.algorithm}"))
+                        .combine(Channel.from("${params.algorithm}"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
                         .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
@@ -482,7 +482,7 @@ workflow {
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                    .combine(Channel.fromPath("${params.algorithm}"))
+                    .combine(Channel.from("${params.algorithm}"))
                     .combine(Channel.from(med)) // true or false - plot mediaton?
                     .combine(Channel.from("${params.species}"))
                     // don't have divergent files, so make them fake lol
