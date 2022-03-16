@@ -92,7 +92,7 @@ process prep_ld_files {
         cat ${aggregate_mapping} |\\
         awk '\$0 !~ "\\tNA\\t" {print}' |\\
         awk '!seen[\$1,\$12,\$19,\$20,\$21]++' |\\
-        awk 'NR>1{print \$1, \$12, \$19, \$20, \$21}' OFS="\\t" > ${TRAIT}_QTL_peaks.tsv
+        awk 'NR>1{print \$1, \$11, \$18, \$19, \$20}' OFS="\\t" > ${TRAIT}_QTL_peaks.tsv
         filename='${TRAIT}_QTL_peaks.tsv'
         echo Start
         while read p; do 
@@ -259,7 +259,7 @@ process html_report_main {
 
   input:
     tuple val(TRAIT), file(qtl_peaks), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
-    file(ns_report_template_md), file(render_markdown), val(mediate), val(species), file(qtl_bins), file(qtl_div), \
+    file(ns_report_template_md), file(render_markdown), val(algorithm), val(mediate), val(species), file(qtl_bins), file(qtl_div), \
     file(haplotype_qtl), file(div_isotype), file(pmap), file(fastGWA), file(prLD), file(bcsq_genes), file(roi_geno), file(roi_ld), \
     file(mediation_summary)
 
@@ -278,6 +278,7 @@ process html_report_main {
     sed 's+paste0("Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping.tsv")+"${pmap}"+g' | \\
     sed "s+Mapping/Processed/QTL_peaks.tsv+${qtl_peaks}+g" | \\
     sed "s+Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
+    sed "s+ALGORITHM+${algorithm}+" | \\
     sed "s+NemaScan_Report_region_template.Rmd+NemaScan_Report_region_${TRAIT}.Rmd+g" > NemaScan_Report_${TRAIT}_main.Rmd
 
     cat "${ns_report_template_md}" | \\

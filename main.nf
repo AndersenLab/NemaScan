@@ -25,6 +25,7 @@ params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
 params.fix = "fix"
+params.algorithm = 'inbred' //options: inbred, loco
 
 // mediation only with c_elegans
 if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
@@ -272,6 +273,7 @@ log.info "Species                                 = ${params.species}"
 log.info ""
 log.info "VCF                                     = ${params.vcf}"
 log.info "Impute VCF                              = ${impute_file}"
+log.info "GCTA algorithm                          = ${params.algorithm}"
 log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
@@ -282,7 +284,7 @@ log.info ""
 
 // Includes
 include {pull_vcf; fix_strain_names_bulk; fix_strain_names_alt; vcf_to_geno_matrix; chrom_eigen_variants; collect_eigen_variants} from './modules/setup.nf'
-include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps} from './modules/mapping.nf'
+include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping_loco; gcta_lmm_exact_mapping_inbred; gcta_intervals_maps} from './modules/mapping.nf'
 include {mediation_data; multi_mediation; simple_mediation; summary_mediation} from './modules/mediation.nf'
 include {summarize_mapping; generate_plots; LD_between_regions; prep_ld_files; gcta_fine_maps; divergent_and_haplotype; html_report_main} from './modules/post-mapping.nf'
 include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals} from './modules/simulations.nf'
@@ -331,7 +333,16 @@ workflow {
         pheno_strains
             .combine(traits_to_map)
             .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm
+        
+        // check mapping algorithm:
+        if(params.algorithm == "inbred") {
+            gcta_grm.out | gcta_lmm_exact_mapping_inbred
+            mapping_out = gcta_lmm_exact_mapping_inbred.out
+        } else {
+            gcta_grm.out | gcta_lmm_exact_mapping_loco
+            mapping_out = gcta_lmm_exact_mapping_loco.out
+        }
 
         // process GWAS mapping
         traits_to_map
@@ -341,8 +352,9 @@ workflow {
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
-            .join(gcta_lmm_exact_mapping.out)
-            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
+            .join(mapping_out)
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R"))
+            .combine(Channel.from("${params.algorithm}")) | gcta_intervals_maps
 
         // plot
         gcta_intervals_maps.out.maps_to_plot
@@ -434,6 +446,7 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                        .combine(Channel.from("${params.algorithm}"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
                         .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
@@ -451,6 +464,7 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                        .combine(Channel.from("${params.algorithm}"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
                         .combine(divergent_and_haplotype.out.div_hap_table) // divergent and haplotype out
@@ -468,6 +482,7 @@ workflow {
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
+                    .combine(Channel.from("${params.algorithm}"))
                     .combine(Channel.from(med)) // true or false - plot mediaton?
                     .combine(Channel.from("${params.species}"))
                     // don't have divergent files, so make them fake lol
