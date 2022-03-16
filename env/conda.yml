@@ -13,18 +13,18 @@ dependencies:
   - libiconv
   - r=3.6.0
   - r-devtools
-  # - r-data.table
-  # - r-DT
-  # - r-genetics
-  # - r-ggbeeswarm
-  # - r-ggnewscale
-  # - r-ggrepel
-  # - r-knitr
-  # - r-rmarkdown
-  # - r-plotly
-  # - r-RSpectra
-  # - r-sommer
-  # - r-coop
+  - r-data.table
+  - r-DT
+  - r-genetics
+  - r-ggbeeswarm
+  - r-ggnewscale
+  - r-ggrepel
+  - r-knitr
+  - r-rmarkdown
+  - r-plotly
+  - r-RSpectra
+  - r-sommer
+  - r-coop
   # # - r-Rcpp
   # - r-cowplot
   # - r-valr
