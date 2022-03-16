@@ -139,6 +139,8 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--mediation` - Defaults to *true*, can change to *false* if you want to skip mediation.
 
+* `--algorithm` - Defaults to *inbred*, can change to *loco* for GCTA-MLMA-LOCO mapping instead of GCTA-fastGWA
+
 ## Genomatrix Profile
 
 This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
