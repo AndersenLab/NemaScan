@@ -166,8 +166,9 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         # remove moderate and modifier - we prob won't run snpeff anyways?
         scale_color_manual(values = c("LOW" = "gray30",
                                       "HIGH" = "red",
-                                      "Intergenic" = "gray80"),
-                           breaks = c("HIGH", "LOW", "Intergenic"),
+                                      "Intergenic" = "gray80",
+                                      "Linker" = "gray80"),
+                           breaks = c("HIGH", "LOW", "Intergenic", "Linker"),
                            name = "EFFECT")+
         labs(x = "Genomic Position (Mb)",
              y = expression(-log[10](italic(p))))+
