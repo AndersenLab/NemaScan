@@ -25,7 +25,7 @@ params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
 params.fix = "fix"
-params.algorithm = 'inbred' //options: inbred, loco
+// params.algorithm = 'inbred' //options: inbred, loco - now run both
 
 // mediation only with c_elegans
 if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
@@ -292,7 +292,7 @@ log.info ""
 
 // Includes
 include {pull_vcf; fix_strain_names_bulk; fix_strain_names_alt; vcf_to_geno_matrix; chrom_eigen_variants; collect_eigen_variants} from './modules/setup.nf'
-include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping_loco; gcta_lmm_exact_mapping_inbred; gcta_intervals_maps} from './modules/mapping.nf'
+include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps} from './modules/mapping.nf'
 include {mediation_data; multi_mediation; simple_mediation; summary_mediation} from './modules/mediation.nf'
 include {summarize_mapping; generate_plots; LD_between_regions; prep_ld_files; gcta_fine_maps; divergent_and_haplotype; html_report_main} from './modules/post-mapping.nf'
 include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals} from './modules/simulations.nf'
@@ -341,16 +341,7 @@ workflow {
         pheno_strains
             .combine(traits_to_map)
             .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm
-        
-        // check mapping algorithm:
-        if(params.algorithm == "inbred") {
-            gcta_grm.out | gcta_lmm_exact_mapping_inbred
-            mapping_out = gcta_lmm_exact_mapping_inbred.out
-        } else {
-            gcta_grm.out | gcta_lmm_exact_mapping_loco
-            mapping_out = gcta_lmm_exact_mapping_loco.out
-        }
+            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
 
         // process GWAS mapping
         traits_to_map
@@ -360,9 +351,8 @@ workflow {
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
-            .join(mapping_out)
-            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R"))
-            .combine(Channel.from("${params.algorithm}")) | gcta_intervals_maps
+            .join(gcta_lmm_exact_mapping.out)
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
 
         // plot
         gcta_intervals_maps.out.maps_to_plot
@@ -373,10 +363,14 @@ workflow {
             .combine(Channel.fromPath("${params.bin_dir}/LD_between_regions.R")) | LD_between_regions
 
         // summarize all peaks
-        peaks = gcta_intervals_maps.out.qtl_peaks
-            .collectFile(keepHeader: true, name: "QTL_peaks.tsv", storeDir: "${params.out}/Mapping/Processed")
+        peaks_inbred = gcta_intervals_maps.out.qtl_peaks_inbred
+            .collectFile(keepHeader: true, name: "QTL_peaks_inbred.tsv", storeDir: "${params.out}/INBRED/Mapping/Processed")
 
-        peaks
+        peaks_loco = gcta_intervals_maps.out.qtl_peaks_loco
+            .collectFile(keepHeader: true, name: "QTL_peaks_loco.tsv", storeDir: "${params.out}/LOCO/Mapping/Processed")
+
+        peaks_inbred
+            .combine(peaks_loco)
             .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
             .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
 
@@ -391,9 +385,15 @@ workflow {
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
 
-            peaks
+            // combine inbred and loco qtl peaks for mediation
+            peaks_inbred
                 .splitCsv(sep: '\t', skip: 1)
                 .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                .combine(Channel.from("inbred"))
+                .mix(peaks_loco
+                    .splitCsv(sep: '\t', skip: 1)
+                    .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                    .combine(Channel.from("loco")))
                 .combine(traits_to_mediate, by: 0)
                 .combine(Channel.from(transcript_eqtl))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
@@ -405,19 +405,27 @@ workflow {
 
             multi_mediation.out.eQTL_gene
                  .splitCsv(sep: '\t')
-                 .combine(mediation_data.out, by: [0,1,2])
+                 .combine(mediation_data.out, by: [0,1,2,3])
                  .combine(vcf_to_geno_matrix.out) 
                  .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                  .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
-            peaks
+            peaks_inbred
                 .splitCsv(sep: '\t', skip: 1)
                 .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                .combine(Channel.from("inbred"))
+                .mix(peaks_loco
+                    .splitCsv(sep: '\t', skip: 1)
+                    .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                    .combine(Channel.from("loco")))
                 .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
                 .combine(simple_mediation.out.collect().toList())
-                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
+                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  //| summary_mediation
+
+            simple_mediation.out.collect().toList().view()
 
         }
+
 
         // easiest case: don't run finemap, divergent, or html if params.finemap = false
         if(params.finemap) {
