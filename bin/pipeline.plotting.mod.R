@@ -64,7 +64,7 @@ pxg.plots <- function(trait, data){
       labs(y = "Trait Value",
            x = "Genotype")
     ggsave(paste(trait,"_", paste("CHR",unique(data$CHROM), sep = ""),"_",
-                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect.plot.png",sep = ""), height = 5, width = 5)
+                 paste(round(unique(data$peakPOS), digits = 2),"MB", sep = ""), "_effect_", args[3], ".plot.png",sep = ""), height = 5, width = 5)
   }
 }
 
@@ -141,7 +141,7 @@ man.plot <- ggplot() +
   facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
   ggtitle(BF.frame$trait)
 
-ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan.plot.png"), width = 8, height = 4)
+ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan_", args[3], ".plot.png"), width = 8, height = 4)
 
 
 ## SWEPTNESS & EFFECTS SUMMARY ##

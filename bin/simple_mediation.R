@@ -132,5 +132,5 @@ df2 <- df %>%
 
 # save mapping data set
 readr::write_tsv(df2, 
-                 path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_{gene_expression}_med.tsv"),
+                 path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_{gene_expression}_med_{args[9]}.tsv"),
                  col_names = T)

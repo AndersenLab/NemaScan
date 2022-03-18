@@ -143,13 +143,15 @@ gene_qtl_genelist <- df_multi_med %>%
 if(nrow(gene_qtl_genelist)>0){
   # save mapping data set
   readr::write_tsv(df_multi_med, 
-                   path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_medmulti.tsv"),
+                   path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_medmulti_{args[8]}.tsv"),
                    col_names = T)
   
-  
+  gene_qtl_genelist <- gene_qtl_genelist %>%
+      dplyr::mutate(algorithm = args[8]) %>%
+      dplyr::select(gwtrait, e_chr, gwpeak, algorithm, trait)
   # save gene list 
   readr::write_tsv(gene_qtl_genelist, 
-                   path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_elist.tsv"),
+                   path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_elist_{args[8]}.tsv"),
                    col_names = F)
   
 }

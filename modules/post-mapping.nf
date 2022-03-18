@@ -1,56 +1,62 @@
 process summarize_mapping {
 
-    publishDir "${params.out}/Plots", mode: 'copy'
+    publishDir "${params.out}/INBRED/Plots", mode: 'copy', pattern: "*_inbred.png"
+    publishDir "${params.out}/LOCO/Plots", mode: 'copy', pattern: "*_loco.png"
 
     input:
-        tuple file(qtl_peaks), file(chr_lens), file(summarize_mapping_file)
+        tuple file(qtl_peaks_inbred), file(qtl_peaks_loco), file(chr_lens), file(summarize_mapping_file)
 
     output:
-        file("Summarized_mappings.pdf")
+        file("Summarized_mappings*.pdf")
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summarize_mapping_file} > summarize_mapping_file
-    Rscript --vanilla summarize_mapping_file ${qtl_peaks} ${chr_lens}
-
+    Rscript --vanilla summarize_mapping_file ${qtl_peaks_inbred} ${chr_lens} inbred
+    Rscript --vanilla summarize_mapping_file ${qtl_peaks_loco} ${chr_lens} loco
     """
 }
 
 
 process generate_plots {
 
+    publishDir "${params.out}/INBRED/Plots/LDPlots", mode: 'copy', pattern: "*_LD_inbred.plot.png"
+    publishDir "${params.out}/INBRED/Plots/EffectPlots", mode: 'copy', pattern: "*_effect_inbred.plot.png"
+    publishDir "${params.out}/INBRED/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan_inbred.plot.png"
 
-    publishDir "${params.out}/Plots/LDPlots", mode: 'copy', pattern: "*_LD.plot.png"
-    publishDir "${params.out}/Plots/EffectPlots", mode: 'copy', pattern: "*_effect.plot.png"
-    publishDir "${params.out}/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan.plot.png"
+    publishDir "${params.out}/LOCO/Plots/LDPlots", mode: 'copy', pattern: "*_LD_loco.plot.png"
+    publishDir "${params.out}/LOCO/Plots/EffectPlots", mode: 'copy', pattern: "*_effect_loco.plot.png"
+    publishDir "${params.out}/LOCO/Plots/ManhattanPlots", mode: 'copy', pattern: "*_manhattan_loco.plot.png"
 
     input:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping), file(pipeline_plotting_mod)
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping_inbred), file(aggregate_mapping_loco), file(pipeline_plotting_mod)
 
     output:
-        tuple file(geno), file(pheno), file(aggregate_mapping), val(TRAIT),  emit: maps_from_plot
+        tuple file(geno), file(pheno), file(aggregate_mapping_inbred), file(aggregate_mapping_loco), val(TRAIT),  emit: maps_from_plot
         file("*.png")
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${pipeline_plotting_mod} > pipeline.plotting.mod
-    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping} ${tests}
+    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_inbred} ${tests} inbred
+    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_loco} ${tests} loco
     """
 }
 
 
 process LD_between_regions {
 
-  publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions.tsv"
+  publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_inbred.tsv"
+  publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_loco.tsv"
 
   input:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping), file(ld_between_regions)
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping_inbred), file(aggregate_mapping_loco), file(ld_between_regions)
 
   output:
-        tuple val(TRAIT), path("*LD_between_QTL_regions.tsv") optional true
-        val TRAIT, emit: linkage_done
+        tuple val(TRAIT), path("*LD_between_QTL_regions_inbred.tsv"),  path("*LD_between_QTL_regions_loco.tsv") optional true
 
   """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${ld_between_regions} > LD_between_regions 
-    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping} ${TRAIT}
+    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${ld_between_regions} > LD_between_regions
+    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
+    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
   """
 }
 
