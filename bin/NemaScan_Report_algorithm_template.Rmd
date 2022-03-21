@@ -1,0 +1,247 @@
+
+```{r}
+# read in QTL regions for all traits. Note that QTL_peaks.tsv is generated even if there is no significant regions.
+# based on number of regions & width of regions to decide whether generate pxg and fine mapping plots
+
+# what happens to this file if no QTL?
+if (file.info(glue::glue("{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv"))$size != 0) {
+
+    whether_print_peaks <- TRUE
+        
+    QTL_peaks <- read.delim(glue::glue("{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv"), 
+                            header=TRUE, stringsAsFactors=FALSE) %>%
+        dplyr::filter(trait == trait_name)
+
+    # plot pxg?
+    if(nrow(QTL_peaks) == 0) {
+        whether_plot_pxg <- FALSE
+    } else {
+        whether_plot_pxg <- TRUE
+    }
+    
+    # No LD if only one QTL
+    if (nrow(QTL_peaks) < 2) {
+        whether_plot_LD <- FALSE
+    } else { whether_plot_LD <- TRUE }
+    
+    if (nrow(QTL_peaks) == 0) {
+        print("No significant QTL region for this trait")
+        whether_fine_map <- FALSE # skip related chunks
+        whether_plot_LD <- FALSE
+        whether_print_peaks <- FALSE
+    } else {
+
+        # only show results for regions < 5 Mb for now
+        # QTL_peaks <- QTL_peaks %>%
+        #     dplyr::mutate(Region_width = endPOS - startPOS) %>%
+        #     dplyr::filter(Region_width < 5000000)
+        
+        if (nrow(QTL_peaks)==0) {
+            print("Significant QTL regions are too wide for plotting")
+            whether_fine_map <- FALSE # skip related chunks
+            
+        } else {
+            whether_fine_map <- TRUE # run related chunks
+            
+        }
+    }
+    
+} else { 
+    print("No significant peak for this trait")
+    whether_print_peaks <- FALSE
+    whether_plot_LD <- FALSE
+    whether_fine_map <- FALSE
+}
+
+```
+
+
+```{r, eval = whether_print_peaks}
+# print out the table to html
+# this doesn't print within if{}
+# QTL_peaks was filtered in previous chunk, so reload
+QTL_peaks_original <- read.delim(glue::glue("{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv"), 
+                                 header=TRUE, stringsAsFactors=FALSE) %>% 
+        dplyr::filter(trait == trait_name)
+
+DT::datatable(QTL_peaks_original)
+
+```
+
+<br>
+<br>
+
+## Phenotype by Genotype Split
+```{r, eval=whether_plot_pxg}
+
+
+## SWEPTNESS & EFFECTS SUMMARY ##
+# proc.sweeps <- sweeps %>%
+#     dplyr::select(c(isotype,contains("hapshare")))
+# colnames(proc.sweeps) <- gsub(colnames(proc.sweeps),pattern = "_hapshare", replacement = "")
+# sweep.chrom.pivot <- proc.sweeps %>%
+#     tidyr::pivot_longer(cols = -isotype, names_to = "CHROM", values_to = "sweep.share") %>%
+#     dplyr::rename(strain = isotype)
+
+
+nested.pxg.dat <- processed_mapping %>%
+    dplyr::filter(algorithm == alg) %>%
+    dplyr::filter(!is.na(peak_id)) %>%
+    dplyr::select(CHROM, marker, trait, startPOS, peakPOS, endPOS, AF1, value, strain, allele, peak_id) %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(startPOS = startPOS/1000000,
+                  peakPOS = peakPOS/1000000,
+                  endPOS = endPOS/1000000) %>%
+    # dplyr::left_join(.,sweep.chrom.pivot) %>% # don't have this file yet
+    # dplyr::group_by(trait, peak_id) %>%
+    # dplyr::recode(allele, "-1" = "REF", "1" = "ALT") %>%
+    dplyr::mutate(allele = dplyr::case_when(allele == "-1" ~ "REF",
+                                            allele == "1" ~ "ALT",
+                                            TRUE ~ "NA"),
+                  allele = factor(allele, levels = c("REF", "ALT")))
+    
+CB.N2.code <- nested.pxg.dat %>%
+    dplyr::select(strain, allele) %>%
+    dplyr::distinct() %>%
+    dplyr::filter(strain %in% c("CB4856","N2","PD1074")) %>%
+    droplevels()
+    
+if(length(levels(CB.N2.code$allele)) < 2){
+  pal <- c("#726E75","#720E07")
+} else {
+  pal <- c("#FFA500","#0000ff")
+}
+
+strains.of.interest <- c("PD1074", "N2", "CB4856", "RC301", "MY16", 
+                             "ECA396", "ECA36", "XZ1516", "ECA248", "AB1", 
+                             "CB4507", "CB4858", "CB4855", "CB4852", "MY1", 
+                             "JU319", "JU345", "JU400", "PB306", "PX174", "PX179")
+
+# plot_title <- glue::glue("{unique(nested.pxg.dat$trait)}:CHR{unique(nested.pxg.dat$CHROM)}:{round(unique(nested.pxg.dat$peakPOS), digits = 2)}MB")
+
+plot <- nested.pxg.dat %>%
+    dplyr::filter(allele != "NA" | !is.na(allele)) %>%
+    dplyr::mutate(SOI = strain %in% strains.of.interest,
+                    SOI.2 = if_else(SOI == TRUE, true = strain, false = "")) %>%
+    droplevels() %>%
+    dplyr::arrange(SOI.2) %>%
+    ggplot2::ggplot(mapping = aes(x = allele, y = value, text = SOI.2)) +
+    ggplot2::theme_bw(base_size = 12) +
+    ggplot2::geom_violin(aes(fill = allele), alpha = 0.8, scale = "count", draw_quantiles = c(0.25, 0.5, 0.75)) +
+    ggplot2::scale_fill_manual(values = pal, guide = FALSE) +
+    ggnewscale::new_scale("fill") +
+    ggplot2::geom_point(aes(fill = SOI), position = ggbeeswarm::position_beeswarm(), size = 1.5, shape = 21) +
+    # geom_point(aes(colour = sweep.share*100), size = 1.1, position = pos) +
+    ggplot2::scale_fill_manual(values = c("#9297C4","#D33E43"), guide = FALSE) +
+    # scale_colour_gradient(low = "black", high = "violetred", name = "Selective Sweep (% Chromosome)") +
+    ggrepel::geom_text_repel(aes(label = SOI.2),
+                      colour = "black", position = ggbeeswarm::position_beeswarm()) +
+    ggplot2::theme(legend.position = "bottom") +
+    ggplot2::labs(y = "Trait Value",
+           x = "Genotype") +
+    ggplot2::facet_grid(~marker)
+
+print(plot)
+
+# interactive plots - doesn't work well with facet?
+# plotly::ggplotly(plot, tooltip = c("plotly_label", "y")) %>%
+#     layout(autosize = F, width = 400, height = 400)
+
+# ggsave(glue::glue("{plot_title}_effect.plot.png"), height = 5, width = 5)
+
+
+```
+
+## Linkage disequilibrium (LD) between QTL
+```{r, eval = whether_plot_LD}
+
+gm <- read.table("Genotype_Matrix/Genotype_Matrix.tsv", header = T)
+snp_df <- processed_mapping %>% 
+    dplyr::filter(algorithm == alg) %>%
+    na.omit()
+ld_snps <- dplyr::filter(gm, CHROM %in% snp_df$CHROM, POS %in% snp_df$POS)
+
+
+if ( nrow(ld_snps) > 1 ) {
+  
+  ld_snps <- data.frame(snp_id = paste(ld_snps$CHROM, ld_snps$POS,
+                                       sep = "_"), data.frame(ld_snps)[, 5:ncol(ld_snps)])
+  
+  sn <- list()
+  
+  for (i in 1:nrow(ld_snps)) {
+    sn[[i]] <- genetics::genotype(as.character(gsub(1, "T/T",
+                                                    gsub(-1, "A/A", ld_snps[i, 4:ncol(ld_snps)]))))
+  }
+  
+  test <- data.frame(sn)
+  colnames(test) <- (ld_snps$snp_id)
+  ldcalc <- t(genetics::LD(test)[[4]])^2
+  diag(ldcalc) <- 1
+  
+  TRAIT <- unique(processed_mapping$trait)
+  ldcalc %>%
+    as.data.frame() %>%
+    dplyr::mutate(QTL1 = rownames(.),
+                  trait = TRAIT) %>%
+    tidyr::pivot_longer(cols = -c(QTL1, trait), names_to = "QTL2", values_to = "r2") %>%
+    dplyr::filter(!is.na(r2)) %>%
+    dplyr::select(QTL1, QTL2, everything()) %>%
+    ggplot(., mapping = aes(x = QTL1, y = QTL2)) + 
+    theme_classic() +
+    geom_tile(aes(fill = r2),colour = "black", size = 3) + 
+    geom_text(aes(label = round(r2, 4))) + 
+    scale_fill_gradient(low="darkgreen", high="red", limits = c(0, 1), name = expression(r^2)) + 
+    theme(axis.title = element_blank(),
+          axis.text = element_text(colour = "black")) + 
+    labs(title = "Linkage Disequilibrium")
+}
+
+
+
+```
+
+```{r, eval=!whether_plot_LD}
+print("Not enough QTL regions to calculate linkage")
+```
+
+<br>
+<br>
+
+## Divergent region, haplotype, fine mapping, and mediation for each significant QTL region 
+Only for regions less than 5 Mb in size
+
+```{r}
+# evaluate this always
+out <- NULL
+
+```
+
+```{r, eval = whether_fine_map}
+
+for (i in seq_len(nrow(QTL_peaks))) { 
+    QTL_chrom <- QTL_peaks$CHROM[i]
+    QTL_start <- QTL_peaks$startPOS[i]
+    QTL_end <- QTL_peaks$endPOS[i]
+    QTL_Peak <- QTL_peaks$peakPOS[i]
+    region_name <- glue::glue("{QTL_chrom}:{QTL_start}-{QTL_end}")
+    
+    out <- c(out, knitr::knit_child('NemaScan_Report_region_template.Rmd'))
+}
+# `r paste(knitr::knit(text = out), collapse = '\n')`
+
+#paste(knitr::knit(text = out), collapse = '\n')  # this stopped working...
+
+```
+
+`r if(!is.null(out)) { paste(knitr::knit(text = out), collapse = '\\n') }`
+
+
+<br>
+<br>
+
+```{r, eval=!whether_fine_map}
+print("No significant QTL regions to plot")
+```
+
+<br>

@@ -94,7 +94,8 @@ process summary_mediation {
 
 
     output:
-        tuple val(TRAIT), file("${TRAIT}_mediation_${algorithm}.tsv"), emit: final_mediation
+        tuple val(TRAIT), file("${TRAIT}_mediation_inbred.tsv"), emit: final_mediation_inbred, optional: true
+        tuple val(TRAIT), file("${TRAIT}_mediation_loco.tsv"), emit: final_mediation_loco, optional: true
         file("*plot_${algorithm}.png") optional true
 
 

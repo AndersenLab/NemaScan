@@ -174,7 +174,6 @@ process gcta_intervals_maps {
     publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*_inbred.tsv"
     publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*_loco.tsv" 
 
-
     input:
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
         val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco), file(find_aggregate_intervals_maps)
@@ -182,10 +181,10 @@ process gcta_intervals_maps {
     output:
         tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), emit: maps_to_plot
         path "*AGGREGATE_qtl_region_inbred.tsv", emit: qtl_peaks_inbred
-        tuple file("*AGGREGATE_mapping_inbred.tsv"), val(TRAIT), emit: for_html_inbred
+        tuple file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html
 
         path "*AGGREGATE_qtl_region_loco.tsv", emit: qtl_peaks_loco
-        tuple file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html_loco
+       //  tuple val('loco'), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html_loco
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_aggregate_intervals_maps} > Find_Aggregate_Intervals_Maps
