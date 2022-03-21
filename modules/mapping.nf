@@ -101,8 +101,8 @@ process gcta_lmm_exact_mapping {
     // machineType 'n1-highmem-4'
     label "xl"
 
-    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*fastGWA", overwrite: true
-    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
+    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*pca.fastGWA", overwrite: true
+    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*pca.loco.mlma", overwrite: true
 
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
@@ -111,7 +111,7 @@ process gcta_lmm_exact_mapping {
     file(h2_inbred), file(h2log_inbred)
 
     output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact_pca.loco.mlma")
 
 
     """
