@@ -19,6 +19,7 @@ module purge
 module load python/anaconda3.6
 source activate nf20_env
 module add singularity
+cp ../test_template.sh .
 
 # step 0: print out git commit
 git status > git.log
