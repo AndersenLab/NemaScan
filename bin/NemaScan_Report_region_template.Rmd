@@ -7,7 +7,7 @@ Fine mapping was performed by evaluating the genotype-phenotype relationship for
 
 ```{r, out.width = '100%', fig.height = 6}
 # read in genes in region and pval
-genes_in_region <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes.tsv"))
+genes_in_region <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes_{stringr::str_to_lower(alg)}.tsv"))
     
 gene_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
@@ -64,12 +64,14 @@ gene_plot <- ggplot(gene_df) +
 
 # plotly::ggplotly(gene_plot, tooltip = c("plotly_label_gene_name", "plotly_label_gene_ID", "plotly_label_variant")) %>% plotly::toWebGL()
 
-# if finemap region is too large, don't plot plotly
+# if finemap region is too large, don't plot plotly and don't plot next finemap plot
 if(QTL_end - QTL_start < 5e6) {
   plotly::ggplotly(gene_plot, tooltip = "text")
+  finemap2 <- TRUE
 } else {
   print("Region too large for interactive plot:")
   print(gene_plot)
+  finemap2 <- FALSE
 }
 
     
@@ -81,18 +83,18 @@ if(QTL_end - QTL_start < 5e6) {
 
 ```
 
-```{r, out.width = '100%', fig.height = 6, eval = F}
+```{r, out.width = '100%', fig.height = 6, eval = finemap2}
 
 # skip this for now, plot not necessary and it takes up lots of memory running
 
-finemap <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.fastGWA")) %>%
+finemap <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.{stringr::str_to_lower(alg)}.fastGWA")) %>%
   dplyr::mutate(CHR = as.factor(CHR),
                 SNP = as.factor(SNP),
                 POS = as.numeric(POS),
                 AF1 = as.numeric(AF1),
                 P = as.numeric(P))
-ROI.geno.matrix <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix.tsv"))
-ROI.LD <- data.table::fread(glue::glue("Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD.tsv"))
+ROI.geno.matrix <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
+ROI.LD <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD_{stringr::str_to_lower(alg)}.tsv"))
 
 peakp <- unique(ROI.LD$BP_A)
 
@@ -182,7 +184,7 @@ Mediation analysis was performed to analyze if gene expression variation is sign
 if(whether_mediate) {
     # plot mediation
     # plot
-    summarized_med <- readr::read_tsv(glue::glue("Mediation/file_summary/{trait_name}_mediation.tsv"))
+    summarized_med <- readr::read_tsv(glue::glue("{alg}/Mediation/{trait_name}_mediation_{stringr::str_to_lower(alg)}.tsv"))
 
     medprop_all <- summarized_med %>% 
       dplyr::mutate(e_peak=as.numeric(e_peak),
@@ -246,13 +248,15 @@ if(whether_mediate) {
 ```{r, out.width = '100%', fig.height=30, fig.width=20, eval = div}
 
 # genome bin table
-all_QTL_bins <- read.delim("Divergent_and_haplotype/all_QTL_bins.bed", header=FALSE, stringsAsFactors=FALSE)%>%
+all_QTL_bins <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed"), 
+                           header=FALSE, stringsAsFactors=FALSE)%>%
   dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end )
 
 # if any of user supplied strains have divergent region with the QTL region
-if (file.info("Divergent_and_haplotype/all_QTL_div.bed")$size!=0) {
+if (file.info(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"))$size!=0) {
   
-  all_QTL_div <- read.delim("Divergent_and_haplotype/all_QTL_div.bed", header=FALSE, stringsAsFactors=FALSE) %>%
+  all_QTL_div <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"), 
+                            header=FALSE, stringsAsFactors=FALSE) %>%
     dplyr::filter(V4 %in% unique(processed_mapping$strain)) %>%
     dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end ) %>%
     dplyr::mutate(length = (V3 - V2)/1000) %>%
@@ -349,7 +353,8 @@ split_by_div = FALSE
 ```{r, fig.height=30, fig.width=20, eval = div}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
-haplotype_in_QTL_region <- read.delim("Divergent_and_haplotype/haplotype_in_QTL_region.txt", header=FALSE, stringsAsFactors=FALSE) %>% 
+haplotype_in_QTL_region <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt"), 
+                                      header=FALSE, stringsAsFactors=FALSE) %>% 
     dplyr::select(-V12)
 
 names(haplotype_in_QTL_region) <- c("chromosome", "start", "stop", "haplotype", "isotype", "plotpoint", "segment", "color", "Chrom", "Region_start", "Region_end")
@@ -483,6 +488,7 @@ cat("  \n")
 ```{r, eval=split_by_div}
 
 nested.pxg.dat <- processed_mapping %>%
+    dplyr::filter(algorithm == alg) %>%
     dplyr::filter(!is.na(peak_id)) %>%
     dplyr::select(CHROM, marker, trait, startPOS, peakPOS, endPOS, AF1, value, strain, allele, peak_id) %>%
     dplyr::distinct() %>%
