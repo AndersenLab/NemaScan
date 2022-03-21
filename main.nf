@@ -551,7 +551,7 @@ workflow {
                     .join(prep_ld_files.out.finemap_LD, by: [0,1], remainder: true) | html_report_main // more finemap data prep
             }
         }
-    }
+    
     } else if(params.annotate) {
 
         // what does annotate do?? just this one process?
@@ -632,6 +632,7 @@ workflow {
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO.R")) | get_gcta_intervals
      
     
+    }
 }
 
 
