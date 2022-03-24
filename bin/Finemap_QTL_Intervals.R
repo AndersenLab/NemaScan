@@ -10,7 +10,7 @@ args <- commandArgs(trailingOnly = TRUE)
 # 2 - ROI geno matrix
 # 3 - ld file
 
-save_name <- gsub(".LD.tsv", "", args[3])
+save_name <- gsub(glue::glue(".LD_{args[4]}.tsv"), "", args[3])
 finemap <- data.table::fread(args[1]) %>%
   dplyr::mutate(CHR = as.factor(CHR),
                 SNP = as.factor(SNP),
@@ -43,7 +43,7 @@ pr_roi_ld <- ROI.LD %>%
   dplyr::left_join(finemap,., by = "SNP") %>%
   dplyr::left_join(.,roi_genotype)
 
-readr::write_tsv(pr_roi_ld, path = glue::glue("{save_name}.prLD_df.tsv"))
+readr::write_tsv(pr_roi_ld, file = glue::glue("{save_name}.prLD_df_{args[4]}.tsv"))
 
 peak_roi_marker <- dplyr::filter(pr_roi_ld, POS == peakp)
 
@@ -57,6 +57,6 @@ ld_plot <- ggplot(pr_roi_ld, mapping = aes(x = POS/1000000, y = as.numeric(-log(
   labs(x = "Genomic Position (Mb)",
        y = expression(-log[10](italic(p))))
 
-ggsave(ld_plot, filename = glue::glue("{save_name}_finemap_plot.pdf"),
+ggsave(ld_plot, filename = glue::glue("{save_name}_finemap_plot_{args[4]}.pdf"),
        height = 4,
        width = 12)

@@ -124,7 +124,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
         }
 
 write_tsv(tidy_genes_in_region,
-          path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes.tsv"))
+          file = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
@@ -208,7 +208,7 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
     
     ggsave(gene_plot,
-           filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}.pdf"),
+           filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}_{args[5]}.pdf"),
            height=10, width = 14)
 }
 

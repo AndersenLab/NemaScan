@@ -7,4 +7,6 @@
 #SBATCH -n 4
 #SBATCH --mem=16G
 
-nextflow run ../main.nf ${1}
+mkdir ${1}
+cd ${1}
+nextflow run ../../main.nf ${2}

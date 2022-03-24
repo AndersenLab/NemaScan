@@ -28,7 +28,7 @@ if ( nrow(ld_snps) > 1 ) {
   ldcalc <- t(genetics::LD(test)[[4]])^2
   diag(ldcalc) <- 1
   
-  write.table(ldcalc, paste0(TRAIT, "_LD_between_QTL_regions.tsv"), quote=F, row.names = T, col.names = NA, sep="\t")
+  write.table(ldcalc, paste0(TRAIT, "_LD_between_QTL_regions_", args[4], ".tsv"), quote=F, row.names = T, col.names = NA, sep="\t")
   
   ldcalc %>%
     as.data.frame() %>%
@@ -46,5 +46,5 @@ if ( nrow(ld_snps) > 1 ) {
           axis.text = element_text(colour = "black")) + 
     labs(title = paste0("Linkage Disequilibrium: ",TRAIT))
   
-    ggsave(filename = paste0(TRAIT,"_LD.plot.png"), width = 7, height = 7)
+    ggsave(filename = paste0(TRAIT,"_LD.plot_", args[4], ".png"), width = 7, height = 7)
 }
