@@ -281,7 +281,6 @@ log.info "Species                                 = ${params.species}"
 log.info ""
 log.info "VCF                                     = ${params.vcf}"
 log.info "Impute VCF                              = ${impute_file}"
-log.info "GCTA algorithm                          = ${params.algorithm}"
 log.info ""
 log.info "Significance Threshold                  = ${params.sthresh}"
 log.info "Result Directory                        = ${params.out}"
@@ -491,13 +490,11 @@ workflow {
                         .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
                         .join(prep_ld_files.out.finemap_LD_loco, remainder: true)
                         .join(summary_mediation.out.final_mediation_inbred, remainder: true)
-                        .join(summary_mediation.out.final_mediation_loco, remainder: true).view() | html_report_main // more finemap data prep
+                        .join(summary_mediation.out.final_mediation_loco, remainder: true) | html_report_main // more finemap data prep
                 } else {
                     // generate main html report
                     peaks_inbred
-                        .combine(Channel.from("inbred"))
-                        .mix(peaks_loco
-                            .combine(Channel.from("loco")))
+                        .combine(peaks_loco)
                         .combine(traits_to_map) // trait names)
                         .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
                         .combine(collect_eigen_variants.out) // independent tests
@@ -506,40 +503,20 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
-                        .combine(Channel.from("${params.algorithm}"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
-                        .combine(divergent_and_haplotype.out, by: 1) //divergent region and haplotype
-                        .join(gcta_intervals_maps.out.for_html_inbred
-                            .mix(gcta_intervals_maps.out.for_html_loco), by: [0,2]) // processed mapping data
-                        .join(gcta_fine_maps.out.finemap_html_inbred
-                            .mix(gcta_fine_maps.out.finemap_html_loco), by: [0,1], remainder: true) // fine mapping data
-                        .join(prep_ld_files.out.finemap_LD, by: [0,1], remainder: true) | html_report_main // more finemap data prep
+                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)
+                        .combine(divergent_and_haplotype.out.div_hap_table_loco)
+                        .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
+                        .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
+                        .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
+                        .join(prep_ld_files.out.finemap_LD_loco, remainder: true)  | html_report_main
                 }  
             } else {
                 // generate main html report
-                peaks // QTL peaks (all traits)
-                    .combine(traits_to_map) // trait names
-                    .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-                    .combine(collect_eigen_variants.out) // independent tests
-                    .combine(vcf_to_geno_matrix.out) // genotype matrix
-                    .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
-                    .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
-                    .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
-                    .combine(Channel.from("${params.algorithm}"))
-                    .combine(Channel.from(med)) // true or false - plot mediaton?
-                    .combine(Channel.from("${params.species}"))
-                    // don't have divergent files, so make them fake lol
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .join(gcta_intervals_maps.out.for_html, by: 1) // processed mapping data
-                    .join(gcta_fine_maps.out.finemap_html, remainder: true) // fine mapping data 
-                    .join(prep_ld_files.out.finemap_LD, remainder: true)| html_report_main // more finemap data prep 
-
                 peaks_inbred
-                    .combine(Channel.from("inbred"))
-                    .mix(peaks_loco
-                        .combine(Channel.from("loco")))
+                    .combine(peaks_loco)
                     .combine(traits_to_map) // trait names)
                     .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
                     .combine(collect_eigen_variants.out) // independent tests
@@ -548,17 +525,19 @@ workflow {
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
-                    .combine(Channel.from("${params.algorithm}"))
                     .combine(Channel.from(med)) // true or false - plot mediaton?
                     .combine(Channel.from("${params.species}"))
                     // don't have divergent files, so make them fake lol
                     .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
                     .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .join(gcta_intervals_maps.out.for_html_inbred
-                        .mix(gcta_intervals_maps.out.for_html_loco), by: [0,2]) // processed mapping data
-                    .join(gcta_fine_maps.out.finemap_html_inbred
-                        .mix(gcta_fine_maps.out.finemap_html_loco), by: [0,1], remainder: true) // fine mapping data
-                    .join(prep_ld_files.out.finemap_LD, by: [0,1], remainder: true) | html_report_main // more finemap data prep
+                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
+                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
+                    .combine(Channel.from("${params.species}"))
+                    .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
+                    .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
+                    .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
+                    .join(prep_ld_files.out.finemap_LD_loco, remainder: true) | html_report_main // more finemap data prep
             }
         }
     

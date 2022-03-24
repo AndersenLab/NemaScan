@@ -241,11 +241,16 @@ if(whether_mediate) {
     print("Mediation was not performed for this analysis.")
 }
 
+```
 
+```{r, eval = !whether_mediate}
 
+print(glue::glue("Mediation was not performed for {species}"))
 
 ```
 
+<br>
+<br>
 
 #### Divergent regions
 
@@ -338,7 +343,8 @@ ref_alt_div %>%
           axis.text.y = element_text(size = 10),
           axis.title = element_text(size = 30, face = "bold"),
           axis.ticks.y = element_blank(),
-          panel.grid = element_blank()) +
+          panel.grid = element_blank(),
+          legend.text = element_text(size = 20)) +
   scale_color_manual(values = c("1" = "indianred1","0" = "grey90","-1" = "dodgerblue3"), 
                      labels = c("Divergent from N2", "Not divergent", "No Divergent Data"),
                      name = "") +
@@ -347,7 +353,6 @@ ref_alt_div %>%
   labs(x = "Genomic position (Mb)", y = "Strain")
 
 ```
-
 
 ```{r, eval = !div}
 
@@ -430,7 +435,6 @@ print(plot)
 
 The following plot shows the genome-wide haplotype (genetic relatedness) of mapped strains split by REF or ALT genotype. This plot can be useful to help identify how many unique haplotypes are present in the REF or ALT groups. If you want to choose parent strains for a NIL cross to validate this QTL, you might want to choose strains in the major haplotype of the REF/ALT groups that also have distinct phenotypes.
 
-<br>
 ```{r, fig.height=20, fig.width=20, eval = div}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
@@ -553,8 +557,6 @@ print(p1)
 
 # ggplotly(p1) # cannot get the grid panel size to maintain the scale. to be fixed.
 ```
-<br>
-<br>
 
 ```{r, eval = !div}
 
@@ -562,6 +564,4 @@ print(glue::glue("Haplotypes not yet calculated for {species}"))
 
 ```
 
-
-
-
+<br>
