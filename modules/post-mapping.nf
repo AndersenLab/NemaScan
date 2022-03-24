@@ -245,8 +245,8 @@ process divergent_and_haplotype {
     tuple file("QTL_peaks.tsv"), val(algorithm), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
   output:
-    tuple file("all_QTL_bins_*.bed"), file("all_QTL_div_*.bed"), file("haplotype_in_QTL_region_*.txt"), file("div_isotype_list2_*.txt")
-    // tuple file("all_QTL_bins_loco.bed"), val(algorithm), file("all_QTL_div_loco.bed"), file("haplotype_in_QTL_region_loco.txt"), file("div_isotype_list2_loco.txt"), emit: div_hap_table_loco, optional: true 
+    tuple file("all_QTL_bins_inbred.bed"), file("all_QTL_div_inbred.bed"), file("haplotype_in_QTL_region_inbred.txt"), file("div_isotype_list2_inbred.txt"), emit: div_hap_table_inbred, optional: true 
+    tuple file("all_QTL_bins_loco.bed"), val(algorithm), file("all_QTL_div_loco.bed"), file("haplotype_in_QTL_region_loco.txt"), file("div_isotype_list2_loco.txt"), emit: div_hap_table_loco, optional: true 
 
   """
   awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$5,\$7}' > QTL_region_${algorithm}.bed
@@ -274,7 +274,7 @@ process html_report_main {
   // there is no way this will work for every trait... UGH
     tuple val(TRAIT), file(qtl_peaks_inbred), file(qtl_peaks_loco), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
     file(ns_report_template_md), file(render_markdown), file(ns_report_alg), val(mediate), val(species), file(qtl_bins_inbred), file(qtl_div_inbred), \
-    file(haplotype_qtl_inbred), file(div_isotype_inbred), file(qtl_bins_loco), file(qtl_div_loco),file(haplotype_qtl_loco), file(div_isotype_loco),  \
+    file(haplotype_qtl_inbred), file(div_isotype_inbred), file(qtl_bins_loco), val(algorithm), file(qtl_div_loco),file(haplotype_qtl_loco), file(div_isotype_loco),  \
     file(pmap_inbred), file(pmap_loco), file(fastGWA_inbred), file(prLD_inbred), file(bcsq_genes_inbred), file(fastGWA_loco), file(prLD_loco), file(bcsq_genes_loco), \
     file(roi_geno_inbred), file(roi_ld_inbred), file(roi_geno_loco), file(roi_ld_loco),\
     file(mediation_summary_inbred), file(mediation_summary_loco)

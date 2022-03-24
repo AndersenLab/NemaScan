@@ -410,17 +410,26 @@ workflow {
                  .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                  .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
-            peaks_inbred
-                .splitCsv(sep: '\t', skip: 1)
-                .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-                .combine(Channel.from("inbred"))
-                .mix(peaks_loco
-                    .splitCsv(sep: '\t', skip: 1)
-                    .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-                    .combine(Channel.from("loco")))
-                .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
-                .combine(simple_mediation.out.collect().toList())
-                .combine(multi_mediation.out.result_multi_mediate.collect().toList())  | summary_mediation
+            // peaks_inbred
+            //     .splitCsv(sep: '\t', skip: 1)
+            //     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+            //     .combine(Channel.from("inbred"))
+            //     .mix(peaks_loco
+            //         .splitCsv(sep: '\t', skip: 1)
+            //         .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+            //         .combine(Channel.from("loco")))
+
+            multi_mediation.out.result_multi_mediate
+                .groupTuple(by: [0,1])
+                .join(simple_mediation.out.groupTuple(by: [0,1]), by: [0,1], remainder: true)
+                .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R")) | summary_mediation
+
+
+
+            // traits_to_mediate
+            //     .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
+            //     .combine(simple_mediation.out.collect().toList())
+            //     .combine(multi_mediation.out.result_multi_mediate.collect().toList()).view()  | summary_mediation
 
         }
 
@@ -474,14 +483,15 @@ workflow {
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
                         .combine(Channel.from(med)) // true or false - plot mediaton?
                         .combine(Channel.from("${params.species}"))
-                        .combine(divergent_and_haplotype.out.collect()) //divergent region and haplotype
+                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)
+                        .combine(divergent_and_haplotype.out.div_hap_table_loco)
                         .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
                         .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
                         .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
                         .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
                         .join(prep_ld_files.out.finemap_LD_loco, remainder: true)
                         .join(summary_mediation.out.final_mediation_inbred, remainder: true)
-                        .join(summary_mediation.out.final_mediation_loco, remainder: true) | html_report_main // more finemap data prep
+                        .join(summary_mediation.out.final_mediation_loco, remainder: true).view() | html_report_main // more finemap data prep
                 } else {
                     // generate main html report
                     peaks_inbred

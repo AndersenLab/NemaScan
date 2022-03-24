@@ -71,7 +71,12 @@ DT::datatable(QTL_peaks_original)
 <br>
 <br>
 
-## Phenotype by Genotype Split
+### Phenotype by Genotype Split
+
+For each detected QTL, we can observe the phenotypes of the strains with the reference (REF) allele (i.e. same genotype as N2) compared to the phenotypes of the strains with the alternative (ALT) allele (i.e. genotype different than N2). A QTL is defined as a region where genetic variation is correlated with phenotypic variation, so we expect to see a difference in phenotype between the REF and ALT groups. In a best-case scenario, we like to see a large split between REF and ALT and a good number of strains in both groups. It is also important to ensure that the mean phenotype of neither group is driven by a small number of outlier strains. 
+
+*A few select strains are highlighted due to their use in Andersen Lab dose response assays*
+
 ```{r, eval=whether_plot_pxg}
 
 
@@ -99,18 +104,19 @@ nested.pxg.dat <- processed_mapping %>%
                                             allele == "1" ~ "ALT",
                                             TRUE ~ "NA"),
                   allele = factor(allele, levels = c("REF", "ALT")))
+
+# this code isn't working as expected when multiple QTL... lets just keep colors the same 
+# CB.N2.code <- nested.pxg.dat %>%
+#     dplyr::select(strain, allele) %>%
+#     dplyr::distinct() %>%
+#     dplyr::filter(strain %in% c("CB4856","N2","PD1074")) %>%
+#     droplevels()
     
-CB.N2.code <- nested.pxg.dat %>%
-    dplyr::select(strain, allele) %>%
-    dplyr::distinct() %>%
-    dplyr::filter(strain %in% c("CB4856","N2","PD1074")) %>%
-    droplevels()
-    
-if(length(levels(CB.N2.code$allele)) < 2){
+# if(length(levels(CB.N2.code$allele)) < 2){
   pal <- c("#726E75","#720E07")
-} else {
-  pal <- c("#FFA500","#0000ff")
-}
+# } else {
+#   pal <- c("#FFA500","#0000ff")
+# }
 
 strains.of.interest <- c("PD1074", "N2", "CB4856", "RC301", "MY16", 
                              "ECA396", "ECA36", "XZ1516", "ECA248", "AB1", 
@@ -152,7 +158,10 @@ print(plot)
 
 ```
 
-## Linkage disequilibrium (LD) between QTL
+### Linkage disequilibrium
+
+If your trait has multiple QTL, we calculate linkage disequilibrium (LD) between them. This is useful because sometimes we find that one strong QTL might be linked to a secondary QTL (even if it exists on another chromosome). If this is the case, the secondary QTL might not contain a true causal variant, thus it is important to check this before narrowing the QTL experimentally.
+
 ```{r, eval = whether_plot_LD}
 
 gm <- read.table("Genotype_Matrix/Genotype_Matrix.tsv", header = T)
@@ -208,8 +217,7 @@ print("Not enough QTL regions to calculate linkage")
 <br>
 <br>
 
-## Divergent region, haplotype, fine mapping, and mediation for each significant QTL region 
-Only for regions less than 5 Mb in size
+### QTL region details
 
 ```{r}
 # evaluate this always
