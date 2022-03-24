@@ -43,7 +43,7 @@ process multi_mediation {
 
 
     output:
-        path "${TRAIT}_${tch}_${tpeak}_medmulti_${algorithm}.tsv", emit: result_multi_mediate optional true
+        tuple val(TRAIT), val(algorithm), path("${TRAIT}_${tch}_${tpeak}_medmulti_${algorithm}.tsv"), emit: result_multi_mediate optional true
         path "${TRAIT}_${tch}_${tpeak}_elist_${algorithm}.tsv", emit: eQTL_gene optional true
         // val 'algorithm', emit: med_alg
 
@@ -67,7 +67,7 @@ process simple_mediation {
         tuple val(TRAIT),val(tch),val(tpeak), val(algorithm), val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression), file(simple_mediation)
 
     output:
-        file("${TRAIT}_${tch}_${tpeak}_${gene}_med_${algorithm}.tsv") 
+        tuple val(TRAIT), val(algorithm), file("${TRAIT}_${tch}_${tpeak}_${gene}_med_${algorithm}.tsv") 
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${simple_mediation} > simple_mediation_file 
@@ -89,14 +89,15 @@ process summary_mediation {
     publishDir "${params.out}/LOCO/Mediation", mode: 'copy', pattern: "*plot_loco.png"
 
     input:
-     tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), val(algorithm), \
-     file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
+        tuple val(TRAIT), val(algorithm), file("*"), file("*"), file(summary_mediation)
+    //  tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), val(algorithm), \
+    //  file(summary_mediation), file("*"), file("*")//file("*_medmulti.tsv"), file("*_med.tsv")
 
 
     output:
         tuple val(TRAIT), file("${TRAIT}_mediation_inbred.tsv"), emit: final_mediation_inbred, optional: true
         tuple val(TRAIT), file("${TRAIT}_mediation_loco.tsv"), emit: final_mediation_loco, optional: true
-        file("*plot_${algorithm}.png") optional true
+        file("*plot_*.png") optional true
 
 
     """
@@ -105,6 +106,6 @@ process summary_mediation {
 
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summary_mediation} > summary_mediation_file 
     Rscript --vanilla summary_mediation_file ${TRAIT}_multi_mediation_analysis_${algorithm}.tsv ${TRAIT}_indiv_mediation_analysis_${algorithm}.tsv ${TRAIT} ${algorithm}
-
+    
     """
 }

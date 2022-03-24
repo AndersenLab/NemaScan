@@ -92,11 +92,11 @@ whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
 
 This analysis was run using two algorithms from GCTA: INBRED and LOCO. XXX (Insert text explaining the differences between the algorithms and link to sam's nemascan paper as well as gcta paper for more info)
 
-* #### Every dot is a SNV marker.
+* **Every dot is a SNV marker.**
 
-* #### SNVs are colored red if they pass the genome-wide corrected significance threshold:
-    * The horizontal solid line corresponds to Bonferroni (BF) threshold
-    * The horizontal dash line corresponds to EIGEN threshold (see below), which corrects for the number of independent markers in your data set.
+* **SNVs are colored red if they pass the genome-wide corrected significance threshold:**
+    * The horizontal solid line corresponds to stricter Bonferroni (BF) threshold which is based on the number of markers in the analysis.
+    * The horizontal dash line corresponds to more permissive EIGEN threshold, which corrects for the number of independent markers in your data set. This threshold takes advantage of the extensive LD in *C. elegans* to limit the number of "unique" markers. (See Zdraljevic *et al*. 2019 (PMID: 30958264) for more)
     * If you selected a custom threshold, only this threshold is shown as a dotted line.
 
 ```{r, fig.height=6, fig.width=12}
@@ -197,10 +197,22 @@ man.plot <- ggplot() +
 
 # show plot in html output
 man.plot
+
+# plot all peaks
+peaks <- processed_mapping %>%
+    na.omit() %>%
+    dplyr::select(CHROM, marker, log10p, trait, startPOS, peakPOS, endPOS, algorithm)%>%
+    dplyr::distinct()  %>%
+    dplyr::arrange(algorithm, marker)
+
+DT::datatable(peaks)
+
+
 ```
 
 
-### QQ-plots to help decide between INBRED and LOCO GWA algorithms
+## QQ-plots to help decide between INBRED and LOCO GWA algorithms
+
 XXX (Insert text here to talk about how to interpret the plot)
 
 ```{r, fig.height=6, fig.width=12}
@@ -226,14 +238,18 @@ exp_loco <- expected.P.val.dists(processed_mapping_loco %>% dplyr::distinct(mark
 
 qq_plot <- exp_inbred %>%
   dplyr::bind_rows(exp_loco) %>%
-  dplyr::mutate(significant = ifelse(-log10(P) >= BF.frame$user, "yes", "no")) %>% 
+  dplyr::mutate(significant = ifelse(-log10(P) >= BF.frame$user, "yes", "no")) %>%
+  dplyr::mutate(col = dplyr::case_when(algorithm == "INBRED" & significant == "yes" ~ "INBRED-significant",
+                                       algorithm == "INBRED" & significant == "no" ~ "INBRED",
+                                       algorithm == "LOCO" & significant == "yes" ~ "LOCO-significant",
+                                       algorithm == "LOCO" & significant == "no" ~ "LOCO",
+                                       TRUE ~ "NA")) %>%
   dplyr::filter(CHROM != "MtDNA") %>%
   ggplot2::ggplot(.) +
-  ggplot2::aes(x = -log10(exp.P), y = -log10(P), fill = algorithm, color = significant) +
+  ggplot2::aes(x = -log10(exp.P), y = -log10(P), color = col) +
   ggplot2::geom_abline(slope = 1) +
-  ggplot2::geom_point(shape = 21) +
-  ggplot2::scale_fill_manual(values = c("LOCO" = "white", "INBRED" = "black")) +
-  ggplot2::scale_color_manual(values = c("yes" = "red", "no" = "black")) +
+  ggplot2::geom_point() +
+  ggplot2::scale_color_manual(values = c("LOCO" = "darkslateblue", "INBRED" = "skyblue2", "LOCO-significant" = "red", "INBRED-significant" = "pink2")) +
   ggplot2::facet_grid(. ~ factor(CHROM)) +
   ggplot2::theme_bw() +
   ggplot2::labs(x = expression(-log[10](italic(p[expected]))), 
@@ -258,15 +274,30 @@ calc.genomic.inflation <- function(x,y){
 
 ```
 
-The genomic inflation is `r calc.genomic.inflation(exp_inbred, trait_name)$GIF[1]` for the INBRED algorithm and `r calc.genomic.inflation(exp_loco, trait_name)$GIF[1]` for LOCO. XXX (Explain what this means)
+**The genomic inflation is `r calc.genomic.inflation(exp_inbred, trait_name)$GIF[1]` for the INBRED algorithm and `r calc.genomic.inflation(exp_loco, trait_name)$GIF[1]` for LOCO. XXX (Explain what this means)**
 
-The following sections of the report are shown for both the INBRED and LOCO parameters. It is recommended you choose one based on the previous plots. This could be different between different traits.
+*The following sections of the report are shown for both the INBRED and LOCO parameters. It is recommended you choose one based on the previous plots. This could be different between different traits.*
 
-# INBRED
+---
+
+## INBRED
 
 This is the default parameter. XXX (more here)
 
 ```{r}
+
+inbred <- NULL
+
+if(nrow(peaks %>% dplyr::filter(algorithm == "INBRED")) > 0) {
+    run_inbred <- TRUE
+} else {
+    run_inbred <- FALSE
+}
+
+
+```
+
+```{r, eval = run_inbred}
 
 alg <- "INBRED"
 inbred <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')
@@ -275,16 +306,34 @@ inbred <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')
 
 `r if(!is.null(inbred)) { paste(knitr::knit(text = inbred), collapse = '\\n') }`
 
+```{r, eval = !run_inbred}
+
+print("No QTL were identified with the INBRED algorithm.")
+
+```
 
 <br>
 
+---
 
-# LOCO
+## LOCO
 
-For some traits, LOCO is better because it ignore structure on the chromosome of the main QTL, allowing for higher power to detect linked QTL. However, this higher power also comes with higher false positive rates. For more info, check out this paper. XXX (more here)
-
+For some traits, LOCO might provide more power to detect true QTL because it ignores genomic structure on the chromosome of the main QTL, allowing for higher power to detect linked QTL or QTL within divergent regions. However, this higher power also comes with higher false positive rates. For more info, check out this paper. XXX (more here)
 
 ```{r}
+
+loco <- NULL
+
+if(nrow(peaks %>% dplyr::filter(algorithm == "LOCO")) > 0) {
+    run_loco <- TRUE
+} else {
+    run_loco <- FALSE
+}
+
+
+```
+
+```{r, eval = run_loco}
 
 alg <- "LOCO"
 loco <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')
@@ -294,8 +343,14 @@ loco <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')
 
 `r if(!is.null(loco)) { paste(knitr::knit(text = loco), collapse = '\\n') }`
 
+```{r, eval = !run_loco}
+
+print("No QTL were identified with the LOCO algorithm.")
+
+```
 
 ## Please kindly cite the following publications
+* Widmayer SJ, Evans KS, Zdraljevic S, and Andersen EC (2021) Evaluating the power and limitations of genome-wide association mapping in C. elegans. bioRxiv 2021.09.09.459688.
 * Lee D, Zdraljevic S, Stevens L, Wang Y, Tanny RE, Crombie TA, Cook DE, Webster AK, Chirakar R, Baugh LR, Sterken M, Braendle C, Felix M-A, Rockman MV, and Andersen EC (2020) Balancing selection maintains ancient genetic diversity in C. elegans. Nature Ecology and Evolution, 2021 Apr 5; DOI: 10.1038/s41559-021-01435-x.
 * Zdraljevic S, Fox BW, Strand C, Panda O, Tenjo-Castano FJ, Brady SC, Crombie TA, Doench JG,  Schroeder FC, and Andersen EC (2019) Natural variation in arsenic toxicity is explained by differences in branched chain amino acid catabolism eLife, Apr 8;8: e40260.
 * Cook DE, Zdraljevic S, Roberts JP, Andersen EC (2016) CeNDR, the Caenorhabditis elegans Natural Diversity Resource. Nucleic Acids Research, Jan 4; 45(D1):D650-D657.
