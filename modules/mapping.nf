@@ -96,12 +96,13 @@ process gcta_grm {
 }
 
 
-process gcta_lmm_exact_mapping_inbred {
+process gcta_lmm_exact_mapping {
 
     // machineType 'n1-highmem-4'
     label "xl"
 
-    publishDir "${params.out}/Mapping/Raw", pattern: "*fastGWA", overwrite: true
+    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*pca.fastGWA", overwrite: true
+    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*pca.loco.mlma", overwrite: true
 
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
@@ -110,7 +111,7 @@ process gcta_lmm_exact_mapping_inbred {
     file(h2_inbred), file(h2log_inbred)
 
     output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact_pca.loco.mlma")
 
 
     """
@@ -137,6 +138,7 @@ process gcta_lmm_exact_mapping_inbred {
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num 5
+
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
@@ -162,77 +164,6 @@ process gcta_lmm_exact_mapping_inbred {
            --thread-num 5
     """
 }
-
-process gcta_lmm_exact_mapping_loco {
-
-    // machineType 'n1-highmem-4'
-    label "xl"
-
-    publishDir "${params.out}/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
-
-    // why?
-    // errorStrategy 'ignore'
-
-    input:
-    tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
-    file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
-    file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), \
-    file(h2_inbred), file(h2log_inbred)
-
-    output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact.loco.mlma")
-
-
-    """
-    gcta64 --grm ${TRAIT}_gcta_grm \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm \\
-           --pca 1 \\
-           --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm.eigenvec \\
-           --out ${TRAIT}_lmm-exact_pca \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --pca 1 \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm_inbred.eigenvec \\
-           --out ${TRAIT}_lmm-exact_inbred_pca \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num 5
-    """
-}
-
 
 
 process gcta_intervals_maps {
@@ -240,22 +171,25 @@ process gcta_intervals_maps {
     // machineType 'n1-highmem-8'
     label "highmem"
 
-    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_mapping*.tsv"
-    publishDir "${params.out}/Mapping/Processed", mode: 'copy', pattern: "*AGGREGATE_qtl_region*.tsv" //would be nice to put all these files per trait into one file
-
+    publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*_inbred.tsv"
+    publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*_loco.tsv" 
 
     input:
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
-        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact), file(find_aggregate_intervals_maps), val(algorithm)
+        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco), file(find_aggregate_intervals_maps)
 
     output:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping*.tsv"), emit: maps_to_plot
-        path "*AGGREGATE_qtl_region*.tsv", emit: qtl_peaks
-        tuple file("*AGGREGATE_mapping*.tsv"), val(TRAIT), emit: for_html
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), emit: maps_to_plot
+        path "*AGGREGATE_qtl_region_inbred.tsv", emit: qtl_peaks_inbred
+        tuple file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html
+
+        path "*AGGREGATE_qtl_region_loco.tsv", emit: qtl_peaks_loco
+       //  tuple val('loco'), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html_loco
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_aggregate_intervals_maps} > Find_Aggregate_Intervals_Maps
-    Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} ${lmmexact} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE ${algorithm}
+    Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE inbred
+    Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE loco
     """
 }
 

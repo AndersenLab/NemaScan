@@ -18,7 +18,7 @@ phenotype_data <- readr::read_tsv(args[2]) %>%
 
 # save mapping data set
 readr::write_tsv(phenotype_data, 
-                 path = glue::glue("{gtrait}_scaled_mapping.tsv"),
+                 path = glue::glue("{gtrait}_scaled_mapping_{args[8]}.tsv"),
                  col_names = T)
 
 
@@ -42,7 +42,7 @@ gene_qtl <- eqtl_transcript %>%
 
 # save mapping data set
 readr::write_tsv(gene_qtl, 
-                 path = glue::glue("{gtrait}_{gwas_pchr}_{gwas_p}_eqtl.tsv"),
+                 path = glue::glue("{gtrait}_{gwas_pchr}_{gwas_p}_eqtl_{args[8]}.tsv"),
                  col_names = T)
 
  
