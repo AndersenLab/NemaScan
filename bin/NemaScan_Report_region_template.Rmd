@@ -334,7 +334,7 @@ if (nrow(dplyr::filter(ref_alt_div, div == 1)) > nrow(ref_alt_div)/20 ) {
 ref_alt_div %>%
   dplyr::left_join(ref_alt) %>%
   ggplot2::ggplot(.) +
-  aes(x = start, xend = end, yend = strain, y = strain) +
+  aes(x = start/1e6, xend = end/1e6, yend = strain, y = strain) +
   ggplot2::geom_segment(aes(color = as.character(div)), size = 2) +
   theme_bw(12) +
   ggplot2::theme(panel.spacing = unit(1, "lines"),
@@ -349,7 +349,7 @@ ref_alt_div %>%
                      labels = c("Divergent from N2", "Not divergent", "No Divergent Data"),
                      name = "") +
   facet_grid(geno_group_count~., scales = "free_y", space = "free_y") +
-  geom_vline(xintercept = round(QTL_Peak, digits = -3), linetype = "dashed", size = 2) +
+  geom_vline(xintercept = QTL_Peak/1e6, linetype = "dashed", size = 2) +
   labs(x = "Genomic position (Mb)", y = "Strain")
 
 ```
@@ -517,22 +517,22 @@ plot_df <- plot_df %>%
 plot_df$isotype <- factor(plot_df$isotype, unique(plot_df$isotype))
 
 p1 <- ggplot2::ggplot(filter(plot_df),
-            ggplot2::aes(x = start, xend = stop,
+            ggplot2::aes(x = start/1e6, xend = stop/1e6,
                  y = isotype, yend = isotype,
                  color = haplotype)) +
     ggplot2::geom_segment(size = 3) +
     ggplot2::scale_color_manual(values = mcolor) +
     ggplot2::theme_bw() +
-    ggplot2::coord_cartesian(xlim=c(QTL_start, QTL_end)) +
+    ggplot2::coord_cartesian(xlim=c(QTL_start/1e6, QTL_end/1e6)) +
     ggplot2::theme(legend.position="none") +
-    ggplot2::geom_vline(xintercept = QTL_Peak, size = 2) +
+    ggplot2::geom_vline(xintercept = QTL_Peak/1e6, size = 2) +
     ggplot2::facet_grid(geno_group ~ ., scales = "free", space = "free") + 
     ggplot2::theme(panel.spacing = unit(1, "lines"),
                    strip.text = element_text(size = 30, face = "bold"),
                    axis.text.x = element_text(size = 30),
                    axis.text.y = element_text(size = 10),
                    axis.title = element_text(size = 30, face = "bold")) +
-    ggplot2::labs(x = "Genomic position", y = "Isotype")
+    ggplot2::labs(x = "Genomic position (Mb)", y = "Isotype")
 
 
 #ggsave(paste0("haplotype_", QTL_Chrom, ".", QTL_Region_start, ".", QTL_Region_end, ".png"), p, height = 30, width = 8)
@@ -560,7 +560,7 @@ print(p1)
 
 ```{r, eval = !div}
 
-print(glue::glue("Haplotypes not yet calculated for {species}"))
+print(glue::glue("Haplotypes not calculated."))
 
 ```
 
