@@ -13,8 +13,8 @@ gene_expression = args[1]
 
 
 # load genotype matrix
-Genotype_Matrix <- readr::read_tsv(args[2]) %>%
-  na.omit()
+Genotype_Matrix <- readr::read_tsv(args[2]) #%>%
+  # na.omit()
 
 # load expression data
  
@@ -53,12 +53,14 @@ eQTL_mediate_dQTL <- function(gwas_pchr, gwas_p, gene_exp, phenodf) {
   gwas_g <- Genotype_Matrix %>% 
     dplyr::filter(CHROM==gwas_pchr & POS == gwas_p) %>% 
     dplyr::select(-(1:4)) %>% 
-    tidyr::gather(strain,geno)
+    tidyr::gather(strain,geno) %>%
+    na.omit()
   
   # get the expression data
   
   lgmtpm_gwas <- expression_pheno %>% 
-    dplyr::filter(trait==gene_exp) %>% 
+    dplyr::filter(trait==gene_exp,
+                  strain %in% gwas_g$strain) %>% 
     tidyr::spread(trait,value) %>% 
     dplyr::rename(expression=gene_exp) %>% 
     dplyr::mutate(scale_exp = (expression - mean(expression, na.rm = T)) / sd(expression, na.rm = T)) %>% 
@@ -132,5 +134,5 @@ df2 <- df %>%
 
 # save mapping data set
 readr::write_tsv(df2, 
-                 path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_{gene_expression}_med.tsv"),
+                 path = glue::glue("{gwtrait}_{gwas_intchr}_{gwas_peak}_{gene_expression}_med_{args[9]}.tsv"),
                  col_names = T)

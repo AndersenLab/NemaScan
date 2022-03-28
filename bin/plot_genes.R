@@ -16,7 +16,8 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
                                   CHR == 3 ~ "III",
                                   CHR == 4 ~ "IV",
                                   CHR == 5 ~ "V",
-                                  CHR == 6 ~ "X")) %>%
+                                  CHR == 6 ~ "X",
+                                  CHR == 7 ~ "MtDNA")) %>%
     dplyr::mutate(marker = paste(CHR,POS,sep = "_"),
                   log10p = -log(P))
 phenotypes <- readr::read_tsv(args[2])
@@ -36,7 +37,8 @@ query_regions <- pr_trait_ld %>%
                                     CHROM == 3 ~ "III",
                                     CHROM == 4 ~ "IV",
                                     CHROM == 5 ~ "V",
-                                    CHROM == 6 ~ "X")) %>%
+                                    CHROM == 6 ~ "X",
+                                    CHROM == 7 ~ "MtDNA")) %>%
     dplyr::distinct()
 
 query_regions
@@ -124,7 +126,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
         }
 
 write_tsv(tidy_genes_in_region,
-          path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes.tsv"))
+          file = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
@@ -166,8 +168,9 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         # remove moderate and modifier - we prob won't run snpeff anyways?
         scale_color_manual(values = c("LOW" = "gray30",
                                       "HIGH" = "red",
-                                      "Intergenic" = "gray80"),
-                           breaks = c("HIGH", "LOW", "Intergenic"),
+                                      "Intergenic" = "gray80",
+                                      "Linker" = "gray80"),
+                           breaks = c("HIGH", "LOW", "Intergenic", "Linker"),
                            name = "EFFECT")+
         labs(x = "Genomic Position (Mb)",
              y = expression(-log[10](italic(p))))+
@@ -207,7 +210,7 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
     
     ggsave(gene_plot,
-           filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}.pdf"),
+           filename = glue::glue("{analysis_trait}_{cq}_{xs}-{xe}_gene_plot_{ann_type}_{args[5]}.pdf"),
            height=10, width = 14)
 }
 

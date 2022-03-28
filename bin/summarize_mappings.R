@@ -38,4 +38,4 @@ goodtraits%>%
     facet_grid(. ~ CHROM, scales = "free", space = "free")+
     ggplot2::labs(x = "Genomic Position (Mb)")
 
-ggsave("Summarized_mappings.pdf", height = 12, width = 12)
+ggsave(glue::glue("Summarized_mappings_{args[3]}.pdf"), height = 12, width = 12)
