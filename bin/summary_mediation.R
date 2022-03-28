@@ -60,7 +60,7 @@ summarized_med <- med_multi %>% left_join(med_indi) %>%
 
 # save  data set
 
-write.table(summarized_med, paste(tr,"_mediation.tsv",sep = ""), sep = "\t", row.names = F, quote = FALSE)
+write.table(summarized_med, paste(tr,"_mediation_", args[4], ".tsv",sep = ""), sep = "\t", row.names = F, quote = FALSE)
 
 # plot
 
@@ -104,7 +104,7 @@ med_detailed_plot <- ggplot(med,aes(x=e_peak/1e6,y=multi_abs_est,color=q99_media
          strip.text = element_text(size=10, color = "black")) +
   facet_grid(eQTL_classification~gwchr,scales = "free_x")
 
-ggsave(med_detailed_plot, filename = paste(tr,"_emed_detailed_plot.png",sep = ""),  units = "in",height = 10, width =  10)
+ggsave(med_detailed_plot, filename = paste(tr,"_emed_detailed_plot_", args[4], ".png",sep = ""),  units = "in",height = 10, width =  10)
 
 
 }

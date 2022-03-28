@@ -12,7 +12,9 @@ args <- commandArgs(trailingOnly = TRUE)
 #' Resolve strain names to isotypes
 resolve_isotypes <- function(...) {
     
-    isotype_lookup = data.table::fread(args[3])
+    # update 20220211 - add PD1074 as N2
+    isotype_lookup = data.table::fread(args[3]) %>%
+        dplyr::bind_rows(data.frame(strain = "PD1074", isotype = "N2"))
     strains <- unlist(list(...))
     
     purrr::map_chr(strains, function(x) {

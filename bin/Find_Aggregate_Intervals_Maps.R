@@ -41,15 +41,29 @@ phenotype_data <- data.table::fread(args[2]) %>%
   as.data.frame()
 
 # load GCTA mapping data
-map_df <- data.table::fread(args[3]) %>%
-  dplyr::rename(marker = SNP, 
-                CHROM = CHR,
-                POS = POS) %>%
-  dplyr::mutate(log10p = -log10(P))
+if(args[9] == "inbred") {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = CHR,
+                  POS = POS) %>%
+    dplyr::mutate(log10p = -log10(P)) %>%
+    dplyr::select(-N)
+} else {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = Chr,
+                  POS = bp,
+                  BETA = b,
+                  P = p,
+                  SE = se, 
+                  AF1 = Freq) %>%
+    dplyr::mutate(log10p = -log10(P))
+}
+
 
 # load genotype matrix
-genotype_matrix <- readr::read_tsv(args[1]) %>%
-  na.omit()
+genotype_matrix <- readr::read_tsv(args[1]) 
+  # na.omit()
 
 # define method for setting significance threshold
 significance_threshold <- args[7]
@@ -84,16 +98,14 @@ process_mapping_df <- function (mapping_df,
       dplyr::filter(log10p != 0) %>% 
       dplyr::mutate(BF = -log10(0.05/sum(log10p > 0, na.rm = T))) %>% 
       dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
-  } 
-  else if (is.numeric(QTL_cutoff) & thresh == "EIGEN"){
+  } else if (is.numeric(QTL_cutoff) & thresh == "EIGEN"){
     mapping_df <- mapping_df %>% 
       dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
       dplyr::group_by(trait) %>% 
       dplyr::filter(log10p != 0) %>% 
       dplyr::mutate(BF = -log10(0.05/BF)) %>% 
       dplyr::mutate(aboveBF = ifelse(log10p >= BF, 1, 0))
-  } 
-  else {
+  } else {
     mapping_df <- mapping_df %>% 
       dplyr::mutate(trait = colnames(phenotype_df)[2]) %>%
       dplyr::group_by(trait) %>% 
@@ -139,19 +151,23 @@ process_mapping_df <- function (mapping_df,
                     III = "3",
                     IV = "4",
                     V = "5",
-                    X = "6")
+                    X = "6",
+                    MtDNA = "7")
     
     gINFO <- snp_df %>% 
       dplyr::mutate(marker = paste(CHROM, POS, sep = ":")) %>%
       dplyr::filter(marker %in% snpsForVE$marker) %>% 
       tidyr::gather(strain, allele, -marker, -CHROM, -POS)
     
+    # change from left_join to full join??
     gINFO$marker <- as.character(gINFO$marker)
     gINFO <- suppressWarnings(data.frame(gINFO) %>% 
                                 dplyr::left_join(., snpsForVE, by = "marker") %>%
-                                dplyr::left_join(rawTr, ., by = c("trait", "strain", "marker")))
+                                dplyr::left_join(rawTr, ., by = c("trait", "strain", "marker"))) 
+      # na.omit() # added this
     
-    cors <- gINFO %>% dplyr::group_by(trait, marker) %>% 
+    cors <- gINFO %>% 
+      dplyr::group_by(trait, marker) %>% 
       dplyr::mutate(var.exp = cor(value, allele, use = "pairwise.complete.obs", 
                                   method = "pearson")^2)
     
@@ -256,7 +272,8 @@ process_mapping_df <- function (mapping_df,
         dplyr::select(trait, CHROM, POS.x, POS.y, pID, log10p, index.x, index.y, start, end) %>% 
         dplyr::group_by(CHROM, pID) %>% 
         dplyr::mutate(startPOS = min(POS.x),  peakPOS = POS.y, endPOS = max(POS.x)) %>%
-        dplyr::distinct(trait, CHROM, pID, peakPOS, .keep_all = T) %>% dplyr::select(trait, CHROM, POS = POS.y, startPOS, peakPOS, endPOS, peak_id = pID)
+        dplyr::distinct(trait, CHROM, pID, peakPOS, .keep_all = T) %>% 
+        dplyr::select(trait, CHROM, POS = POS.y, startPOS, peakPOS, endPOS, peak_id = pID)
       interval_positions[[i]] <- PKpos
     }
     
@@ -298,7 +315,7 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 
 # save processed mapping data
 readr::write_tsv(processed_mapping,
-                 c(paste("processed",args[8],"mapping.tsv", sep = "_")),
+                 c(paste0("processed_",args[8],"_mapping_", args[9], ".tsv")),
                  col_names = T)
 
 # add narrow-sense heritability point estimate
@@ -328,5 +345,5 @@ qtl_region <- processed_mapping %>%
 
 # save processed mapping data
 readr::write_tsv(qtl_region, 
-                 c(paste(args[8],"qtl_region.tsv", sep = "_")),
+                 c(paste0(args[8],"_qtl_region_", args[9], ".tsv")),
                  col_names = T)
