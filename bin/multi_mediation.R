@@ -8,8 +8,8 @@ args <- commandArgs(trailingOnly = TRUE)
 
 
 # load genotype matrix
-Genotype_Matrix <- readr::read_tsv(args[1]) %>%
-  na.omit()
+Genotype_Matrix <- readr::read_tsv(args[1]) #%>%
+    # na.omit()
 
 # load pheno data
 trait_phenotype <- read.delim(args[3], stringsAsFactors=FALSE) 
@@ -63,7 +63,8 @@ gwas_g_all <- Genotype_Matrix %>%
   dplyr::select(-(1:4)) %>% 
   tidyr::gather(strain,geno) %>% 
   dplyr::filter(strain %in% texpression_pheno$strain) %>% 
-  dplyr::arrange(strain)
+  dplyr::arrange(strain) %>%
+  na.omit()
 
 
 
@@ -75,7 +76,8 @@ for(trss in unique(texpression_pheno$trait)) {
   
   
   t_lgmtpm_gwas_all <- texpression_pheno %>% 
-    dplyr::filter(trait==trss) 
+    dplyr::filter(trait==trss,
+                  strain %in% gwas_g_all$strain)
   
   
   

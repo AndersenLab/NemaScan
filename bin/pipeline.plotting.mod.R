@@ -76,10 +76,16 @@ combined.mappings <- combined.mappings %>%
   tidyr::unite("marker", CHROM, POS, sep = ":", remove = F)
 tests <- args[2]
 
+# do we have mito mapping?
+mito_check <- combined.mappings %>%
+    na.omit()
+
 ## MANHATTAN PLOTS ##
 for.plot <- combined.mappings %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
-  dplyr::filter(CHROM != "MtDNA")
+    {
+        if(!("MtDNA" %in% mito_check$CHROM)) dplyr::filter(., CHROM != "MtDNA") else .
+    }
 
 BF <- combined.mappings %>% 
     dplyr::group_by(trait) %>% 
@@ -122,6 +128,13 @@ test <- BF.frame %>%
     dplyr::distinct() %>%
     dplyr::filter(name %in% names(sig.colors))
 
+# are we plotting mito or no?
+if("MtDNA" %in% unique(for.plot.ann$CHROM)) {
+    facet_scales <- "fixed"
+} else {
+    facet_scales <- "free"
+}
+
 man.plot <- ggplot() + 
   theme_bw() + 
   geom_point(data = for.plot.ann, 
@@ -138,7 +151,7 @@ man.plot <- ggplot() +
        y = expression(-log[10](italic(p)))) +
   theme(legend.position = "none", 
         panel.grid = element_blank()) + 
-  facet_grid(. ~ CHROM, scales = "free_x", space = "free") + 
+  facet_grid(. ~ CHROM, scales = "free_x", space = facet_scales) + 
   ggtitle(BF.frame$trait)
 
 ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan_", args[3], ".plot.png"), width = 8, height = 4)
