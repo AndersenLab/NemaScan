@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(glue)
+library(purrr)
 library(data.table)
 args <- commandArgs(trailingOnly = TRUE)
 

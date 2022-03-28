@@ -1,6 +1,11 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
-# library(cegwas2)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(glue)
+library(purrr)
 
 # input arguments
 # 1 = LD file

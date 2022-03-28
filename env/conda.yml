@@ -12,6 +12,13 @@ dependencies:
   - bedtools=2.29.2
   - libiconv
   - r=3.6.0
+  - r-dplyr
+  - r-tidyr
+  - r-readr
+  - r-stringr
+  - r-glue
+  - r-purrr
+  - r-ggplot2
   - r-devtools
   - r-data.table
   - r-DT
@@ -27,7 +34,5 @@ dependencies:
   - r-coop
   # # - r-Rcpp
   - r-cowplot
-  # - r-valr
-  # - r-tidyverse
 
 #  - bioconductor-ComplexHeatmap=2.4.2
