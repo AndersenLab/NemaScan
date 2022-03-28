@@ -36,7 +36,6 @@ process prepare_gcta_files {
           --set-missing-var-ids @:# \\
           --indep-pairwise 50 10 0.8 \\
           --geno \\
-          --not-chr MtDNA \\
           --allow-extra-chr
     tail -n +2 ${traits} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_formated_trats.tsv
     plink --vcf renamed_chroms.vcf.gz \\

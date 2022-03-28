@@ -70,12 +70,6 @@ trait_name <- "TRAIT_NAME_HOLDER"
 
 species <- "SPECIES"
 
-if(species == "c_elegans") {
-  div <- TRUE
-} else {
-  div <- FALSE
-}
-
 # load independent tests result
 total_independent_tests <- read.table("Genotype_Matrix/total_independent_tests.txt", quote="\"", comment.char="", stringsAsFactors=FALSE)
 
@@ -127,11 +121,16 @@ if(num_traits > 1){
     print("WARNING: More than 1 trait in processed_mapping table. Only the first one will be plotted.")
 }
 
+# do we have mito mapping?
+mito_check <- processed_mapping %>%
+    na.omit()
+
 ## MANHATTAN PLOTS ##
 for.plot <- processed_mapping %>%
   dplyr::mutate(CHROM = as.factor(CHROM)) %>%
-  dplyr::filter(CHROM != "MtDNA")
-
+    {
+        if(!("MtDNA" %in% mito_check$CHROM)) dplyr::filter(., CHROM != "MtDNA") else .
+    }
 BF <- processed_mapping %>% 
     dplyr::group_by(trait, algorithm) %>% 
     dplyr::filter(log10p != 0) %>% 
@@ -171,6 +170,14 @@ test <- BF.frame %>%
     dplyr::distinct() %>%
     dplyr::filter(name %in% names(sig.colors))
 
+# are we plotting mito or no?
+if("MtDNA" %in% unique(for.plot.ann$CHROM)) {
+    facet_scales <- "fixed"
+} else {
+    facet_scales <- "free"
+}
+
+
 man.plot <- ggplot() + 
   theme_bw() + 
   geom_point(data = for.plot.ann, 
@@ -187,7 +194,7 @@ man.plot <- ggplot() +
        y = expression(-log[10](italic(p)))) +
   theme(legend.position = "none", 
         panel.grid = element_blank()) + 
-  facet_grid(algorithm ~ CHROM, scales = "free_x", space = "free") + 
+  facet_grid(algorithm ~ CHROM, scales = "free_x", space = facet_scales) + 
   ggtitle(BF.frame$trait)
 
 
@@ -206,7 +213,6 @@ peaks <- processed_mapping %>%
     dplyr::arrange(algorithm, marker)
 
 DT::datatable(peaks)
-
 
 ```
 
@@ -244,7 +250,9 @@ qq_plot <- exp_inbred %>%
                                        algorithm == "LOCO" & significant == "yes" ~ "LOCO-significant",
                                        algorithm == "LOCO" & significant == "no" ~ "LOCO",
                                        TRUE ~ "NA")) %>%
-  dplyr::filter(CHROM != "MtDNA") %>%
+    {
+        if(!("MtDNA" %in% mito_check$CHROM)) dplyr::filter(., CHROM != "MtDNA") else .
+    } %>%
   ggplot2::ggplot(.) +
   ggplot2::aes(x = -log10(exp.P), y = -log10(P), color = col) +
   ggplot2::geom_abline(slope = 1) +

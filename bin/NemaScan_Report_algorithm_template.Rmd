@@ -234,6 +234,13 @@ for (i in seq_len(nrow(QTL_peaks))) {
     QTL_Peak <- QTL_peaks$peakPOS[i]
     region_name <- glue::glue("{QTL_chrom}:{QTL_start}-{QTL_end}")
     
+    # no divergent regions for MtDNA or briggsae or tropicalis
+    if(species == "c_elegans" & QTL_chrom != "MtDNA") {
+      div <- TRUE
+    } else {
+      div <- FALSE
+    }
+    
     out <- c(out, knitr::knit_child('NemaScan_Report_region_template.Rmd'))
 }
 # `r paste(knitr::knit(text = out), collapse = '\n')`
