@@ -63,6 +63,9 @@ sbatch test_template.sh 'old_vcf' '--vcf 20210121 --traitfile ../../input_data/c
 # test download vcf from cendr
 sbatch test_template.sh 'cendr_vcf' '--traitfile ../../input_data/c_elegans/phenotypes/test_pheno.tsv --out cendr_vcf --finemap false --mediation false -resume -N 2088410137@vtext.com'
 
+# make sure the mito qtl works
+sbatch test_template.sh 'mito_test' '--traitfile ../../input_data/c_elegans/phenotypes/mito_test.tsv --out mito_test -resume -N 2088410137@vtext.com'
+
 
 # skip the local, gcp, and annotation profiles - test gcp next on gcp itself
 

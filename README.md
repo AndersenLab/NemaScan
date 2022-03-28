@@ -4,7 +4,7 @@ GWA Mapping and Simulation with _C. elegans, C. tropicalis, and C. briggsae_
 
 # Pipeline overview
 
-< fill in >
+![](img/nemascan.drawio.svg)
 
 ## Software Requirements
 
@@ -89,7 +89,7 @@ To display the help message, run `nextflow andersenlab/nemascan --help`
 This is the standard profile for running NemaScan. Use this profile to perform a genome-wide analysis with your trait of interest. To be explicit, you can use `-profile mappings`, however if no profile is provided, the pipeline will default to this one.
 
 ```
-nextflow run andersenlab/nemascan -profile mappings --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv
+nextflow run andersenlab/nemascan -profile mappings --vcf 20220216 --traitfile input_data/c_elegans/phenotypes/PC1.tsv
 ```
 
 *NOTE: you can also run specific branches or previous git commits easily. This can be especially useful to ensure that the version of NemaScan that you use doesn't change as you prepare your manuscript even if the code is updated.*
@@ -99,13 +99,13 @@ All you need to do is add a `-r XXX` to the end of your command, where `XXX` can
 **For all runs, you can find the exact git commit used to run your analysis in the Nextflow report output after each run**
 
 ```
-nextflow run andersenlab/nemascan --vcf 20210121 --traitfile input_data/c_elegans/phenotypes/PC1.tsv -r fa7046475fcfd06a49b375b4ef24a761f5133600
+nextflow run andersenlab/nemascan --vcf 20220216 --traitfile input_data/c_elegans/phenotypes/PC1.tsv -r fa7046475fcfd06a49b375b4ef24a761f5133600
 
 ```
 
 ### --vcf
 
-CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
 #### Notes on VCF
 *If you want to use a custom VCF, you may provide the full path to the vcf in place of the CeNDR release date. This custom VCF will be used for BOTH GWA mapping and fine-mapping steps (instead of the imputed vcf).*
@@ -139,19 +139,18 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--mediation` - Defaults to *true*, can change to *false* if you want to skip mediation.
 
-* `--algorithm` - Defaults to *inbred*, can change to *loco* for GCTA-MLMA-LOCO mapping instead of GCTA-fastGWA
 
 ## Genomatrix Profile
 
 This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
 
 ```
-nextflow run andersenlab/nemascan -profile genomatrix --vcf 20210121 --strains input_data/c_elegans/phenotypes/strain_file.tsv
+nextflow run andersenlab/nemascan -profile genomatrix --vcf 20220216 --strains input_data/c_elegans/phenotypes/strain_file.tsv
 ```
 
 ### --vcf
 
-CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
 ### --strains
 
@@ -169,14 +168,14 @@ ECA250
 This profile uses simulations to establish GWA performance benchmarks. Users can specify the heritability of simulated traits, the number of QTL underlying simulated traits of interest, the strains the user intends to use in a prospective GWA mapping experiment, or the location of previously detected QTL. Understanding the null expectations of GWA mappings within given parameter spaces may provide experimenters with additional guidance before initiating an experiment, or serve as a validation tool for previous mappings.
 
 ```
-nextflow andersenlab/nemascan -profile simulations --vcf 20210121 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
+nextflow andersenlab/nemascan -profile simulations --vcf 20220216 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
 module load R/3.6.3
 Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 ```
 
 ### --vcf
 
-CeNDR release date for the VCF file with variant data (i.e. "20210121") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
 ### --simulate_nqtl 
 A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header) (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
@@ -205,7 +204,7 @@ A TSV file specifying the population in which to simulate GWA mappings. Multiple
 
 ## Annotations Profile (in development)
 
-`nextflow andersenlab/nemascan --vcf 20210121 -profile annotations --species briggsae --wb_build WS270`
+`nextflow andersenlab/nemascan --vcf 20220216 -profile annotations --species briggsae --wb_build WS270`
 
 * `--species` - specifies what species information to download from WormBase (options: elegans, briggsae, tropicalis).
 
@@ -218,14 +217,14 @@ This profile uses a docker image instead of local conda environments to perform 
 **On QUEST:**
 ```
 module load singularity
-nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile mappings_docker
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20220216 -profile mappings_docker
 ```
 
 **Local**
 *make sure you have installed docker and that it is actively running. See [here](http://andersenlab.org/dry-guide/latest/pipeline-docker/) for help.*
 
 ```
-nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile local
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20220216 -profile local
 
 ```
 
@@ -234,7 +233,7 @@ nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile loc
 This profile is used to run GWA mappings on CeNDR using the GCP platform. Check out more on how to develop, test, and run nextflow on GCP [here](http://andersenlab.org/dry-guide/latest/pipeline-GCPconfig/).
 
 ```
-nextflow run andersenlab/nemascan --traitfile <file> --vcf 20210121 -profile gcp
+nextflow run andersenlab/nemascan --traitfile <file> --vcf 20220216 -profile gcp
 ```
 
 # Input Data Folder Structure (`NemaScan/input_data`)
@@ -277,35 +276,36 @@ Phenotypes
 Genotype_Matrix
   ├── Genotype_Matrix.tsv
   ├── total_independent_tests.txt
- Mapping
-  ├── Raw
-      ├── traitname_lmm-exact_inbred.fastGWA
-      ├── traitname_lmm-exact.loco.mlma
-  ├── Processed
-      ├── traitname_AGGREGATE_qtl_region.tsv
-      ├── processed_traitname_AGGREGATE_mapping.tsv
-Plots
-  ├── ManhattanPlots
-      ├── traitname_manhattan.plot.png
-  ├── LDPlots
-      ├── traitname_LD.plot.png (if > 1 QTL detected)
-  ├── EffectPlots
-      ├── traitname_[QTL.INFO]_LOCO_effect.plot.png (if detected)
-      ├── traitname_[QTL.INFO]_INBRED_effect.plot.png (if detected)
-Fine_Mappings
-  ├── Data             
-      ├── traitname_[QTL.INFO]_bcsq_genes.tsv
-      ├── traitname_[QTL.INFO]_ROI_Genotype_Matrix.tsv
-      ├── traitname_[QTL.INFO]_finemap_inbred.fastGWA
-      ├── traitname_[QTL.INFO]_LD.tsv
-  ├── Plots   
-      ├── traitname_[QTL.INFO]_finemap_plot.pdf
-      ├── traitname_[QTL.INFO]_gene_plot_bcsq.pdf
-Divergent_and_haplotype
-  ├── all_QTL_bins.bed
-  ├── all_QTL_div.bed
-  ├── div_isotype_list.txt
-  ├── haplotype_in_QTL_region.txt
+INBRED (or LOCO)
+  ├── Mapping
+      ├── Raw
+          ├── traitname_lmm-exact_inbred.fastGWA
+          ├── traitname_lmm-exact.loco.mlma
+      ├── Processed
+          ├── traitname_AGGREGATE_qtl_region.tsv
+          ├── processed_traitname_AGGREGATE_mapping.tsv
+  ├── Plots
+      ├── ManhattanPlots
+          ├── traitname_manhattan.plot.png
+      ├── LDPlots
+          ├── traitname_LD.plot.png (if > 1 QTL detected)
+      ├── EffectPlots
+          ├── traitname_[QTL.INFO]_LOCO_effect.plot.png (if detected)
+          ├── traitname_[QTL.INFO]_INBRED_effect.plot.png (if detected)
+  ├── Fine_Mappings
+      ├── Data             
+          ├── traitname_[QTL.INFO]_bcsq_genes.tsv
+          ├── traitname_[QTL.INFO]_ROI_Genotype_Matrix.tsv
+          ├── traitname_[QTL.INFO]_finemap_inbred.fastGWA
+          ├── traitname_[QTL.INFO]_LD.tsv
+      ├── Plots   
+          ├── traitname_[QTL.INFO]_finemap_plot.pdf
+          ├── traitname_[QTL.INFO]_gene_plot_bcsq.pdf
+  ├── Divergent_and_haplotype
+      ├── all_QTL_bins.bed
+      ├── all_QTL_div.bed
+      ├── div_isotype_list.txt
+      ├── haplotype_in_QTL_region.txt
 Reports
   ├── NemaScan_Report_traitname_main.html
   ├── NemaScan_Report_traitname_main.Rmd

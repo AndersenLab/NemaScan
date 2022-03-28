@@ -16,7 +16,8 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
                                   CHR == 3 ~ "III",
                                   CHR == 4 ~ "IV",
                                   CHR == 5 ~ "V",
-                                  CHR == 6 ~ "X")) %>%
+                                  CHR == 6 ~ "X",
+                                  CHR == 7 ~ "MtDNA")) %>%
     dplyr::mutate(marker = paste(CHR,POS,sep = "_"),
                   log10p = -log(P))
 phenotypes <- readr::read_tsv(args[2])
@@ -36,7 +37,8 @@ query_regions <- pr_trait_ld %>%
                                     CHROM == 3 ~ "III",
                                     CHROM == 4 ~ "IV",
                                     CHROM == 5 ~ "V",
-                                    CHROM == 6 ~ "X")) %>%
+                                    CHROM == 6 ~ "X",
+                                    CHROM == 7 ~ "MtDNA")) %>%
     dplyr::distinct()
 
 query_regions
