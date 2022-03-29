@@ -3,10 +3,8 @@
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(stringr)
 library(readr)
-library(glue)
-library(purrr)
+library(tibble)
 library(mediation)
 
 
@@ -23,21 +21,16 @@ Genotype_Matrix <- readr::read_tsv(args[2]) #%>%
   # na.omit()
 
 # load expression data
- 
   expression_pheno_raw <- read.delim(args[3], stringsAsFactors=FALSE)
   
   expression_pheno <- expression_pheno_raw %>% 
-    gather(trait2,value,-strain) %>% 
+    tidyr::gather(trait2,value,-strain) %>% 
     dplyr::mutate(trait=sub("(^X)(.*)","\\2",trait2)) %>% 
     dplyr::select(strain,trait,value)
   
   
- 
-
-
 # load pheno data
 trait_pheno <- read.delim(args[4], stringsAsFactors=FALSE)
-
 
 # GWAS qtl infor
 gwas_intchr = args[5]
@@ -117,14 +110,8 @@ summarize_model <- function(model) {
   return(df)
 }
 
-
-
-
 ##
-
-
 model <- eQTL_mediate_dQTL(gwas_pchr=gwas_intchr, gwas_p=gwas_peak, gene_exp=gene_expression, phenodf=trait_pheno)
-
 
 df <- summarize_model(model) %>%
   dplyr::mutate(var = dplyr::case_when(var == "ADE" ~ "direct",

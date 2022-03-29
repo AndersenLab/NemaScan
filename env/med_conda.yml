@@ -9,5 +9,9 @@ channels:
 dependencies:
   - r=3.6.0
   - r-data.table
-  - r-tidyverse
+  - r-dplyr
+  - r-tidyr
+  - r-readr
+  - r-tibble
+  - r-ggplot2
   - mscorefonts

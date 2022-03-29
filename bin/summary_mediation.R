@@ -2,22 +2,16 @@
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(stringr)
 library(readr)
-library(glue)
-library(purrr)
+library(tibble)
 
 
 args <- commandArgs(trailingOnly = TRUE)
 
 tr = args[3]
 
-
 ## mediation with multiple test correction#####
-
 med_analysis_multi <- read.delim(args[1], header=FALSE, stringsAsFactors=FALSE)
-
-
 
 med_multi <- med_analysis_multi %>% dplyr::filter(!V1=="gene")
 
@@ -44,7 +38,8 @@ colnames(med_indi)<-med_indi_head[1,]
 
 ### join ####
 
-summarized_med <- med_multi %>% left_join(med_indi) %>% 
+summarized_med <- med_multi %>% 
+  dplyr::left_join(med_indi) %>% 
   dplyr::select(gwtrait,
                 gwchr=e_chr,
                 gwpeak,
