@@ -131,7 +131,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
         }
 
 write_tsv(tidy_genes_in_region,
-          file = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
+          path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
