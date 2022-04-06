@@ -7,8 +7,9 @@ RUN \
 && conda clean -a
 
 RUN apt-get --allow-releaseinfo-change update && apt-get install -y procps  
-# RUN R -e "install.packages('mediation',dependencies=TRUE, repos='http://cran.us.r-project.org')"
+RUN conda install -c conda-forge r-lme4
+RUN R -e "install.packages('mediation',dependencies=TRUE, repos='http://cran.us.r-project.org')"
 RUN R -e "install.packages('BiocManager',dependencies=TRUE, repos='http://cran.us.r-project.org')"
 RUN R -e "BiocManager::install('MultiMed')"
-RUN Rscript -e "install.packages('devtools', dependencies = TRUE, repos = 'http://cran.us.r-project.org')"
-RUN R -e "devtools::install_github('kosukeimai/mediation', dependencies = TRUE, repos = 'http://cran.us.r-project.org')"
+# RUN Rscript -e "install.packages('devtools', dependencies = TRUE, repos = 'http://cran.us.r-project.org')"
+# RUN R -e "devtools::install_github('kosukeimai/mediation', dependencies = TRUE, repos = 'http://cran.us.r-project.org')"
