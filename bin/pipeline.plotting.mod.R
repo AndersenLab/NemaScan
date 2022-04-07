@@ -48,21 +48,21 @@ pxg.plots <- function(trait, data){
     plot <- data %>%
       dplyr::filter(!is.na(allele)) %>%
       dplyr::mutate(SOI = strain %in% strains.of.interest,
+                    SOI.3 = dplyr::case_when(strain %in% c("N2", "PD1074") ~ "N2",
+                                                        strain == "CB4856" ~ "CB",
+                                                        strain %in% strains.of.interest ~ "special",
+                                                        TRUE ~ "other"),
                     SOI.2 = if_else(SOI == TRUE, true = strain, false = "")) %>%
       droplevels() %>%
       dplyr::arrange(SOI.2) %>%
       ggplot(mapping = aes(x = allele, y = value, text = SOI.2)) +
       theme_bw(base_size = 12) +
       geom_violin(aes(fill = allele), alpha = 0.5, scale = "count", draw_quantiles = c(0.25, 0.5, 0.75)) +
-      scale_fill_manual(values = pal, guide = FALSE) +
-      
+      ggplot2::scale_fill_manual(values = c("REF" = "#A79F92", "ALT" = "mediumpurple4"), guide = FALSE) +      
       ggnewscale::new_scale("fill") +
-      
-      geom_point(aes(fill = SOI), position = pos, size = 1.5, shape = 21) +
-      # geom_point(aes(colour = sweep.share*100), size = 1.1, position = pos) +
-      scale_fill_manual(values = c("#9297C4","#D33E43"), guide = FALSE) +
-      # scale_colour_gradient(low = "black", high = "violetred", name = "Selective Sweep (% Chromosome)") +
-      
+      ggplot2::geom_point(aes(fill = SOI.3, size = SOI), position = ggbeeswarm::position_beeswarm(), shape = 21) +
+      ggplot2::scale_fill_manual(values = c("N2" = "orange", "CB" = "blue", "special" ="red", "other" ="grey50"), guide = FALSE) +
+      ggplot2::scale_size_manual(values = c(1.5,2.5), guide = FALSE) +
       geom_text_repel(aes(label = SOI.2),
                       colour = "black", position = pos, max.overlaps = Inf) +
       theme(legend.position = "bottom") +

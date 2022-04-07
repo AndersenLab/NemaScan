@@ -9,7 +9,7 @@ Each variant is represented by a vertical line, colored by the predicted variant
 
 ```{r, out.width = '100%', fig.height = 6}
 # read in genes in region and pval
-genes_in_region <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes_{stringr::str_to_lower(alg)}.tsv"))
+genes_in_region <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes_{stringr::str_to_lower(alg)}.tsv"))
     
 gene_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
@@ -91,14 +91,14 @@ if(QTL_end - QTL_start < 5e6) {
 # skip this for now, plot not necessary and it takes up lots of memory running
 cat("\n This second plot is very similar to the first. Here, each variant is represented by a diamond colored by the linkage to the peak marker (colored in red). This plot can be useful to determine what the strucutre of your region looks like. If you have many variants with high linkage to your peak marker, it is important to remember that any of those variants could be causal.")
 
-finemap <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.{stringr::str_to_lower(alg)}.fastGWA")) %>%
+finemap <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.finemap_inbred.{stringr::str_to_lower(alg)}.fastGWA")) %>%
   dplyr::mutate(CHR = as.factor(CHR),
                 SNP = as.factor(SNP),
                 POS = as.numeric(POS),
                 AF1 = as.numeric(AF1),
                 P = as.numeric(P))
-ROI.geno.matrix <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
-ROI.LD <- data.table::fread(glue::glue("{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD_{stringr::str_to_lower(alg)}.tsv"))
+ROI.geno.matrix <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
+ROI.LD <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD_{stringr::str_to_lower(alg)}.tsv"))
 
 peakp <- unique(ROI.LD$BP_A)
 
@@ -188,7 +188,7 @@ Mediation analysis was performed to analyze if gene expression variation is sign
 if(whether_mediate) {
     # plot mediation
     # plot
-    summarized_med <- readr::read_tsv(glue::glue("{alg}/Mediation/{trait_name}_mediation_{stringr::str_to_lower(alg)}.tsv"))
+    summarized_med <- readr::read_tsv(glue::glue("../../{alg}/Mediation/{trait_name}_mediation_{stringr::str_to_lower(alg)}.tsv"))
 
     medprop_all <- summarized_med %>% 
       dplyr::mutate(e_peak=as.numeric(e_peak),
@@ -261,14 +261,14 @@ The following plot shows divergent regions for each strain across the QTL region
 ```{r, out.width = '100%', fig.height=20, fig.width=20, eval = div}
 
 # genome bin table
-all_QTL_bins <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed"), 
+all_QTL_bins <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed"), 
                            header=FALSE, stringsAsFactors=FALSE)%>%
   dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end )
 
 # if any of user supplied strains have divergent region with the QTL region
-if (file.info(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"))$size!=0) {
+if (file.info(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"))$size!=0) {
   
-  all_QTL_div <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"), 
+  all_QTL_div <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"), 
                             header=FALSE, stringsAsFactors=FALSE) %>%
     dplyr::filter(V4 %in% unique(processed_mapping$strain)) %>%
     dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end ) %>%
@@ -382,6 +382,7 @@ nested.pxg.dat <- processed_mapping %>%
     dplyr::distinct(marker, strain, allele, div, .keep_all = T) %>%
     dplyr::group_by(marker, strain, allele) %>%
     dplyr::filter(div == max(div)) %>%
+    dplyr::ungroup() %>%
     dplyr::mutate(startPOS = startPOS/1000000,
                   peakPOS = peakPOS/1000000,
                   endPOS = endPOS/1000000) %>%
@@ -393,26 +394,13 @@ nested.pxg.dat <- processed_mapping %>%
                                             TRUE ~ "NA"),
                   allele = factor(allele, levels = c("REF", "ALT")))
 
-# CB.N2.code <- nested.pxg.dat %>%
-#     dplyr::select(strain, allele) %>%
-#     dplyr::distinct() %>%
-#     dplyr::filter(strain %in% c("CB4856","N2","PD1074")) %>%
-#     droplevels()
-    
-# if(length(levels(CB.N2.code$allele)) < 2){
-  pal <- c("#726E75","#720E07")
-# } else {
-#   pal <- c("#FFA500","#0000ff")
-# }
-
-
 plot <- nested.pxg.dat %>%
     dplyr::filter(allele != "NA" | !is.na(allele)) %>%
     droplevels() %>%
     ggplot2::ggplot(mapping = aes(x = allele, y = value)) +
     ggplot2::theme_bw(base_size = 12) +
-    ggplot2::geom_violin(aes(fill = allele), alpha = 0.8, scale = "count", draw_quantiles = c(0.25, 0.5, 0.75)) +
-    ggplot2::scale_fill_manual(values = pal, guide = FALSE) +
+    ggplot2::geom_violin(aes(fill = allele), alpha = 0.5, scale = "count", draw_quantiles = c(0.25, 0.5, 0.75)) +
+    ggplot2::scale_fill_manual(values = c("REF" = "#A79F92", "ALT" = "mediumpurple4"), guide = FALSE) +
     ggbeeswarm::geom_beeswarm(size = 1.1) + 
     ggrepel::geom_text_repel(data = nested.pxg.dat[which(nested.pxg.dat$strain %in% c("N2","CB4856")),], aes(label = strain), colour = "black", 
                   box.padding = 1, point.padding = 0.1) + 
@@ -423,6 +411,7 @@ plot <- nested.pxg.dat %>%
                                                   "1" = "divergent from N2")) ) +
     ggplot2::labs(y = "Trait Value", 
                   x = "Genotype")
+
 
 print(plot)
 
@@ -438,7 +427,7 @@ The following plot shows the genome-wide haplotype (genetic relatedness) of mapp
 ```{r, fig.height=20, fig.width=20, eval = div}
 # if (file.info("all_QTL_div.bed")$size!=0) {
 
-haplotype_in_QTL_region <- read.delim(glue::glue("{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt"), 
+haplotype_in_QTL_region <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt"), 
                                       header=FALSE, stringsAsFactors=FALSE) %>% 
     dplyr::select(-V12)
 
