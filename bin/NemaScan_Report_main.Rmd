@@ -57,7 +57,7 @@ All strain names were converted to the corresponding isotype name, which can be 
 
 ```{r}
 
-strain_issues <- readLines("Phenotypes/strain_issues.txt")
+strain_issues <- readLines("../../Phenotypes/strain_issues.txt")
 
 new <- grep("WARNING:|Note:", strain_issues, value = T)
 if(length(new) == 0) {
@@ -77,7 +77,7 @@ trait_name <- "TRAIT_NAME_HOLDER"
 species <- "SPECIES"
 
 # load independent tests result
-total_independent_tests <- read.table("Genotype_Matrix/total_independent_tests.txt", quote="\"", comment.char="", stringsAsFactors=FALSE)
+total_independent_tests <- read.table("../../Genotype_Matrix/total_independent_tests.txt", quote="\"", comment.char="", stringsAsFactors=FALSE)
 
 independent_test_cutoff <- -log10(0.05/total_independent_tests[[1]])
 
@@ -103,14 +103,14 @@ This analysis was run using two algorithms from GCTA: INBRED and LOCO. XXX (Inse
 # load processed mapping data. 
 # Note that readr::read_delim will throw parsing errors and put NA in rows that contain actual values in strain/value/allele/var.exp so did not use it
 # load inbred mapping reslts
-processed_mapping_inbred <- read.delim(paste0("INBRED/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_inbred.tsv"), stringsAsFactors=FALSE) %>%
+processed_mapping_inbred <- read.delim(paste0("../../INBRED/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_inbred.tsv"), stringsAsFactors=FALSE) %>%
     dplyr::mutate(CHROM = factor(CHROM, levels = c("I","II","III","IV","V","X","MtDNA"))) %>%
     dplyr::select(-marker) %>%
     tidyr::unite("marker", CHROM, POS, sep = ":", remove = F) %>%
     dplyr::mutate(algorithm = "INBRED")
 
 # load loco mapping results
-processed_mapping_loco <- read.delim(paste0("LOCO/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_loco.tsv"), stringsAsFactors=FALSE) %>%
+processed_mapping_loco <- read.delim(paste0("../../LOCO/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_loco.tsv"), stringsAsFactors=FALSE) %>%
     dplyr::mutate(CHROM = factor(CHROM, levels = c("I","II","III","IV","V","X","MtDNA"))) %>%
     dplyr::select(-marker) %>%
     tidyr::unite("marker", CHROM, POS, sep = ":", remove = F) %>%
