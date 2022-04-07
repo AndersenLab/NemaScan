@@ -93,9 +93,7 @@ process chrom_eigen_variants_sims {
     """
         cat ${geno} |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${get_genomatrix_eigen} > Get_GenoMatrix_Eigen_.R
-        Rscript --vanilla Get_GenoMatrix_Eigen_.R ${CHROM}_gm.tsv ${CHROM}
+        Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
         mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
     """
 
@@ -142,9 +140,7 @@ process simulate_effects_loc {
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt")
 
     """
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${create_causal_qtls} > create_causal_QTLs_.R
-        Rscript --vanilla create_causal_QTLs_.R ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
+        Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
         mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
     """
 }
@@ -164,9 +160,7 @@ process simulate_effects_genome {
 
 
     """
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${create_causal_qtls} > create_causal_QTLs_.R
-        Rscript --vanilla create_causal_QTLs_.R ${bim} ${NQTL} ${effect_range}
+        Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range}
         mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
     """
 }
@@ -308,10 +302,7 @@ process get_gcta_intervals {
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
 
     """
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_gcta_intervals} > Find_GCTA_Intervals_.R
-        Rscript --vanilla Find_GCTA_Intervals_.R ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
-        
+        Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
     """
 }
 
