@@ -11,8 +11,8 @@ process summarize_mapping {
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summarize_mapping_file} > summarize_mapping_file
-    Rscript --vanilla summarize_mapping_file ${qtl_peaks_inbred} ${chr_lens} inbred
-    Rscript --vanilla summarize_mapping_file ${qtl_peaks_loco} ${chr_lens} loco
+    Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_inbred} ${chr_lens} inbred
+    Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_loco} ${chr_lens} loco
     """
 }
 
@@ -37,8 +37,8 @@ process generate_plots {
 
     """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${pipeline_plotting_mod} > pipeline.plotting.mod
-    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_inbred} ${tests} inbred
-    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_loco} ${tests} loco
+    Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_inbred} ${tests} inbred
+    Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_loco} ${tests} loco
     """
 }
 
@@ -56,8 +56,8 @@ process LD_between_regions {
 
   """
     echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${ld_between_regions} > LD_between_regions
-    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
-    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
+    Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
+    Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
   """
 }
 
@@ -221,11 +221,9 @@ process gcta_fine_maps {
               --maf ${params.maf} \\
               --thread-num 9
       
-      echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${finemap_qtl_intervals}  > Finemap_QTL_Intervals
-      Rscript --vanilla Finemap_QTL_Intervals ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
+      Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
       
-      echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${plot_genes} > plot_genes 
-      Rscript --vanilla plot_genes ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
+      Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
     done
     """
 }
@@ -321,9 +319,6 @@ process html_report_main {
     sed 's+../../{alg}/Mediation/++g' | \\
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_loco}"+g' > NemaScan_Report_region_LOCO_${TRAIT}.Rmd
     
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
-    
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${render_markdown}  > render_markdown 
-    Rscript --vanilla render_markdown NemaScan_Report_${TRAIT}_main.Rmd
+    Rscript --vanilla ${render_markdown} NemaScan_Report_${TRAIT}_main.Rmd
   """
 }

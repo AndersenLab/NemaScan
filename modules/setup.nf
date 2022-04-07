@@ -91,11 +91,8 @@ process fix_strain_names_bulk {
         path "strain_issues.txt", emit: strain_issues
 
     """
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_bulk 
-
         # for now, don't fix isotypes for non elegans
-        Rscript --vanilla Fix_Isotype_names_bulk ${phenotypes} $run_fix $isotype_lookup
+        Rscript --vanilla ${fix_script} ${phenotypes} $run_fix $isotype_lookup
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
@@ -120,10 +117,7 @@ process fix_strain_names_alt {
         file("strain_issues.txt")
 
     """
-        # add R_libpath to .libPaths() into the R script, create a copy into the NF working directory 
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${fix_script} > Fix_Isotype_names_alt 
-        Rscript --vanilla Fix_Isotype_names_alt ${phenotypes} $run_fix $isotype_lookup
-
+        Rscript --vanilla ${fix_script} ${phenotypes} $run_fix $isotype_lookup
     """
 
 }
@@ -227,8 +221,7 @@ process chrom_eigen_variants {
     """
         cat Genotype_Matrix.tsv |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${get_genomatrix_eigen} > Get_GenoMatrix_Eigen
-        Rscript --vanilla Get_GenoMatrix_Eigen ${CHROM}_gm.tsv ${CHROM}
+        Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
     """
 
 }
