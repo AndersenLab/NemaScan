@@ -10,7 +10,6 @@ process summarize_mapping {
         file("Summarized_mappings*.pdf")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summarize_mapping_file} > summarize_mapping_file
     Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_inbred} ${chr_lens} inbred
     Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_loco} ${chr_lens} loco
     """
@@ -36,7 +35,6 @@ process generate_plots {
         file("*.png")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${pipeline_plotting_mod} > pipeline.plotting.mod
     Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_inbred} ${tests} inbred
     Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_loco} ${tests} loco
     """
@@ -55,7 +53,6 @@ process LD_between_regions {
         tuple val(TRAIT), path("*LD_between_QTL_regions_inbred.tsv"),  path("*LD_between_QTL_regions_loco.tsv") optional true
 
   """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${ld_between_regions} > LD_between_regions
     Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
     Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
   """

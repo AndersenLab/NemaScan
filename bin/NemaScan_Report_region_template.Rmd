@@ -245,7 +245,7 @@ if(whether_mediate) {
 
 ```{r, eval = !whether_mediate}
 
-print(glue::glue("Mediation was not performed for {species}"))
+print(glue::glue("Mediation was not performed for this analysis"))
 
 ```
 
@@ -356,7 +356,7 @@ ref_alt_div %>%
 
 ```{r, eval = !div}
 
-print(glue::glue("Divergent regions not yet calculated for {species}"))
+print(glue::glue("Divergent regions were not calculated."))
 split_by_div = FALSE
 
 ```
