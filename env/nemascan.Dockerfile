@@ -19,3 +19,5 @@ RUN conda install -c bioconda bioconductor-iranges
 # RUN conda install -c conda-forge r-tidyverse
 # RUN conda install r-valr
 # RUN Rscript -e "devtools::install_version('tidyverse',version='1.3.1', dependencies = TRUE, repos = 'http://cran.us.r-project.org')"
+
+RUN conda install -c conda-forge mscorefonts
