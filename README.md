@@ -1,3 +1,5 @@
+![Build Docker (env/nemascan.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(env/nemascan.Dockerfile)/badge.svg) ![Build Docker (env/mediation.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(mediation/pca.Dockerfile)/badge.svg) 
+
 # NemaScan
 
 GWA Mapping and Simulation with _C. elegans, C. tropicalis, and C. briggsae_
@@ -20,6 +22,10 @@ Alternatively you can update Nextflow by running:
 ```
 nextflow self-update
 ```
+
+* Singularity. On QUEST, you can get this with `module load singularity` before running
+
+*Note: previous versions of pipeline used conda environments on QUEST installed at `/projects/b1059/software/conda_envs/` but this will no longer be maintained*
 
 * On QUEST, all software requirements are provided within the pipeline using conda environments or a docker image. To run the pipeline outside of QUEST, you can load the docker image containing all necessary software, see more in `profiles` below.
 
@@ -389,3 +395,11 @@ Simulations
 ### Phenotypes
 * `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.phen` - Simulated strain phenotypes for each simulation regime.
 * `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.par` - Simulated QTL effects for each simulation regime. NOTE: Simulation regimes with identical numbers of simulated QTL, replicate indices, and simulated heritabilities should have _identical_ simulated QTL and effects.
+
+
+# Relevant Docker Images
+
+* `andersenlab/nemascan` ([link](https://hub.docker.com/r/andersenlab/nemascan)): Docker image is created within this pipeline using GitHub actions. Whenever a change is made to `env/nemascan.Dockerfile`, `env/conda.yml`, or `.github/workflows/build_docker.yml` GitHub actions will create a new docker image and push if successful
+* `andersenlab/mediation` ([link](https://hub.docker.com/r/andersenlab/mediation)): Docker image is created within this pipeline using GitHub actions. Whenever a change is made to `env/mediation.Dockerfile`, `env/med_conda.yml` or `.github/workflows/build_med_docker.yml` GitHub actions will create a new docker image and push if successful
+
+
