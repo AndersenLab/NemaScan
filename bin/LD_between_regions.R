@@ -1,5 +1,11 @@
 library(genetics) 
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(glue)
+library(purrr)
 
 args <- commandArgs(trailingOnly=TRUE)
 gm <- read.table(file = args[1], header = T)

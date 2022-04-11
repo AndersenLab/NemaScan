@@ -10,9 +10,8 @@ process summarize_mapping {
         file("Summarized_mappings*.pdf")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${summarize_mapping_file} > summarize_mapping_file
-    Rscript --vanilla summarize_mapping_file ${qtl_peaks_inbred} ${chr_lens} inbred
-    Rscript --vanilla summarize_mapping_file ${qtl_peaks_loco} ${chr_lens} loco
+    Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_inbred} ${chr_lens} inbred
+    Rscript --vanilla ${summarize_mapping_file} ${qtl_peaks_loco} ${chr_lens} loco
     """
 }
 
@@ -36,9 +35,8 @@ process generate_plots {
         file("*.png")
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${pipeline_plotting_mod} > pipeline.plotting.mod
-    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_inbred} ${tests} inbred
-    Rscript --vanilla pipeline.plotting.mod ${aggregate_mapping_loco} ${tests} loco
+    Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_inbred} ${tests} inbred
+    Rscript --vanilla ${pipeline_plotting_mod} ${aggregate_mapping_loco} ${tests} loco
     """
 }
 
@@ -55,9 +53,8 @@ process LD_between_regions {
         tuple val(TRAIT), path("*LD_between_QTL_regions_inbred.tsv"),  path("*LD_between_QTL_regions_loco.tsv") optional true
 
   """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${ld_between_regions} > LD_between_regions
-    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
-    Rscript --vanilla LD_between_regions ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
+    Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
+    Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
   """
 }
 
@@ -221,11 +218,9 @@ process gcta_fine_maps {
               --maf ${params.maf} \\
               --thread-num 9
       
-      echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${finemap_qtl_intervals}  > Finemap_QTL_Intervals
-      Rscript --vanilla Finemap_QTL_Intervals ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
+      Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
       
-      echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${plot_genes} > plot_genes 
-      Rscript --vanilla plot_genes ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
+      Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
     done
     """
 }
@@ -289,41 +284,38 @@ process html_report_main {
     sed "s+TRAIT_NAME_HOLDER+${TRAIT}+g" | \\
     sed "s+SPECIES+${species}+g" | \\
     sed "s+MEDIATION+${mediate}+g" | \\
-    sed "s+Phenotypes/strain_issues.txt+${strain_issues}+g" | \\
-    sed "s+Genotype_Matrix/total_independent_tests.txt+${tests}+g" | \\
-    sed 's+paste0("INBRED/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_inbred.tsv")+"${pmap_inbred}"+g' | \\
-    sed 's+paste0("LOCO/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_loco.tsv")+"${pmap_loco}"+g' | \\
+    sed "s+../../Phenotypes/strain_issues.txt+${strain_issues}+g" | \\
+    sed "s+../../Genotype_Matrix/total_independent_tests.txt+${tests}+g" | \\
+    sed 's+paste0("../../INBRED/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_inbred.tsv")+"${pmap_inbred}"+g' | \\
+    sed 's+paste0("../../LOCO/Mapping/Processed/processed_",trait_name,"_AGGREGATE_mapping_loco.tsv")+"${pmap_loco}"+g' | \\
     sed "s+inbred <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')+inbred <- knitr::knit_child('NemaScan_Report_INBRED_template.Rmd')+g" | \\
     sed "s+loco <- knitr::knit_child('NemaScan_Report_algorithm_template.Rmd')+loco <- knitr::knit_child('NemaScan_Report_LOCO_template.Rmd')+g" > NemaScan_Report_${TRAIT}_main.Rmd
 
     # this is so complicating... ugh
     cat ${ns_report_alg} | \\
-    sed 's+glue::glue("{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv")+"${qtl_peaks_inbred}"+g' | \\
-    sed "s+Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
+    sed 's+glue::glue("../../{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv")+"${qtl_peaks_inbred}"+g' | \\
+    sed "s+../../Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
     sed "s+NemaScan_Report_region_template.Rmd+NemaScan_Report_region_INBRED_${TRAIT}.Rmd+g" > NemaScan_Report_INBRED_template.Rmd
 
     cat ${ns_report_alg} | \\
-    sed 's+glue::glue("{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv")+"${qtl_peaks_loco}"+g' | \\
-    sed "s+Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
+    sed 's+glue::glue("../../{alg}/Mapping/Processed/QTL_peaks_{stringr::str_to_lower(alg)}.tsv")+"${qtl_peaks_loco}"+g' | \\
+    sed "s+../../Genotype_Matrix/Genotype_Matrix.tsv+${geno}+g" | \\
     sed "s+NemaScan_Report_region_template.Rmd+NemaScan_Report_region_LOCO_${TRAIT}.Rmd+g" > NemaScan_Report_LOCO_template.Rmd
 
     cat "${ns_report_template_md}" | \\
-    sed 's+{alg}/Fine_Mappings/Data/++g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed")+"${qtl_bins_inbred}"+g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_inbred}"+g' | \\
-    sed 's+{alg}/Mediation/++g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_inbred}"+g' > NemaScan_Report_region_INBRED_${TRAIT}.Rmd
+    sed 's+../../{alg}/Fine_Mappings/Data/++g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed")+"${qtl_bins_inbred}"+g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_inbred}"+g' | \\
+    sed 's+../../{alg}/Mediation/++g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_inbred}"+g' > NemaScan_Report_region_INBRED_${TRAIT}.Rmd
     
     cat "${ns_report_template_md}" | \\
-    sed 's+{alg}/Fine_Mappings/Data/++g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed")+"${qtl_bins_loco}"+g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_loco}"+g' | \\
-    sed 's+{alg}/Mediation/++g' | \\
-    sed 's+glue::glue("{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_loco}"+g' > NemaScan_Report_region_LOCO_${TRAIT}.Rmd
+    sed 's+../../{alg}/Fine_Mappings/Data/++g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed")+"${qtl_bins_loco}"+g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_loco}"+g' | \\
+    sed 's+../../{alg}/Mediation/++g' | \\
+    sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_loco}"+g' > NemaScan_Report_region_LOCO_${TRAIT}.Rmd
     
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" > .Rprofile
-    
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${render_markdown}  > render_markdown 
-    Rscript --vanilla render_markdown NemaScan_Report_${TRAIT}_main.Rmd
+    Rscript --vanilla ${render_markdown} NemaScan_Report_${TRAIT}_main.Rmd
   """
 }

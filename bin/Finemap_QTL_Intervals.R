@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(glue)
+library(purrr)
 library(data.table)
 library(RColorBrewer)
 
@@ -43,7 +49,7 @@ pr_roi_ld <- ROI.LD %>%
   dplyr::left_join(finemap,., by = "SNP") %>%
   dplyr::left_join(.,roi_genotype)
 
-readr::write_tsv(pr_roi_ld, file = glue::glue("{save_name}.prLD_df_{args[4]}.tsv"))
+readr::write_tsv(pr_roi_ld, path = glue::glue("{save_name}.prLD_df_{args[4]}.tsv"))
 
 peak_roi_marker <- dplyr::filter(pr_roi_ld, POS == peakp)
 

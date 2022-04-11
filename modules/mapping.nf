@@ -186,9 +186,8 @@ process gcta_intervals_maps {
        //  tuple val('loco'), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html_loco
 
     """
-    echo ".libPaths(c(\\"${params.R_libpath}\\", .libPaths() ))" | cat - ${find_aggregate_intervals_maps} > Find_Aggregate_Intervals_Maps
-    Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE inbred
-    Rscript --vanilla Find_Aggregate_Intervals_Maps ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE loco
+    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE inbred
+    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE loco
     """
 }
 

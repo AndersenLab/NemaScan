@@ -541,15 +541,6 @@ workflow {
             }
         }
     
-    } else if(params.annotate) {
-
-        // what does annotate do?? just this one process?
-        save_dir = "${params.input_data}/${params.species}/annotations"
-
-        Channel.fromPath("${params.script_loc}")
-            .combine(save_dir)
-            .combine(Channel.fromPath("${params.bin_dir}/update_annotations.R")) | update_annotations
-
     } else if(params.matrix) {
 
         // only run geno matrix step - and fix isotype names if needed
@@ -656,7 +647,6 @@ workflow.onComplete {
     P3D                                     = ${params.p3d}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Path to R libraries.                    = ${params.R_libpath}
     Mapping                                 = ${params.maps}
     Simulation                              = ${params.simulate}
     Simulate QTL effects                    = ${params.simulate_qtlloc}

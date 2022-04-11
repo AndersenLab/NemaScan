@@ -1,6 +1,10 @@
 #!/usr/bin/env Rscript
 
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(tibble)
 library(MultiMed)
 
 # load arguments
@@ -29,7 +33,7 @@ transcript_list <- eqtl_infor %>%
 texpression_pheno_raw <- data.table::fread(args[2])
 
 texpression_pheno <- texpression_pheno_raw %>% 
-  gather(trait2,value,-strain) %>% 
+  tidyr::gather(trait2,value,-strain) %>% 
   dplyr::mutate(trait=sub("(^X)(.*)","\\2",trait2)) %>% 
   dplyr::select(strain,trait,value) %>% 
   dplyr::filter(strain %in% trait_phenotype$strain) %>% 
@@ -115,7 +119,7 @@ for(trss in unique(texpression_pheno$trait)) {
     
     
     df_multi_transcript2 <- df_multi_transcript %>% 
-      rownames_to_column(var="gene") 
+      tibble::rownames_to_column(var="gene") 
     
     
     multimed_trait_list[[trss]] <- df_multi_transcript2
@@ -125,12 +129,12 @@ for(trss in unique(texpression_pheno$trait)) {
   
 }
 
-df_multi_transcript2 <- bind_rows(multimed_trait_list)  %>% 
+df_multi_transcript2 <- dplyr::bind_rows(multimed_trait_list)  %>% 
   dplyr::arrange(p)
 
 
 df_multi_med <- df_multi_transcript2 %>% 
-  left_join(eqtl_infor,by=c("gene"="trait"))
+  dplyr::left_join(eqtl_infor,by=c("gene"="trait"))
 
 
 q99_S = quantile(df_multi_med$S, probs = 0.99)[[1]]
@@ -139,7 +143,7 @@ q99_S = quantile(df_multi_med$S, probs = 0.99)[[1]]
 gene_qtl_genelist <- df_multi_med %>% 
   dplyr::filter(p<0.05 | S > q99_S) %>% 
   dplyr::select(gwtrait,e_chr,gwpeak,trait=gene) %>% 
-  distinct()
+  dplyr::distinct()
 
 
 if(nrow(gene_qtl_genelist)>0){
