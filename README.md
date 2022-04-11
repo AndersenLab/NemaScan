@@ -29,32 +29,6 @@ nextflow self-update
 
 * On QUEST, all software requirements are provided within the pipeline using conda environments or a docker image. To run the pipeline outside of QUEST, you can load the docker image containing all necessary software, see more in `profiles` below.
 
-### Required Software Packages (Loaded with conda or docker)
-
-*Just for reference, pipeline keeps track of all software versions with conda or docker*
-
-1. [R-v3.6.0](https://www.r-project.org/)
-1. [nextflow-v20.0+](https://www.nextflow.io/docs/latest/getstarted.html)
-1. [BCFtools-v1.9](https://samtools.github.io/bcftools/bcftools.html)
-1. [plink-v1.9](https://www.cog-genomics.org/plink2)
-1. [bedtools-2.29.2](https://bedtools.readthedocs.io/en/latest/content/installation.html)
-1. [pandoc=2.12](https://pandoc.org/installing.html)
-1. [R-coop-0.6-2](https://cran.r-project.org/web/packages/coop/index.html)
-1. [R-cowplot-1.0.0](https://cran.r-project.org/web/packages/cowplot/index.html)
-1. [R-data.table-1.12.8](https://cran.r-project.org/web/packages/data.table/index.html)
-1. [R-DT-0.12](https://cran.r-project.org/web/packages/DT/index.html)
-1. [R-genetics-1.3.8.1.2](https://cran.r-project.org/web/packages/genetics/index.html)
-1. [R-ggbeeswarm-v0.6](https://github.com/eclarke/ggbeeswarm)
-1. [R-ggnewscale=0.4.5](https://cran.r-project.org/web/packages/ggnewscale/index.html)
-1. [R-ggrepel=0.8.2](https://cran.r-project.org/web/packages/ggrepel/index.html)
-1. [R-knitr-1.28](https://cran.r-project.org/web/packages/knitr/index.html)
-1. [R-plotly-4.9.2](https://cran.r-project.org/web/packages/plotly/index.html)
-1. [R-Rcpp-1.0.1](https://cran.r-project.org/web/packages/Rcpp/index.html)
-1. [R-rmarkdown-2.1](https://cran.r-project.org/web/packages/rmarkdown/index.html)
-1. [R-RSpectra-v0.13-1](https://github.com/yixuan/RSpectra)
-1. [R-sommer-4.0.4](https://cran.r-project.org/web/packages/sommer/index.html)
-1. [R-tidyverse-v1.3.0](https://www.tidyverse.org/)
-
 # Usage
 
 For usage help running NemaScan on Google Cloud, check out instructions [here](GCP_readme.md)
