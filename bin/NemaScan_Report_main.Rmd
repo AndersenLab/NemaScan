@@ -145,13 +145,14 @@ BF <- processed_mapping %>%
     dplyr::ungroup() %>%
     dplyr::select(BF) %>%
     unique(.) %>%
-  as.numeric()
+    dplyr::slice(1) %>% # BF can be slightly different between loco and inbred... but just plot one (5.46 v 5.47...)
+    as.numeric()
 
 EIGEN <- independent_test_cutoff
 BF.frame <- processed_mapping %>%
   dplyr::select(trait) %>%
   dplyr::filter(!duplicated(trait)) %>%
-  dplyr::mutate(BF = BF, EIGEN  = EIGEN, user = unique(processed_mapping$BF))
+  dplyr::mutate(BF = BF, EIGEN  = EIGEN, user = unique(processed_mapping$BF)[1])
 
 # if user selected a different threshold, use that, otherwise plot BF and EIGEN
 if(BF.frame$user %in% c(BF.frame$BF, BF.frame$EIGEN)) {
