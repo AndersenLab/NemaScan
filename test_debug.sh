@@ -73,6 +73,5 @@ sbatch test_template.sh 'test_mapping_tropicalis' '--vcf 20210901 --traitfile ..
 
 # step 6: test c_briggsae mapping - not ready yet
 sbatch test_template.sh 'test_mapping_briggsae' '--vcf 20210803 --traitfile ../../input_data/c_briggsae/phenotypes/test_pheno.tsv --out test_mapping_briggsae --species c_briggsae --sthresh EIGEN'
-f --vcf 20210901 --traitfile ../../input_data/c_tropicalis/phenotypes/test_pheno.tsv --out test_mapping_tropicalis --species c_tropicalis
 
 # when all these have finished and results look good... you can remove the entire directory
