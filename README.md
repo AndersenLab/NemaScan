@@ -1,4 +1,4 @@
-![Build Docker (env/nemascan.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(env/nemascan.Dockerfile)/badge.svg) ![Build Docker (env/mediation.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(mediation/pca.Dockerfile)/badge.svg) 
+![Build Docker (env/nemascan.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(env/nemascan.Dockerfile)/badge.svg) ![Build Docker (env/mediation.Dockerfile)](https://github.com/AndersenLab/NemaScan/workflows/Build%20Docker%20(env/mediation.Dockerfile)/badge.svg) 
 
 # NemaScan
 
