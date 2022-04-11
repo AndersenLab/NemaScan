@@ -1,5 +1,11 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(glue)
+library(purrr)
 library(data.table)
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -220,7 +226,7 @@ process_phenotypes <- function(df,
     strain_isotypes_db <- data.table::fread(args[3])
     # identify strains that were phenotyped, but are not part of an isotype
     non_isotype_strains <- dplyr::filter(df,
-                                         !(strain %in% strain_isotypes_db$strain),
+                                         !(strain %in% c(strain_isotypes_db$strain, "PD1074")),
                                          !(strain %in% strain_isotypes_db$isotype))
     # remove any strains identified to not fall into an isotype
     if ( nrow(non_isotype_strains) > 0 ) {

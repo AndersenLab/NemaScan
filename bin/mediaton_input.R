@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readr)
+library(tibble)
 
 
 # load arguments
