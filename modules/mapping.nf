@@ -63,7 +63,9 @@ process gcta_grm {
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log)
 
     output:
-        tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file("${TRAIT}_gcta_grm.grm.bin"), file("${TRAIT}_gcta_grm.grm.id"), file("${TRAIT}_gcta_grm.grm.N.bin"), file("${TRAIT}_heritability.hsq"), file("${TRAIT}_heritability.log"), file("${TRAIT}_gcta_grm_inbred.grm.bin"), file("${TRAIT}_gcta_grm_inbred.grm.id"), file("${TRAIT}_gcta_grm_inbred.grm.N.bin"), file("${TRAIT}_heritability_inbred.hsq"), file("${TRAIT}_heritability_inbred.log")
+        tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), \
+        file(ped), file(log), file("${TRAIT}_gcta_grm.grm.bin"), file("${TRAIT}_gcta_grm.grm.id"), \
+        file("${TRAIT}_gcta_grm.grm.N.bin"), file("${TRAIT}_gcta_grm_inbred.grm.bin"), file("${TRAIT}_gcta_grm_inbred.grm.id")
 
     when:
         params.maps
@@ -81,16 +83,6 @@ process gcta_grm {
            --make-grm-inbred \\
            --out ${TRAIT}_gcta_grm_inbred \\
            --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm \\
-           --pheno plink_formated_trats.tsv \\
-           --reml \\
-           --out ${TRAIT}_heritability \\
-           --thread-num 5
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --pheno plink_formated_trats.tsv \\
-           --reml \\
-           --out ${TRAIT}_heritability_inbred \\
-           --thread-num 5
     """
 }
 
@@ -106,8 +98,7 @@ process gcta_lmm_exact_mapping {
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
     file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
-    file(h2), file(h2log), file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred), \
-    file(h2_inbred), file(h2log_inbred)
+    file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred)
 
     output:
     tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact_pca.loco.mlma")
