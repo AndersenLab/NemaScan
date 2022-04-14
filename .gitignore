@@ -11,3 +11,4 @@ analysis/*
 katie_test_out/*
 debug-test/*
 work/*
+nextflow.config*

@@ -150,7 +150,7 @@ print(plot)
 
 ### Linkage disequilibrium
 
-If your trait has multiple QTL, we calculate linkage disequilibrium (LD) between them. This is useful because sometimes we find that one strong QTL might be linked to a secondary QTL (even if it exists on another chromosome). If this is the case, the secondary QTL might not contain a true causal variant, thus it is important to check this before narrowing the QTL experimentally.
+If your trait has multiple QTL, we calculate linkage disequilibrium (LD) between them. This is useful because sometimes we find that one strong QTL might be in linkage disequilibrium to a secondary QTL (even if it exists on another chromosome). If this is the case, the secondary QTL might not contain a true causal variant, thus it is important to check this before narrowing the QTL experimentally.
 
 ```{r, eval = whether_plot_LD}
 
@@ -201,7 +201,7 @@ if ( nrow(ld_snps) > 1 ) {
 ```
 
 ```{r, eval=!whether_plot_LD}
-print("Not enough QTL regions to calculate linkage")
+print("Not enough QTL regions to calculate linkage disequilibrium")
 ```
 
 <br>
