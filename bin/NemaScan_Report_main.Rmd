@@ -90,7 +90,7 @@ whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
 
 ## Manhattan plot
 
-This analysis was run using two algorithms from GCTA: INBRED and LOCO. XXX (Insert text explaining the differences between the algorithms and link to sam's nemascan paper as well as gcta paper for more info)
+A genome-wide association study (GWAS) was performed by testing whether marker genotype differences can explain phenotypic variation. These tests correct for relatedness among individuals in the population using a genomic relatedness matrix (or "kinship matrix"). This anlaysis was performed with GCTA using two different kinship matrices: one constructed specifically with inbred model organisms in mind (INBRED) and one which is constructed from all markers except those on the chromosome of the tested marker ("leave-one-chromosome-out"; LOCO). The INBRED kinship matrix more heavily accounts for genetic stratification at the tested marker, while the LOCO kinship matrix does not, and may therefore increase power in certain contexts.
 
 * **Every dot is a SNV marker.**
 
