@@ -98,10 +98,78 @@ process gcta_lmm_exact_mapping {
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
     file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
-    file(grm_bin_inbred), file(grm_id_inbred), file(grm_nbin_inbred)
+    file(grm_bin_inbred), file(grm_id_inbred)
 
     output:
     tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact_pca.loco.mlma")
+
+
+    """
+    gcta64 --grm ${TRAIT}_gcta_grm \\
+           --make-bK-sparse ${params.sparse_cut} \\
+           --out ${TRAIT}_sparse_grm \\
+           --thread-num 5
+    gcta64 --grm ${TRAIT}_gcta_grm \\
+           --pca 1 \\
+           --out ${TRAIT}_sparse_grm \\
+           --thread-num 5
+    gcta64 --mlma-loco \\
+           --grm ${TRAIT}_sparse_grm \\
+           --bfile ${TRAIT} \\
+           --out ${TRAIT}_lmm-exact \\
+           --pheno ${traits} \\
+           --maf ${params.maf} \\
+           --thread-num 5
+    gcta64 --mlma-loco \\
+           --grm ${TRAIT}_sparse_grm \\
+           --bfile ${TRAIT} \\
+           --qcovar ${TRAIT}_sparse_grm.eigenvec \\
+           --out ${TRAIT}_lmm-exact_pca \\
+           --pheno ${traits} \\
+           --maf ${params.maf} \\
+           --thread-num 5
+
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
+           --make-bK-sparse ${params.sparse_cut} \\
+           --out ${TRAIT}_sparse_grm_inbred \\
+           --thread-num 5
+    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
+           --pca 1 \\
+           --out ${TRAIT}_sparse_grm_inbred \\
+           --thread-num 5
+    gcta64 --fastGWA-lmm-exact \\
+           --grm-sparse ${TRAIT}_sparse_grm \\
+           --bfile ${TRAIT} \\
+           --out ${TRAIT}_lmm-exact_inbred \\
+           --pheno ${traits} \\
+           --maf ${params.maf} \\
+           --thread-num 5
+    gcta64 --fastGWA-lmm-exact \\
+           --grm-sparse ${TRAIT}_sparse_grm \\
+           --bfile ${TRAIT} \\
+           --qcovar ${TRAIT}_sparse_grm_inbred.eigenvec \\
+           --out ${TRAIT}_lmm-exact_inbred_pca \\
+           --pheno ${traits} \\
+           --maf ${params.maf} \\
+           --thread-num 5
+    """
+}
+
+process gcta_lmm_exact_mapping_nopca {
+
+    // machineType 'n1-highmem-4'
+    label "xl"
+
+    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*fastGWA", overwrite: true
+    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
+
+    input:
+    tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
+    file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
+    file(grm_bin_inbred), file(grm_id_inbred)
+
+    output:
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
 
 
     """
