@@ -45,6 +45,7 @@ params.ci_size = 150
 params.p3d = "TRUE"
 params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 params.cores = 4
+params.pca = true
 
 
 // VCF parameters
@@ -291,7 +292,7 @@ log.info ""
 
 // Includes
 include {pull_vcf; fix_strain_names_bulk; fix_strain_names_alt; vcf_to_geno_matrix; chrom_eigen_variants; collect_eigen_variants} from './modules/setup.nf'
-include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps} from './modules/mapping.nf'
+include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps; gcta_lmm_exact_mapping_nopca} from './modules/mapping.nf'
 include {mediation_data; multi_mediation; simple_mediation; summary_mediation} from './modules/mediation.nf'
 include {summarize_mapping; generate_plots; LD_between_regions; prep_ld_files; gcta_fine_maps; divergent_and_haplotype; html_report_main} from './modules/post-mapping.nf'
 include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals} from './modules/simulations.nf'
@@ -337,10 +338,18 @@ workflow {
         chrom_eigen_variants.out.collect() | collect_eigen_variants
 
         // GWAS mapping
-        pheno_strains
-            .combine(traits_to_map)
-            .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+        if(params.pca) {
+            mapping_output = pheno_strains
+                .combine(traits_to_map)
+                .combine(vcf_file.combine(vcf_index))
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+        } else {
+            mapping_output = pheno_strains
+                .combine(traits_to_map)
+                .combine(vcf_file.combine(vcf_index))
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping_nopca
+        }
+        
 
         // process GWAS mapping
         traits_to_map
@@ -350,7 +359,7 @@ workflow {
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
-            .join(gcta_lmm_exact_mapping.out)
+            .join(mapping_output)
             .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
 
         // plot
