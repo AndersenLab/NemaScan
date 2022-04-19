@@ -119,6 +119,8 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--mediation` - Defaults to *true*, can change to *false* if you want to skip mediation.
 
+* `--pca` - Defaults to *true*, can change to *false* to not include the first PCA as a component in the GCTA mapping.
+
 
 ## Genomatrix Profile
 
