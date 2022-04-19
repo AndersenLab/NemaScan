@@ -90,11 +90,11 @@ whether_mediate <- ifelse("MEDIATION" == "true", TRUE, FALSE)
 
 ## Manhattan plot
 
-A genome-wide association study (GWAS) was performed by testing whether marker genotype differences can explain phenotypic variation. These tests correct for relatedness among individuals in the population using a genomic relatedness matrix (or "kinship matrix"). This anlaysis was performed with GCTA using two different kinship matrices: one constructed specifically with inbred model organisms in mind (INBRED) and one which is constructed from all markers except those on the chromosome of the tested marker ("leave-one-chromosome-out"; LOCO). The INBRED kinship matrix more heavily accounts for genetic stratification at the tested marker, while the LOCO kinship matrix does not, and may therefore increase power in certain contexts.
+A genome-wide association study (GWAS) was performed by testing whether marker genotype differences can explain phenotypic variation. These tests correct for relatedness among individuals in the population using a genomic relatedness matrix (or "kinship matrix"). This anlaysis was performed with GCTA using two different kinship matrices: one constructed specifically with inbred model organisms in mind (INBRED) and one which is constructed from all markers except those on the chromosome of the tested marker ("leave-one-chromosome-out"; LOCO). The INBRED kinship matrix more heavily corrects for genetic stratification at the tested marker, while the LOCO kinship matrix does not, and may therefore increase power in certain contexts.
 
 * **Every dot is a SNV marker.**
 
-* **SNVs are colored red if they pass the genome-wide corrected significance threshold:**
+* **SNVs are colored if they pass the genome-wide corrected significance threshold:**
     * The horizontal solid line corresponds to stricter Bonferroni (BF) threshold which is based on the number of markers in the analysis.
     * The horizontal dash line corresponds to more permissive EIGEN threshold, which corrects for the number of independent markers in your data set. This threshold takes advantage of the extensive LD in *C. elegans* to limit the number of "unique" markers. (See Zdraljevic *et al*. 2019 (PMID: 30958264) for more)
     * If you selected a custom threshold, only this threshold is shown as a dotted line.
@@ -224,9 +224,8 @@ DT::datatable(peaks)
 ```
 
 
-## QQ-plots to help decide between INBRED and LOCO GWA algorithms
-
-XXX (Insert text here to talk about how to interpret the plot)
+## Genomic Inflation
+The p-values calculated from each marker association test were compared to the theoretical distribution of p-values under the null hypothesis. This comparison is displayed for each chromosome in the quantile-quantile plots (Q-Q plots) below. The genomic inflation factor (λ_GC) estimates the inflation of observed p-values compared to a theoretical χ^2 [0.5,1]. Mappings producing genomic inflation factors greater than 1.25 may indicate some systematic bias, such as strong population stratification of phenotype values.
 
 ```{r, fig.height=6, fig.width=12}
 
@@ -289,15 +288,15 @@ calc.genomic.inflation <- function(x,y){
 
 ```
 
-**The genomic inflation is `r calc.genomic.inflation(exp_inbred, trait_name)$GIF[1]` for the INBRED algorithm and `r calc.genomic.inflation(exp_loco, trait_name)$GIF[1]` for LOCO. XXX (Explain what this means)**
+**The genomic inflation factor is `r calc.genomic.inflation(exp_inbred, trait_name)$GIF[1]` for the INBRED mapping and `r calc.genomic.inflation(exp_loco, trait_name)$GIF[1]` for the LOCO mapping**
 
-*The following sections of the report are shown for both the INBRED and LOCO parameters. It is recommended you choose one based on the previous plots. This could be different between different traits.*
+*The following sections of the report are shown for mappings performed using both the INBRED and LOCO kinship matrix construction approaches. It is recommended you choose one set of results based on the previous diagnostic plots. These results may vary between different traits.*
 
 ---
 
 ## INBRED
 
-This is the default parameter. XXX (more here)
+This is the default kinship matrix construction approach, designed for inbred model organisms (See https://yanglab.westlake.edu.cn/software/gcta/#MakingaGRM for more info).
 
 ```{r}
 
@@ -333,7 +332,7 @@ print("No QTL were identified with the INBRED algorithm.")
 
 ## LOCO
 
-For some traits, LOCO might provide more power to detect true QTL because it ignores genomic structure on the chromosome of the main QTL, allowing for higher power to detect linked QTL or QTL within divergent regions. However, this higher power also comes with higher false positive rates. For more info, check out this paper. XXX (more here)
+LOCO may provide increased power to detect QTL because it does not correct for relatedness (or stratification) on the chromosome of each tested marker, sometimes providing higher power to detect linked QTL or QTL within divergent regions. However, this higher power also comes with higher false discovery rates. For more info, check out Widmayer *et al*. 2021 (https://www.biorxiv.org/content/10.1101/2021.09.09.459688v1).
 
 ```{r}
 
