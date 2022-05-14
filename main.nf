@@ -20,7 +20,10 @@ params.help = null
 params.debug = null
 download_vcf = null
 params.finemap = true
+params.maps = true
 params.species = "c_elegans"
+params.matrix = null
+params.simulate = null
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
@@ -40,6 +43,7 @@ if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
 */
 params.maf = 0.05
 params.sparse_cut = 0.05
+params.strains = null
 params.group_qtl = 1000
 params.ci_size = 150
 params.p3d = "TRUE"
@@ -656,10 +660,6 @@ workflow.onComplete {
     P3D                                     = ${params.p3d}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Mapping                                 = ${params.maps}
-    Simulation                              = ${params.simulate}
-    Simulate QTL effects                    = ${params.simulate_qtlloc}
-    Annotation                              = ${params.annotate}
     Result Directory                        = ${params.out}
     """
 

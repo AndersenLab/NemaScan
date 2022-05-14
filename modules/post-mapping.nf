@@ -111,11 +111,15 @@ process prep_ld_files {
             end_pos=`echo \$p | cut -f5 -d' '`
         
         cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
+        
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 |\\
         bcftools annotate --rename-chrs ${num_chroms} |\\
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
+        
+        
+        // LD
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
@@ -147,7 +151,12 @@ process prep_ld_files {
             --set-missing-var-ids @:# \\
             --vcf \$trait.\$chromosome.\$start_pos.\$end_pos.vcf.gz
         cut \$trait.\$chromosome:\$start_pos-\$end_pos.QTL.ld -f2-10 > \$trait.\$chromosome.\$start_pos.\$end_pos.LD_${algorithm}.tsv
-        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.vcf.gz |\\
+        
+        // Genotype Matrix
+        bcftools view ${imputed_vcf} -S phenotyped_samples.txt |\\
+        bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
+        bcftools annotate --rename-chrs ${num_chroms} -o finemap.grm.vcf.gz
+        bcftools query --print-header -f '%CHROM\\t%POS\\t%REF\\t%ALT[\\t%GT]\\n' finemap.grm.vcf.gz |\\
             sed 's/[[# 0-9]*]//g' |\\
             sed 's/:GT//g' |\\
             sed 's/0|0/-1/g' |\\
