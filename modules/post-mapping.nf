@@ -87,8 +87,7 @@ process prep_ld_files {
     publishDir "${params.out}/LOCO/Fine_Mappings/Data", mode: 'copy', pattern: "*LD_loco.tsv"
 
     input:
-        tuple val(TRAIT), val(CHROM), val(marker), val(log10p), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), val(algorithm), file(geno), \
-        file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(phenotype), file(num_chroms)
+        tuple val(TRAIT), val(CHROM), val(marker), val(log10p), val(start_pos), val(peak_pos), val(end_pos), val(peak_id), val(h2), val(algorithm), file(geno), file(pheno), file(aggregate_mapping), file(imputed_vcf), file(imputed_index), file(phenotype), file(num_chroms)
 
     output:
         tuple val(TRAIT), file(pheno), file("*ROI_Genotype_Matrix*.tsv"), file("*LD*.tsv"), file("*.bim"), file("*.bed"), file("*.fam"), val(algorithm), emit: finemap_preps
@@ -180,7 +179,7 @@ process gcta_fine_maps {
 
     input:
         tuple val(TRAIT), file(pheno), file(ROI_geno), file(ROI_LD), file(bim), file(bed), file(fam), val(algorithm), \
-        file(annotation), file(genefile), file(finemap_qtl_intervals), file(plot_genes)
+        file(annotation), file(genefile), file(finemap_qtl_intervals), file(plot_genes), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), file(grm_bin_inbred), file(grm_id_inbred)
 
     output:
         tuple file("*.fastGWA"), val(TRAIT), file("*.prLD_df*.tsv"), file("*.pdf"), file("*_genes*.tsv"), val(algorithm)
@@ -195,24 +194,24 @@ process gcta_fine_maps {
       chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
       start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
       stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
-      gcta64 --bfile ${TRAIT}.\$chr.\$start.\$stop \\
+      gcta64 --bfile ${TRAIT} \\
               --autosome \\
               --maf ${params.maf} \\
               --make-grm-inbred \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred.${algorithm} \\
+              --out ${TRAIT}.FM_grm_inbred.${algorithm} \\
               --thread-num 9
-      gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred.${algorithm} \\
+      gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
               --make-bK-sparse ${params.sparse_cut} \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred.${algorithm}  \\
+              --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
               --thread-num 9
-      gcta64 --grm ${TRAIT}.\$chr.\$start.\$stop.FM_grm_inbred.${algorithm} \\
+      gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
               --pca 1 \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred.${algorithm}  \\
+              --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
               --thread-num 9
       gcta64 --fastGWA-lmm-exact \\
-              --grm-sparse ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred.${algorithm} \\
+              --grm-sparse ${TRAIT}.sparse_FM_grm_inbred.${algorithm} \\
               --bfile ${TRAIT}.\$chr.\$start.\$stop \\
-              --qcovar ${TRAIT}.\$chr.\$start.\$stop.sparse_FM_grm_inbred.${algorithm}.eigenvec \\
+              --qcovar ${TRAIT}.sparse_FM_grm_inbred.${algorithm}.eigenvec \\
               --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm} \\
               --pheno plink_finemap_traits.tsv \\
               --maf ${params.maf} \\
