@@ -462,7 +462,8 @@ workflow {
                 .combine(ann_file)
                 .combine(Channel.fromPath("${params.genes}"))
                 .combine(Channel.fromPath("${params.bin_dir}/Finemap_QTL_Intervals.R"))
-                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
+                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R"))
+                .combine(gcta_grm.out, by: 0) | gcta_fine_maps
 
             // divergent regions and haplotypes
             // only for elegans right now
