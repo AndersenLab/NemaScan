@@ -10,7 +10,7 @@ Each variant is represented by a vertical line, colored by the predicted variant
 ```{r, out.width = '100%', fig.height = 6}
 # read in genes in region and pval
 genes_in_region <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}_{QTL_chrom}_{QTL_start}-{QTL_end}_bcsq_genes_{stringr::str_to_lower(alg)}.tsv"))
-    
+
 gene_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
     dplyr::distinct(WBGeneID, GENE_NAME, PEAK_MARKER, CHROM, STRAND, TRANSCRIPTION_START_POS, 
@@ -99,6 +99,7 @@ finemap <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_n
                 P = as.numeric(P))
 ROI.geno.matrix <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
 ROI.LD <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD_{stringr::str_to_lower(alg)}.tsv"))
+
 
 peakp <- unique(ROI.LD$BP_A)
 
@@ -261,14 +262,13 @@ The following plot shows divergent regions for each strain across the QTL region
 ```{r, out.width = '100%', fig.height=20, fig.width=20, eval = div}
 
 # genome bin table
-all_QTL_bins <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed"), 
-                           header=FALSE, stringsAsFactors=FALSE)%>%
+all_QTL_bins <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed"),
+                           header=FALSE, stringsAsFactors=FALSE) %>%
   dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end )
 
 # if any of user supplied strains have divergent region with the QTL region
 if (file.info(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"))$size!=0) {
-  
-  all_QTL_div <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"), 
+  all_QTL_div <- read.delim(glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed"),
                             header=FALSE, stringsAsFactors=FALSE) %>%
     dplyr::filter(V4 %in% unique(processed_mapping$strain)) %>%
     dplyr::filter(V1 == QTL_chrom & V2 > QTL_start & V3 < QTL_end ) %>%
@@ -331,11 +331,22 @@ if (nrow(dplyr::filter(ref_alt_div, div == 1)) > nrow(ref_alt_div)/20 ) {
 
 
 # plot
-ref_alt_div %>%
+for.div.plot <- ref_alt_div %>%
   dplyr::left_join(ref_alt) %>%
-  ggplot2::ggplot(.) +
+  dplyr::mutate(div = case_when(
+    div == 0 ~ "Not Divergent",
+    div == -1 ~ "No Divergent Information",
+    div == 1 ~ "Divergent")) %>%
+  dplyr::mutate(color = case_when(
+    div == "Not Divergent" ~ "grey",
+    div == "No Divergent Information" ~ "darkblue",
+    div == "Divergent" ~ "darkred"))
+div.palette <- for.div.plot$color
+names(div.palette) <- for.div.plot$div
+
+ggplot2::ggplot(for.div.plot) +
   aes(x = start/1e6, xend = end/1e6, yend = strain, y = strain) +
-  ggplot2::geom_segment(aes(color = as.character(div)), size = 2) +
+  ggplot2::geom_segment(aes(color = div), size = 2) +
   theme_bw(12) +
   ggplot2::theme(panel.spacing = unit(1, "lines"),
           strip.text = element_text(size = 30, face = "bold"),
@@ -345,9 +356,7 @@ ref_alt_div %>%
           axis.ticks.y = element_blank(),
           panel.grid = element_blank(),
           legend.text = element_text(size = 20)) +
-  scale_color_manual(values = c("1" = "indianred1","0" = "grey90","-1" = "dodgerblue3"), 
-                     labels = c("Divergent from N2", "Not divergent", "No Divergent Data"),
-                     name = "") +
+  scale_color_manual(values = div.palette, name = "Divergence") +
   facet_grid(geno_group_count~., scales = "free_y", space = "free_y") +
   geom_vline(xintercept = QTL_Peak/1e6, linetype = "dashed", size = 2) +
   labs(x = "Genomic position (Mb)", y = "Strain")

@@ -116,6 +116,7 @@ process gcta_lmm_exact_mapping {
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
+           --reml-no-constrain \\
            --out ${TRAIT}_lmm-exact \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
@@ -123,6 +124,7 @@ process gcta_lmm_exact_mapping {
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
+           --reml-no-constrain \\
            --qcovar ${TRAIT}_sparse_grm.eigenvec \\
            --out ${TRAIT}_lmm-exact_pca \\
            --pheno ${traits} \\
@@ -140,6 +142,7 @@ process gcta_lmm_exact_mapping {
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
+           --est-vg HE \\
            --out ${TRAIT}_lmm-exact_inbred \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
