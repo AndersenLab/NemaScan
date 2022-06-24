@@ -41,7 +41,9 @@ roi_genotype <- ROI.geno.matrix %>%
   dplyr::summarize(strains = paste(strain, collapse = ",")) 
 
 pr_roi_ld <- ROI.LD %>%
-  dplyr::mutate(peak_marker = gsub("_", ":", unique(finemap_peaks$SNP))) %>%
+ # dplyr::mutate(peak_marker = gsub("_", ":", unique(finemap_peaks$SNP))) %>%
+  dplyr::mutate(peak_marker = ifelse(identical(gsub("_", ":", unique(finemap_peaks$SNP)), character(0)), NA, 
+                                     gsub("_", ":", unique(finemap_peaks$SNP)))) %>% 
   dplyr::mutate(SNP = SNP_B) %>%
   dplyr::select(peak_marker, peak_maf = MAF_A, SNP, maf_marker_b = MAF_B, ld_r2 = R2) %>%
   dplyr::mutate(ld_r2 = as.numeric(ld_r2)) %>%
