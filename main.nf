@@ -472,6 +472,7 @@ workflow {
                     .combine(Channel.from("inbred"))
                     .mix(peaks_loco
                         .combine(Channel.from("loco")))
+                    .combine(prep_ld_files.out.QTLregion_vcfs)
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))

@@ -93,6 +93,7 @@ process prep_ld_files {
         tuple val(TRAIT), file(pheno), file("*ROI_Genotype_Matrix*.tsv"), file("*LD*.tsv"), file("*.bim"), file("*.bed"), file("*.fam"), val(algorithm), emit: finemap_preps
         tuple val(TRAIT), file("*ROI_Genotype_Matrix_inbred.tsv"), file("*LD_inbred.tsv"), emit: finemap_LD_inbred, optional: true
         tuple val(TRAIT), file("*ROI_Genotype_Matrix_loco.tsv"), file("*LD_loco.tsv"), emit: finemap_LD_loco, optional: true
+        tuple val(TRAIT), val(CHROM), val(start_pos), val(end_pos), file("*vcf.gz"), emit: QTLregion_vcfs
 
     """
         echo "HELLO"
@@ -161,6 +162,7 @@ process prep_ld_files {
             sed 's/.\\/./NA/g' |\\
             sed 's/^23/X/g' > \$trait.\$chromosome:\$start_pos-\$end_pos.ROI_Genotype_Matrix_${algorithm}.tsv
         done < \$filename
+        rm finemap.vcf.gz
     """
 }
 
@@ -236,7 +238,7 @@ process divergent_and_haplotype {
   publishDir "${params.out}/LOCO/Divergent_and_haplotype", mode: 'copy', pattern: '*loco*'
 
   input:
-    tuple file("QTL_peaks.tsv"), val(algorithm), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
+    tuple file("QTL_peaks.tsv"), val(algorithm), val(TRAIT), val(CHROM), val(start_pos), val(end_pos), file(region_vcf), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
   output:
     tuple file("all_QTL_bins_inbred.bed"), file("all_QTL_div_inbred.bed"), file("haplotype_in_QTL_region_inbred.txt"), file("div_isotype_list2_inbred.txt"), emit: div_hap_table_inbred, optional: true 
@@ -246,8 +248,13 @@ process divergent_and_haplotype {
   awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$5,\$7}' > QTL_region_${algorithm}.bed
   bedtools intersect -wa -a ${divergent_bins} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins_${algorithm}.bed
   bedtools intersect -a ${divergent_df_isotype} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div_${algorithm}.bed
-  bedtools intersect -a ${haplotype_df_isotype} -b QTL_region_${algorithm}.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region_${algorithm}.txt
   cp ${div_isotype_list} ./div_isotype_list2_${algorithm}.txt
+
+  tabix -p vcf ${region_vcf}
+  java -Xmx16G -jar ibdseq.r1206.jar gt=${region_vcf} minalleles=4 r2max=0.3 ibdlod=3 r2window=50 nthreads=4 out=${TRAIT}.${CHROM}.${start_pos}.${end_pos}
+  cat ${TRAIT}.${CHROM}.${start_pos}.${end_pos}.ibd > ${TRAIT}.${CHROM}.${start_pos}.${end_pos}_haplotype.tsv
+  // bedtools intersect -a ${haplotype_df_isotype} -b QTL_region_${algorithm}.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region_${algorithm}.txt
+  
   """
 
 }
