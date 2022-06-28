@@ -142,6 +142,7 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         dplyr::mutate(log10p = max(log10p, na.rm = T)) %>%
         dplyr::distinct()
     
+    #peak_variant <- as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])
     peak_variant <- as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])
     
     variant_df <- ugly_genes_in_region %>%
