@@ -143,7 +143,11 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         dplyr::distinct()
     
     #peak_variant <- as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])
-    peak_variant <- ifelse(is.na(unique(gene_df$peak_marker)),NA,   as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])) 
+    peak_df <- gene_df %>% 
+    dplyr::filter(!is.na(peak_marker))  
+  
+  peak_variant <- ifelse( (is.na(unique(peak_df$peak_marker)) | identical(gsub("_", ":", unique(peak_df$peak_marker)), logical(0)) ),NA,  
+                         as.numeric(strsplit(unique(peak_df$peak_marker), split = ":")[[1]][2])) 
     
     variant_df <- ugly_genes_in_region %>%
         dplyr::filter(start_pos == unique(ugly_genes_in_region$start_pos)[r]) %>%
