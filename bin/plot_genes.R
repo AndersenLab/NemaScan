@@ -25,6 +25,10 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
                                   CHR == 7 ~ "MtDNA")) %>%
     dplyr::mutate(marker = paste(CHR,POS,sep = "_"),
                   log10p = -log(P))
+
+output_sq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_)(.*.tsv)","\\5",args[1])
+output_eq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_)(.*.tsv)","\\7",args[1])
+
 phenotypes <- readr::read_tsv(args[2])
 
 gene_ref_flat <- readr::read_tsv(args[3])
@@ -130,8 +134,12 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
                       VARIANT_LD_WITH_PEAK_MARKER = ld_r2, VARIANT_LOG10p = log10p) 
         }
 
+#write_tsv(tidy_genes_in_region,
+ #         path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
+
 write_tsv(tidy_genes_in_region,
-          path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
+          path = glue::glue("{analysis_trait}_{cq}_{output_sq}-{output_eq}_{ann_type}_genes_{args[5]}.tsv"))
+
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
@@ -142,8 +150,13 @@ for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
         dplyr::mutate(log10p = max(log10p, na.rm = T)) %>%
         dplyr::distinct()
     
-    peak_variant <- as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])
-    
+    #peak_variant <- as.numeric(strsplit(unique(gene_df$peak_marker), split = ":")[[1]][2])
+    peak_df <- gene_df %>% 
+    dplyr::filter(!is.na(peak_marker))  
+  
+  peak_variant <- ifelse(identical(gsub("_", ":", unique(peak_df$peak_marker)), character(0)), NA,  
+                         as.numeric(strsplit(unique(peak_df$peak_marker), split = ":")[[1]][2])) 
+  
     variant_df <- ugly_genes_in_region %>%
         dplyr::filter(start_pos == unique(ugly_genes_in_region$start_pos)[r]) %>%
         dplyr::distinct(CHR, POS, log10p, VARIANT_IMPACT)
