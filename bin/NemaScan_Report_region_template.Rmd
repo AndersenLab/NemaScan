@@ -19,7 +19,17 @@ gene_df <- genes_in_region %>%
     dplyr::mutate(VARIANT_LOG10p = max(VARIANT_LOG10p, na.rm = T)) %>%
     dplyr::distinct()
 
-peak_variant <- as.numeric(strsplit(unique(gene_df$PEAK_MARKER), split = ":")[[1]][2])
+#peak_variant <- as.numeric(strsplit(unique(gene_df$PEAK_MARKER), split = ":")[[1]][2])
+
+
+ peak_df <- gene_df %>% 
+    dplyr::filter(!is.na(PEAK_MARKER))  
+  
+  peak_variant <- ifelse(identical(gsub("_", ":", unique(peak_df$PEAK_MARKER)), character(0)), NA,  
+                         as.numeric(strsplit(unique(peak_df$PEAK_MARKER), split = ":")[[1]][2])) 
+
+
+
 
 variant_df <- genes_in_region %>%
     dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
@@ -116,7 +126,9 @@ roi_genotype <- ROI.geno.matrix %>%
   dplyr::summarize(strains = paste(strain, collapse = ",")) 
 
 pr_roi_ld <- ROI.LD %>%
-  dplyr::mutate(peak_marker = gsub("_", ":", unique(finemap_peaks$SNP))) %>%
+#  dplyr::mutate(peak_marker = gsub("_", ":", unique(finemap_peaks$SNP))) %>%
+  dplyr::mutate(peak_marker = ifelse(identical(gsub("_", ":", unique(finemap_peaks$SNP)), character(0)), NA, 
+                                     gsub("_", ":", unique(finemap_peaks$SNP)))) %>% 
   dplyr::mutate(SNP = SNP_B) %>%
   dplyr::select(peak_marker, peak_maf = MAF_A, SNP, maf_marker_b = MAF_B, ld_r2 = R2) %>%
   dplyr::mutate(ld_r2 = as.numeric(ld_r2)) %>%
