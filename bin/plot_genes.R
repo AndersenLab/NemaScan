@@ -26,8 +26,8 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
     dplyr::mutate(marker = paste(CHR,POS,sep = "_"),
                   log10p = -log(P))
 
-output_sq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_loco.tsv)","\\5",args[1])
-output_eq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_loco.tsv)","\\7",args[1])
+output_sq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_)(.*.tsv)","\\5",args[1])
+output_eq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_)(.*.tsv)","\\7",args[1])
 
 phenotypes <- readr::read_tsv(args[2])
 
