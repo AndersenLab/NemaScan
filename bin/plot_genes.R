@@ -25,6 +25,10 @@ pr_trait_ld <- data.table::fread(args[1]) %>%
                                   CHR == 7 ~ "MtDNA")) %>%
     dplyr::mutate(marker = paste(CHR,POS,sep = "_"),
                   log10p = -log(P))
+
+output_sq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_loco.tsv)","\\5","C47E8_8a_1.V.12076173.15962868.prLD_df_loco.tsv")
+output_eq <- sub("(.*)(\\.)(.*)(\\.)(.*)(\\.)(.*)(\\.)(prLD_df_loco.tsv)","\\7","C47E8_8a_1.V.12076173.15962868.prLD_df_loco.tsv")
+
 phenotypes <- readr::read_tsv(args[2])
 
 gene_ref_flat <- readr::read_tsv(args[3])
@@ -130,8 +134,12 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
                       VARIANT_LD_WITH_PEAK_MARKER = ld_r2, VARIANT_LOG10p = log10p) 
         }
 
+#write_tsv(tidy_genes_in_region,
+ #         path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
+
 write_tsv(tidy_genes_in_region,
-          path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
+          path = glue::glue("{analysis_trait}_{cq}_{output_sq}-{output_eq}_{ann_type}_genes_{args[5]}.tsv"))
+
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){
     
