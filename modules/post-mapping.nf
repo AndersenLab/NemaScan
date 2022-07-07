@@ -234,6 +234,8 @@ process gcta_fine_maps {
 
 process divergent_and_haplotype {
 
+  label "divergent_haplotype"
+
   publishDir "${params.out}/INBRED/Divergent_and_haplotype", mode: 'copy', pattern: '*_inbred*'
   publishDir "${params.out}/LOCO/Divergent_and_haplotype", mode: 'copy', pattern: '*loco*'
 
