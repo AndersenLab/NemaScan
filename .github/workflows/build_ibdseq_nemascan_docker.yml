@@ -9,9 +9,9 @@ on:
     - '.github/workflows/build_ibdseq_nemascan_docker.yml'
   pull_request:
     paths:
-    - 'env/nemascan.Dockerfile'
-    - 'env/conda.yml'
-    - '.github/workflows/build_docker.yml'
+    - 'env/ibdseq.nemascan.Dockerfile'
+    - 'env/ibdseq.nemascan.yml'
+    - '.github/workflows/build_ibdseq_nemascan_docker.yml'
 
 jobs:
   build:
