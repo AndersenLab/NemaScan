@@ -379,9 +379,9 @@ scaled <- fixed_names %>%
     # dplyr::mutate(max_pheno = max(phenotype),
     #               scaled_pheno = dplyr::case_when(max_pheno < 0.01 ~ phenotype*1e4,
     #                                               TRUE ~ phenotype)) %>%
-    dplyr::mutate(scaled_pheno = scale(phenotype)) %>%
-    dplyr::select(strain, trait, scaled_pheno) %>%
-    tidyr::pivot_wider(names_from = "trait", values_from = "scaled_pheno")
+    # dplyr::mutate(scaled_pheno = scale(phenotype)) %>%
+    dplyr::select(strain, trait, phenotype) %>%
+    tidyr::pivot_wider(names_from = "trait", values_from = "phenotype")
 
 # test <- fixed_names %>%
 #     tidyr::pivot_longer(-strain, names_to = "trait", values_to = "phenotype") %>%
@@ -393,7 +393,7 @@ scaled <- fixed_names %>%
 
 # is it better to just center and scale all phenotypes? but I don't want to take away from the real phenotype value if that is important (for the pxg plots)
 # if(length(test) > 0) {
-    print("Note: All phenotypes were scaled to center at zero with a standard deviation of one.")
+    # print("Note: All phenotypes were scaled to center at zero with a standard deviation of one.")
     # print(paste(test, collapse = ", "))
 # }
 
