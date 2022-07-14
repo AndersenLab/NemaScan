@@ -12,3 +12,6 @@ katie_test_out/*
 debug-test/*
 work/*
 nextflow.config*
+07.*
+ts_nf_log.txt
+tropicalis
