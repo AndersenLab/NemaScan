@@ -61,7 +61,7 @@ ld_plot <- ggplot(pr_roi_ld, mapping = aes(x = POS/1000000, y = as.numeric(-log(
   geom_point(shape = 23, size = 3) +
   geom_point(aes(y = -log(P)), shape = 23, size = 3, fill = "red",
              data = peak_roi_marker) +
-  scale_fill_distiller(palette = "YlGnGu", direction = 1, name = bquote(r^2)) +
+  scale_fill_distiller(palette = "YlGnBu", direction = 1, name = bquote(r^2)) +
   labs(x = "Genomic Position (Mb)",
        y = expression(-log[10](italic(p))))
 
