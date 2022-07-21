@@ -121,6 +121,8 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 
 * `--pca` - Defaults to *true*, can change to *false* to not include the first PCA as a component in the GCTA mapping.
 
+* `--fix` - Defaults to *true*, can change to *false* to skip the outlier removal step for phenotypes and isotype name fixes.
+
 
 ## Genomatrix Profile
 
