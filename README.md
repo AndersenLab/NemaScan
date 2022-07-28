@@ -17,12 +17,6 @@ module load python/anaconda3.6
 source activate /projects/b1059/software/conda_envs/nf20_env
 ```
 
-Alternatively you can update Nextflow by running:
-
-```
-nextflow self-update
-```
-
 * Singularity. On QUEST, you can get this with `module load singularity` before running
 
 *Note: previous versions of pipeline used conda environments on QUEST installed at `/projects/b1059/software/conda_envs/` but this will no longer be maintained*
