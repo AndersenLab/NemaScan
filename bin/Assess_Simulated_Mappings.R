@@ -25,6 +25,7 @@ iterations <- purrr::map(effects, .f = function(x){
 print("Measuring Performance")
 simulation.metrics <- function(x){
    
+   #Pull out params from simulation file name
    nQTL <- strsplit(x,split = "_")[[1]][1]
    rep <- strsplit(x,split = "_")[[1]][2]
    h2 <- strsplit(x,split = "_")[[1]][3]
@@ -163,6 +164,9 @@ simulation.metrics <- function(x){
 
 
   #Check if map obj was sucessfully read-in 
+   if(is.character(mapping.lmm.exact.inbred$result)){ 
+      lmm.exact.inbred <- c("No mapping for simulation parameters")} 
+      else {
 
          peak.info <- map_obj %>%
             dplyr::filter(!is.na(peak_id)) %>%
@@ -175,7 +179,7 @@ simulation.metrics <- function(x){
             dplyr::filter(QTL %in% effects$QTL) %>%
             dplyr::select(QTL, log10p, aboveBF)
          
-         effects.scores <-   %>%
+         effects.scores <- effects  %>%
             dplyr::full_join(., simulated.mapping.results.scores) %>%
             dplyr::filter(!duplicated(QTL),
                         !is.na(log10p))
@@ -221,7 +225,7 @@ simulation.metrics <- function(x){
          
          return(all.QTL)
 
-
+         }
          
       }  
    all_algorithims <- plyr::ldply(mappings, generate_sim_data, .id = "algorithm")
@@ -301,7 +305,9 @@ simulation.metrics <- function(x){
 
  }
 simulation.metrics.list <- purrr::map(iterations, simulation.metrics)
-simulation.metrics.df <- Reduce(rbind, simulation.metrics.list)
+check_col <- function(x){ncol(x)<= 2}
+filtered.simulation.metrics.list <- discard(simulation.metrics.list, check_col)
+simulation.metrics.df <- Reduce(rbind, filtered.simulation.metrics.list)
 save(simulation.metrics.df, file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
 
 
