@@ -284,6 +284,7 @@ process simulate_map_phenotypes {
 
 
 process get_gcta_intervals {
+    label 'get_gcta_intervals'
 
     tag {"${NQTL} - ${SIMREP} - ${H2}"}
 
@@ -293,7 +294,7 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"    
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '48 GB'
+    // memory '70 GB'
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_inbred_pca), file(lmmexact_loco), file(lmmexact_loco_pca), \
