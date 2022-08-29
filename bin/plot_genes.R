@@ -70,6 +70,52 @@ for(r in 1:nrow(query_regions)){
     sq <- query_regions$start_pos[r]
     eq <- query_regions$end_pos[r]
     
+
+# a function to check how many strains in the mapping set are in the column "Strains" of the annotation file 
+
+    alt_strain_check=function(df){
+      
+      df_split <- df %>% 
+        tidyr::separate_rows( Strains, sep = ",") %>% 
+        tidyr::separate_rows( strains_used, sep = ",") %>% 
+        dplyr::filter(Strains==strains_used)
+      
+      return(nrow(df_split))
+      
+    }
+    
+# ALT strains in the mapping set at each position
+    strain_list <- pr_trait_ld %>% 
+      dplyr::filter(CHR == cq ,
+                    POS >= sq ,
+                    POS <= eq ,
+                    allele=="ALT") %>% 
+      dplyr::select(CHROM=CHR,POS,strains_used=strains) %>% 
+      dplyr::distinct()  
+    
+# count and filter
+    annotations_region <- annotations %>%
+      dplyr::filter(CHROM == cq,
+                    POS >= sq,
+                    POS <= eq)  %>% 
+      dplyr::left_join(strain_list) %>% 
+      dplyr::filter(!Strains=="") %>% 
+      dplyr::filter(!is.na(strains_used)) %>% 
+      dplyr::select(CHROM,POS,Strains,strains_used) %>% 
+      dplyr::distinct() %>% 
+      dplyr::group_by(CHROM,POS,Strains,strains_used) %>%  
+      dplyr::do(data.frame(x=alt_strain_check(.))) %>%  # count overlap
+      dplyr::filter(x>0) %>% #find overlap > 0
+      dplyr::ungroup() %>%  
+      dplyr::group_by(CHROM,POS) %>%  
+      dplyr::filter(x==max(x))%>%   # find the max overlap for each position. Multiple max might exist
+      dplyr::select(-strains_used,-x) %>% 
+      dplyr::left_join(annotations) %>% {
+        if(ann_type == "bcsq") dplyr::select(., -Strains) else .
+      }%>%
+      tidyr::unite(marker, CHROM, POS, sep = "_")
+    
+
     # pull variants from finemap impute -- don't need this?
     # impute_vcf <- data.table::fread(args[4]) %>%
     #     dplyr::select(marker:POS, REF:strains)
@@ -87,7 +133,9 @@ for(r in 1:nrow(query_regions)){
         # dplyr::group_by_at(vars(-Strains)) %>%
         # dplyr::summarize(Strains = paste(Strains, collapse = ",")) %>%
         # dplyr::rename(strains = Strains) %>%
-        tidyr::unite(marker, CHROM, POS, sep = "_")
+        tidyr::unite(marker, CHROM, POS, sep = "_") %>% 
+      dplyr::filter(!marker %in% annotations_region$marker) %>% 
+      dplyr::bind_rows(annotations_region)
     
     # add variants with no annotations???
     
