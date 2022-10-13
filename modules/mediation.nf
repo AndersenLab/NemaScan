@@ -11,7 +11,7 @@
 
 process mediation_data {
  
-    executor 'local'
+  // executor 'local'
     tag {TRAIT}
     label "mediation"
 
