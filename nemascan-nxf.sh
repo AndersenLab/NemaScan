@@ -60,6 +60,7 @@ nextflow run main.nf \
   --google_zone "${GOOGLE_ZONE}" \
   --google_service_account_email "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" \
   --traitfile "${TRAIT_FILE}" \
+  --species "${SPECIES}" \
   --vcf "${VCF_VERSION}" \
   --work_dir "${WORK_DIR}" \
   --out "${OUTPUT_DIR}" \
