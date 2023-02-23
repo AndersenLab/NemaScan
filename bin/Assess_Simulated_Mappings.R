@@ -14,25 +14,49 @@ setwd(paste(args[1],"Simulations",sep = "/"))
 baseDir <- paste0(paste(strsplit(getwd(), split = "/")[[1]][1:(length(strsplit(eval(getwd()), split = "/")[[1]])-2)],collapse = "/"),"/")
 today <- format(Sys.time(), '%Y%m%d')
 
+pop_designation <- args[2]
+
 # Simulated QTLs and Effects
 effects <- list.files(pattern = "sims.par",recursive = T)
 print("Gathered Simulated QTL")
-iterations <- purrr::map(effects, .f = function(x){
-   paste(strsplit(strsplit(x,split = "/")[[1]][length(strsplit(x,split = "/")[[1]])],split = "_")[[1]][1:6], collapse = "_") # QUEST
-})
 
+if(pop_designation == TRUE){
+   iterations <- purrr::map(effects, .f = function(x){
+      paste(strsplit(strsplit(x,split = "/")[[1]][length(strsplit(x,split = "/")[[1]])],split = "_")[[1]][1:7], collapse = "_") # QUEST
+})
+} else{
+   iterations <- purrr::map(effects, .f = function(x){
+      paste(strsplit(strsplit(x,split = "/")[[1]][length(strsplit(x,split = "/")[[1]])],split = "_")[[1]][1:6], collapse = "_") # QUEST
+})
+}
 # Assessing Mapping Performance
 print("Measuring Performance")
-simulation.metrics <- function(x){
+simulation.metrics <- function(x, pop_designation = FALSE){
    
    #Pull out params from simulation file name
-   nQTL <- strsplit(x,split = "_")[[1]][1]
-   rep <- strsplit(x,split = "_")[[1]][2]
-   h2 <- strsplit(x,split = "_")[[1]][3]
-   MAF <- strsplit(x,split = "_")[[1]][4]
-   effect.range <- strsplit(x,split = "_")[[1]][5]
-   sample.population <- strsplit(x,split = "_")[[1]][6]
-   
+   # I decided to add the population designations to the file name instead of having 
+   # to do a more complicated join later on in analysis. Since old populations don't have
+   # this syntax I made this optional
+   if(pop_designation == TRUE){
+      nQTL <- strsplit(x,split = "_")[[1]][1]
+      rep <- strsplit(x,split = "_")[[1]][2]
+      h2 <- strsplit(x,split = "_")[[1]][3]
+      MAF <- strsplit(x,split = "_")[[1]][4]
+      effect.range <- strsplit(x,split = "_")[[1]][5]
+      sample.designation <- strsplit(x,split = "_")[[1]][6]
+      sample.population <- strsplit(x,split = "_")[[1]][7]
+
+      geno_file <- paste(sample.designation, sample.population,MAF,"Genotype_Matrix.tsv",sep = "_")
+   }else{
+      nQTL <- strsplit(x,split = "_")[[1]][1]
+      rep <- strsplit(x,split = "_")[[1]][2]
+      h2 <- strsplit(x,split = "_")[[1]][3]
+      MAF <- strsplit(x,split = "_")[[1]][4]
+      effect.range <- strsplit(x,split = "_")[[1]][5]
+      sample.population <- strsplit(x,split = "_")[[1]][6]
+
+      geno_file <- paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_")
+   }
    print(x)
    
    # Effects
@@ -58,7 +82,7 @@ simulation.metrics <- function(x){
    complete.effects <- data.table::fread(paste(baseDir, 
                                                args[1],
                                                "/Genotype_Matrix/",
-                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                               geno_file, sep = ""),
                                          header = T) %>%
       tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
       dplyr::filter(QTL %in% effects$QTL) %>%
@@ -76,7 +100,7 @@ simulation.metrics <- function(x){
       genos.effects <- data.table::fread(paste(baseDir,
                                                args[1],
                                                "/Genotype_Matrix/",
-                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                                geno_file, sep = ""),
                                          header = T) %>%
          tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
          dplyr::filter(QTL %in% effects$QTL) %>%
@@ -96,7 +120,7 @@ simulation.metrics <- function(x){
       genos.effects <- data.table::fread(paste(baseDir,
                                                args[1],
                                                "/Genotype_Matrix/",
-                                               paste(sample.population,MAF,"Genotype_Matrix.tsv",sep = "_"), sep = ""),
+                                               geno_file, sep = ""),
                                          header = T) %>%
          tidyr::unite("QTL",c(CHROM, POS), sep = ":", remove = F) %>%
          dplyr::filter(QTL %in% effects.2$QTL) %>%
@@ -304,11 +328,25 @@ simulation.metrics <- function(x){
 
 
  }
-simulation.metrics.list <- purrr::map(iterations, simulation.metrics)
-check_col <- function(x){ncol(x)<= 2}
-filtered.simulation.metrics.list <- discard(simulation.metrics.list, check_col)
-simulation.metrics.df <- Reduce(rbind, filtered.simulation.metrics.list)
-save(simulation.metrics.df, file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
+
+
+if(pop_designation == TRUE){
+   simulation.metrics.list <- purrr::map(iterations, simulation.metrics,  pop_designation = TRUE)
+   check_col <- function(x){ncol(x)<= 2}
+   filtered.simulation.metrics.list <- discard(simulation.metrics.list, check_col)
+   simulation.metrics.df <- Reduce(rbind, filtered.simulation.metrics.list)
+   save(simulation.metrics.df, file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
+}
+if(pop_designation == FALSE){
+   
+   simulation.metrics.list <- purrr::map(iterations, simulation.metrics, pop_designation = FALSE)
+   check_col <- function(x){ncol(x)<= 2}
+   filtered.simulation.metrics.list <- discard(simulation.metrics.list, check_col)
+   simulation.metrics.df <- Reduce(rbind, filtered.simulation.metrics.list)
+   save(simulation.metrics.df, file = paste("NemaScan_Performance",args[1],today,"RData", sep = "."))
+}
+
+
 
 
 

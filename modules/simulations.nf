@@ -12,6 +12,8 @@
 process prepare_simulation_files {
 
     cpus 4
+    memory 30.GB
+    time '30m'
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -80,6 +82,9 @@ process chrom_eigen_variants_sims {
     tag { CHROM }
 
     cpus 6
+    time '5m'
+    memory 5.GB
+
     memory params.eigen_mem
 
     input:
@@ -110,6 +115,10 @@ process collect_eigen_variants_sims {
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
     cpus 1
+    time '5m'
+    memory 5.GB
+
+
 
     input:
         tuple val(strain_set), val(strains), val(MAF), file(tests), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno)
@@ -132,6 +141,10 @@ process simulate_effects_loc {
     tag {NQTL}
 
     cpus 4
+    time '5m'
+    memory 5.GB
+
+
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -151,6 +164,10 @@ process simulate_effects_genome {
     tag {NQTL}
 
     cpus 4
+    time '5m'
+    memory 5.GB
+
+
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -170,14 +187,18 @@ process simulate_map_phenotypes {
 
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-    errorStrategy 'ignore'
+    errorStrategy 'retry'
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
-    cpus 4
+    cpus 5
+    time '20m'
+    memory 10.GB
+
+
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file(loci), val(H2)

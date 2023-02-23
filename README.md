@@ -152,8 +152,10 @@ This profile uses simulations to establish GWA performance benchmarks. Users can
 ```
 nextflow andersenlab/nemascan -profile simulations --vcf 20220216 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
 module load R/3.6.3
-Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
+Rscript bin/Assess_Simulated_Mappings.R example_simulation_output TRUE
 ```
+Set the `TRUE` flag when the strain designation is a part of the mapping population id. Ex) ce.closest200.92_dark.weval 
+
 
 ### --vcf
 
