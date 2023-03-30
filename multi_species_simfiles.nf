@@ -14,7 +14,6 @@ include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repea
 rename_key = Channel.fromPath("input_data/all_species/rename_chromosomes")
 maf_file = Channel.fromPath("input_data/all_species/simulate_maf.csv").splitCsv()
 
-
 workflow{
 
 File pop_file = new File("test_data/test_orthogroup_samples.txt") ;
@@ -48,7 +47,8 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
         .groupTuple(by:[0,1,2,3]). // Collect all chromosome eigen files with the same SP, strain_set, strains, and MAF
         join(chrom_eigen_variants_sims_repeated_temp.out.sim_geno_meta, by:[0,1,2,3]) | collect_eigen_variants_sims_repeated_temp
 
-    collect_eigen_variants_sims_repeated_temp.out.view()
+    collect_eigen_variants_sims_repeated_temp.out
+        .combine(Channel.fromPath("test_data/passing_ogs.csv").splitCsv()).view()
 
 }
 
