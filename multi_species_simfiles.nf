@@ -1,7 +1,7 @@
 #! usr/bin/env nextflow
 
 
-include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated_temp; collect_eigen_variants_sims_repeated_temp } from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated_temp; collect_eigen_variants_sims_repeated_temp } from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -18,9 +18,9 @@ workflow{
 
 File pop_file = new File("test_data/test_orthogroup_samples.txt") ;
 
-sp_ids = [["c_elegans", "test_data/vcfs/c_elegans/WI.20220216.hard-filter.isotype.bcsq.vcf.gz", "test_data/vcfs/c_elegans/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi"],
-                ["c_briggsae", "test_data/vcfs/c_briggsae/WI.20210803.hard-filter.isotype.bcsq.vcf.gz", "test_data/vcfs/c_briggsaeWI.20210803.hard-filter.isotype.bcsq.vcf.gz.tbi"],
-                ["c_tropicalis", "test_data/vcfs/c_tropicalis/WI.20210901.hard-filter.isotype.bcsq.vcf.gz", "test_data/vcfs/c_tropicalis/WI.20210901.hard-filter.isotype.bcsq.vcf.gz.tbi"]]
+sp_ids = [["c_elegans", "test_data/vcfs/c_elegans/ce_four_samp.vcf.gz", "test_data/vcfs/c_elegans/ce_four_samp.vcf.gz.tbi"],
+                ["c_briggsae", "test_data/vcfs/c_briggsae/cb_four_samp.vcf.gz", "test_data/vcfs/c_briggsae/cb_four_samp.vcf.gz.tbi"],
+                ["c_tropicalis", "test_data/vcfs/c_tropicalis/ct_four_samp.vcf.gz", "test_data/vcfs/c_tropicalis/ct_four_samp.vcf.gz.tbi"]]
 
 Channel.from(pop_file.collect { it.tokenize( ' ' ) })
           .map {SP, SM, STRAINS -> [SP, SM, STRAINS] }
@@ -35,11 +35,11 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
                     file(tuple[4]), // index
                     file(tuple[5]), // rename key
                     tuple[6]] // MAF
-        } |  prepare_repeated_simulation_files_temp
+        } |  prepare_repeated_simulation_files
 
     // eigen
     contigs = Channel.from(["1", "2", "3", "4", "5", "6"]) //Parallelize by chrom
-    contigs.combine(prepare_repeated_simulation_files_temp.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
+    contigs.combine(prepare_repeated_simulation_files.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
         .combine(Channel.fromPath("bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims_repeated_temp
     
     // Collect the eigen results
