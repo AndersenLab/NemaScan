@@ -186,3 +186,21 @@ process collect_eigen_variants_sims_repeated_temp {
     """
 
 }
+
+/*  
+------------  Simulate effects for orthogroup variants
+*/
+
+process simulate_orthogroup_effects {
+    input:
+        tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(create_causal_qtls)
+
+    output:
+        tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file("${sp}_${strain_set}_${MAF}_${SIMREP}_causal_og_vars.txt")
+
+
+    """
+        python ${create_causal_qtls} ${og1} ${og2} ${og3} ${og4} ${og5} ${bim}
+        mv causal_og_vars.txt > ${sp}_${strain_set}_${MAF}_${SIMREP}_causal_og_vars.txt
+    """
+}
