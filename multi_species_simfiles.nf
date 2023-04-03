@@ -1,7 +1,8 @@
 #! usr/bin/env nextflow
+params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 
 
-include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated_temp; collect_eigen_variants_sims_repeated_temp } from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated_temp; collect_eigen_variants_sims_repeated_temp; simulate_orthogroup_effects} from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -35,11 +36,11 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
                     file(tuple[4]), // index
                     file(tuple[5]), // rename key
                     tuple[6]] // MAF
-        } |  prepare_repeated_simulation_files
+        } |  prepare_repeated_simulation_files_temp
 
     // eigen
     contigs = Channel.from(["1", "2", "3", "4", "5", "6"]) //Parallelize by chrom
-    contigs.combine(prepare_repeated_simulation_files.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
+    contigs.combine(prepare_repeated_simulation_files_temp.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
         .combine(Channel.fromPath("bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims_repeated_temp
     
     // Collect the eigen results
@@ -48,7 +49,13 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
         join(chrom_eigen_variants_sims_repeated_temp.out.sim_geno_meta, by:[0,1,2,3]) | collect_eigen_variants_sims_repeated_temp
 
     collect_eigen_variants_sims_repeated_temp.out
-        .combine(Channel.fromPath("test_data/passing_ogs.csv").splitCsv()).view()
+        .combine(Channel.fromPath("test_data/causal_ogs.txt").splitCsv())
+        .combine(Channel.from(1..2)) // number of reps per OG trait
+        .combine(Channel.fromPath("${params.bin_dir}/sim_og_effects.py"))
+        | simulate_orthogroup_effects
+    
+    simulate_orthogroup_effects.out.view()
+
 
 }
 
