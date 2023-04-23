@@ -113,6 +113,7 @@ process prep_ld_files {
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 |\\
+        bcftools filter -e 'GT="het"' |\\
         bcftools annotate --rename-chrs ${num_chroms} |\\
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
