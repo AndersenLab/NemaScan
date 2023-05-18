@@ -13,7 +13,7 @@ def load_strain_set_variants(strain_set_variant_file):
 
     return strain_set_variants
 
-def add_var_orthogroups(strain_set_variants, sp, passing_ogs):
+def add_var_orthogroups(strain_set_variants, sp, passing_ogs, master_snps_dir):
     """
     ** THIS IS ALSO DEFINED IN simulate_orthogroup_vars.py **
 
@@ -32,14 +32,14 @@ def add_var_orthogroups(strain_set_variants, sp, passing_ogs):
         1: transcript id (eg. C5641.2)
         2: orthogroup id (eg. OG0000000)
     """
-# load the master snps file for the species - HARD CODED FOR NOW
+# load the master snps file for the species - the snp files are pulled from the defined master_snps_dir in the NF pipeline
     if sp == "c_elegans":
-        master_snps_file = "input_data/c_elegans/orthogroup_snps/02.21.22_orthogroups/celeg-master.snps.genes"
+        master_snps_file = master_snps_dir + "/celeg-master.snps.genes"
         print(master_snps_file)
     elif sp == "c_briggsae":
-        master_snps_file = "input_data/c_briggsae/orthogroup_snps/02.21.22_orthogroups/cbrig-master.snps.genes"
+        master_snps_file = master_snps_dir + "/cbrig-master.snps.genes"
     elif sp == "c_tropicalis":
-        master_snps_file = "input_data/c_tropicalis/orthogroup_snps/02.21.22_orthogroups/ctrop-master.snps.genes"
+        master_snps_file = master_snps_dir + "/ctrop-master.snps.genes"
     else:
         print("Species not recognized")
         return
@@ -87,7 +87,14 @@ if __name__ == "__main__":
     og4 = sys.argv[4]
     og5 = sys.argv[5]
 
+    #Get the list of variants in the strain sets
     strain_set_variant_file = sys.argv[6]
+
+    #Get the directory of the master snps files
+    master_snps_dir = sys.argv[7]
+
+    #Define the species
+    sp = sys.argv[8]
 
     #og1 = "OG0010644"
     #og2 = "OG0010836"
@@ -99,18 +106,20 @@ if __name__ == "__main__":
     sim_ogs = [og1, og2, og3, og4, og5]
 
     #Read in annotated strain_set variants
-    ce_strain_var = load_strain_set_variants(strain_set_variant_file)
+    strain_var = load_strain_set_variants(strain_set_variant_file)
 
 
     #Add the passing orthogroup ids to the strain set variants and only return the variants that have orthogroup ids from the joining
     print("Adding orthogroup ids to strain set variants")
-    ce_og_vars = add_var_orthogroups(ce_strain_var, "c_elegans", sim_ogs)
+    og_vars = add_var_orthogroups(strain_var, sp, sim_ogs, master_snps_dir)
     
     #Select Causal variants for orthogroups
-    ce_causal_og_vars = select_og_variants(ce_og_vars, 1)
+    causal_og_vars = select_og_variants(og_vars, 1)
+    print("Selected Causal Variants")
+    print(causal_og_vars)
 
     #Simulate effects for causal variants
-    ce_causal_og_vars = simulate_og_effect_gamma(ce_causal_og_vars, 5)
+    causal_og_vars = simulate_og_effect_gamma(causal_og_vars, 5)
     
     #Write output for trait simulations - just id and effect
-    ce_causal_og_vars[["ID", "EFFECT"]].to_csv("causal_og_vars.txt", sep = " ", index = False, header = False)
+    causal_og_vars[["ID", "EFFECT"]].to_csv("causal_og_vars.txt", sep = " ", index = False, header = False)

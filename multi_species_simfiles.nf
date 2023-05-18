@@ -1,6 +1,6 @@
 #! usr/bin/env nextflow
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
-
+params.master_snp_dir = "/Users/ryanmckeown/Desktop/NemaScan/input_data/master_snps"
 
 include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated_temp; collect_eigen_variants_sims_repeated_temp; simulate_orthogroup_effects} from './modules/repeated_simulations.nf'
 
@@ -52,6 +52,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
         .combine(Channel.fromPath("test_data/causal_ogs.txt").splitCsv())
         .combine(Channel.from(1..2)) // number of reps per OG trait
         .combine(Channel.fromPath("${params.bin_dir}/sim_og_effects.py"))
+        .combine(Channel.fromPath("${params.master_snp_dir}"))
         | simulate_orthogroup_effects
     
     simulate_orthogroup_effects.out.view()

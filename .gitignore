@@ -2,6 +2,7 @@ test_data/vcfs/*
 test_data/plink_files/*
 work/*
 input_data/*/orthogroup_snps/*/*
+input_data/master_snps/*
 daehan_ascr
 ANALYSIS/*
 katie*
@@ -27,3 +28,5 @@ Analysis_Results-*
 10.*
 10.06.22*
 01*
+select_orthogroups/*
+*.pyc
