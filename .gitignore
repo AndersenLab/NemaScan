@@ -28,3 +28,5 @@ Analysis_Results-*
 10.*
 10.06.22*
 01*
+select_orthogroups/*
+*.pyc
