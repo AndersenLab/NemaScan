@@ -67,12 +67,10 @@ def select_og_variants(og_variants, n_var_og = 1):
     #Group variants the data frame by orthogroup
     og_variants = og_variants.groupby("ORTHOGROUP")
     #Check the number of groups
-    print("Number of orthogroups: " + str(len(og_variants)))
+    print("Number of passing orthogroups: " + str(len(og_variants)))
 
-    #Select n_var_og variants from each orthogroup
-    randomly sample n_var_og variants from each orthogroup
-    og_variants = 
-    #og_variants = og_variants.apply(lambda x: x.sample(n_var_og))
+    #From each group select one variant
+    og_variants = og_variants.apply(lambda x: x.sample(n_var_og)).reset_index(drop=True)
     #Retrun a dataframe of the selected variants
     return og_variants
 
