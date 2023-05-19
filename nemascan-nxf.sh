@@ -9,6 +9,9 @@ DEFAULT_VCF_VERSION="20220216"
 DEFAULT_GOOGLE_PROJECT="andersen-lab"
 DEFAULT_GOOGLE_ZONE="us-central1-a"
 DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL="nscalc-201573431837@andersen-lab.iam.gserviceaccount.com"
+DEFAULT_SPECIES="c_elegans"
+
+
 # Environment variables with default values:
 
 if [[ -z "${VCF_VERSION}" ]]; then
@@ -35,6 +38,12 @@ if [[ -z "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" ]]; then
   GOOGLE_SERVICE_ACCOUNT_EMAIL=${DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL}
   echo "GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is not set - defaulting to ${GOOGLE_SERVICE_ACCOUNT_EMAIL}"
 fi
+
+if [[ -z "${SPECIES}" ]]; then
+  SPECIES=${DEFAULT_SPECIES}
+  echo "SPECIES environment variable is not set - defaulting to ${SPECIES}"
+fi
+
 
 # Environment variables that MUST be set
 
