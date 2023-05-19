@@ -29,9 +29,9 @@ workflow{
 
 File pop_file = new File("test_data/test_orthogroup_samples.txt") ;
 
-sp_ids = [["c_elegans", "test_data/vcfs/c_elegans/ce_four_samp.vcf.gz", "test_data/vcfs/c_elegans/ce_four_samp.vcf.gz.tbi"],
-                ["c_briggsae", "test_data/vcfs/c_briggsae/cb_four_samp.vcf.gz", "test_data/vcfs/c_briggsae/cb_four_samp.vcf.gz.tbi"],
-                ["c_tropicalis", "test_data/vcfs/c_tropicalis/ct_four_samp.vcf.gz", "test_data/vcfs/c_tropicalis/ct_four_samp.vcf.gz.tbi"]]
+sp_ids = [["c_elegans", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz.tbi"],
+                ["c_briggsae", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz.tbi"],
+                ["c_tropicalis", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz.tbi"]]
 
 Channel.from(pop_file.collect { it.tokenize( ' ' ) })
           .map {SP, SM, STRAINS -> [SP, SM, STRAINS] }
