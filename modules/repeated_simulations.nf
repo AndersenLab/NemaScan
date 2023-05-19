@@ -192,6 +192,8 @@ process collect_eigen_variants_sims_repeated_temp {
 */
 
 process simulate_orthogroup_effects {
+    conda '/home/rjm6024/.conda/envs/vcf_stats_1.0'
+
     input:
         tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(create_causal_qtls), file(master_snps_dir)
 
