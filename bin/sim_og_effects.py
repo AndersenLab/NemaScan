@@ -64,10 +64,15 @@ def select_og_variants(og_variants, n_var_og = 1):
     """
     Group variants by orthogroup and select n_var_og variants from each orthogroup
     """
-    #Group variants by orthogroup
+    #Group variants the data frame by orthogroup
     og_variants = og_variants.groupby("ORTHOGROUP")
+    #Check the number of groups
+    print("Number of orthogroups: " + str(len(og_variants)))
+
     #Select n_var_og variants from each orthogroup
-    og_variants = og_variants.apply(lambda x: x.sample(n_var_og))
+    randomly sample n_var_og variants from each orthogroup
+    og_variants = 
+    #og_variants = og_variants.apply(lambda x: x.sample(n_var_og))
     #Retrun a dataframe of the selected variants
     return og_variants
 
@@ -84,9 +89,9 @@ if __name__ == "__main__":
     #Define orthogroups from command line arguments
     og1 = sys.argv[1]
     og2 = sys.argv[2]
-    og3 = sys.argv[3]
-    og4 = sys.argv[4]
-    og5 = sys.argv[5]
+#    og3 = sys.argv[3]
+#    og4 = sys.argv[4]
+#    og5 = sys.argv[5]
 
     #Get the list of variants in the strain sets
     strain_set_variant_file = sys.argv[6]
@@ -104,7 +109,7 @@ if __name__ == "__main__":
     #og5 = "OG0010147"
 
 
-    sim_ogs = [og1, og2, og3, og4, og5]
+    sim_ogs = [og1, og2]
 
     #Read in annotated strain_set variants
     strain_var = load_strain_set_variants(strain_set_variant_file)
@@ -120,7 +125,7 @@ if __name__ == "__main__":
     print(causal_og_vars)
 
     #Simulate effects for causal variants
-    causal_og_vars = simulate_og_effect_gamma(causal_og_vars, 5)
+    causal_og_vars = simulate_og_effect_gamma(causal_og_vars, 1)
     
     #Write output for trait simulations - just id and effect
     causal_og_vars[["ID", "EFFECT"]].to_csv("causal_og_vars.txt", sep = " ", index = False, header = False)
