@@ -1,7 +1,7 @@
 
 
 process prepare_repeated_simulation_files {
-
+    container 'andersenlab/nemascan:20220407173056db3227'
     cpus 4
     memory 30.GB
     time '30m'
@@ -98,6 +98,7 @@ process chrom_eigen_variants_sims_repeated  {
     cpus 6
     time '5m'
     memory 5.GB
+    container = 'andersenlab/nemascan:20220407173056db3227'
 
     memory params.eigen_mem
 
@@ -147,7 +148,7 @@ process collect_eigen_variants_sims_repeated {
     //executor 'local'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
-
+    container = 'andersenlab/nemascan:20220407173056db3227'
     cpus 1
     time '5m'
     memory 5.GB
@@ -192,7 +193,10 @@ process collect_eigen_variants_sims_repeated_temp {
 */
 
 process simulate_orthogroup_effects {
+    label 'causal_ogs'
+    executor 'local'
     conda '/home/rjm6024/.conda/envs/vcf_stats_1.0'
+
 
     input:
         tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(create_causal_qtls), file(master_snps_dir)
