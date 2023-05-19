@@ -10,8 +10,8 @@ process prepare_repeated_simulation_files {
         tuple val(sp), val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
 
     output:
-        tuple val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("${sp}_${strain_set}_${MAF}_Genotype_Matrix.tsv"), val(MAF), emit: sim_geno
-        tuple val(strain_set), val(strains), val(MAF), file("renamed_chroms.vcf.gz"), file("renamed_chroms.vcf.gz.tbi"), emit: renamed_chrom_vcf_to_ld
+        tuple val(sp), val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("${sp}_${strain_set}_${MAF}_Genotype_Matrix.tsv"), val(MAF), emit: sim_geno
+        tuple val(sp), val(strain_set), val(strains), val(MAF), file("renamed_chroms.vcf.gz"), file("renamed_chroms.vcf.gz.tbi"), emit: renamed_chrom_vcf_to_ld
 
 
     """
