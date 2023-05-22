@@ -20,7 +20,6 @@ params.help = null
 params.debug = null
 download_vcf = null
 params.finemap = true
-// params.species = "c_elegans"
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
