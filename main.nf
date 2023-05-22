@@ -45,6 +45,7 @@ params.p3d = "TRUE"
 params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 params.cores = 4
 params.pca = true
+params.species = "c_elegans"
 
 
 // VCF parameters
