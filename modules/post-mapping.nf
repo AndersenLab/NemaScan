@@ -108,7 +108,7 @@ process prep_ld_files {
             start_pos=`echo \$p | cut -f3 -d' '`
             peak_pos=`echo \$p | cut -f4 -d' '`
             end_pos=`echo \$p | cut -f5 -d' '`
-        
+      if [ \$chromosome == "MtDNA" ]; then
         cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
@@ -119,6 +119,19 @@ process prep_ld_files {
         -S phenotyped_samples.txt |\\
         bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
         bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
+      else
+        cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
+        bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
+        -S phenotyped_samples.txt |\\
+        bcftools filter -i N_MISSING=0 |\\
+        bcftools filter -e 'GT="het"' |\\
+        bcftools annotate --rename-chrs ${num_chroms} |\\
+        awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
+        bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
+        -S phenotyped_samples.txt |\\
+        bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
+        bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
+      fi
         plink --vcf finemap.vcf.gz \\
             --threads 5 \\
             --snps-only \\

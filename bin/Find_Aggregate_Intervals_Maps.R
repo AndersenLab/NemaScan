@@ -10,6 +10,7 @@ library(purrr)
 library(ggbeeswarm)
 library(sommer)
 
+
 # LOCAL
 # setwd("~/Documents/projects/NemaScan_Performance/data/")
 # setwd("~/Documents/AndersenLab/NemaScan_Performance/data/")
@@ -92,9 +93,18 @@ process_mapping_df <- function (mapping_df,
                                 geno = genotype_matrix) {
   pheno <- phenotype_df 
   
-  pheno$trait <- colnames(phenotype_df)[2]
-  
-  colnames(pheno) <- c("strain", "value", "trait")
+  # check if on cendr
+  if("trait" %in% names(pheno)) {
+    pheno <- pheno %>% 
+      dplyr::rename(value = trait) %>% 
+      dplyr::mutate(trait = "trait") %>%
+      dplyr::select(strain, value, trait)
+  } else {
+    pheno$trait <- colnames(phenotype_df)[2]
+    
+    colnames(pheno) <- c("strain", "value", "trait")
+  }
+
   
   # Determine how to make threshold
   if (is.na(QTL_cutoff)){ 
