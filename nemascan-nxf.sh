@@ -9,6 +9,9 @@ DEFAULT_VCF_VERSION="20220216"
 DEFAULT_GOOGLE_PROJECT="andersen-lab"
 DEFAULT_GOOGLE_ZONE="us-central1-a"
 DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL="nscalc-201573431837@andersen-lab.iam.gserviceaccount.com"
+DEFAULT_SPECIES="c_elegans"
+
+
 # Environment variables with default values:
 
 if [[ -z "${VCF_VERSION}" ]]; then
@@ -36,6 +39,12 @@ if [[ -z "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" ]]; then
   echo "GOOGLE_SERVICE_ACCOUNT_EMAIL environment variable is not set - defaulting to ${GOOGLE_SERVICE_ACCOUNT_EMAIL}"
 fi
 
+if [[ -z "${SPECIES}" ]]; then
+  SPECIES=${DEFAULT_SPECIES}
+  echo "SPECIES environment variable is not set - defaulting to ${SPECIES}"
+fi
+
+
 # Environment variables that MUST be set
 
 if [[ -z "${TRAIT_FILE}" ]]; then
@@ -60,6 +69,7 @@ nextflow run main.nf \
   --google_zone "${GOOGLE_ZONE}" \
   --google_service_account_email "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" \
   --traitfile "${TRAIT_FILE}" \
+  --species "${SPECIES}" \
   --vcf "${VCF_VERSION}" \
   --work_dir "${WORK_DIR}" \
   --out "${OUTPUT_DIR}" \
