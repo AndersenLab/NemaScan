@@ -11,7 +11,7 @@ nextflow.preview.dsl=2
 
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.master_snp_dir = "test_data/master_snps"
-params.simulate_h2 = "test_data/h2.csv"
+// params.simulate_h2 = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv"
 
 include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes} from './modules/repeated_simulations.nf'
 
@@ -71,7 +71,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
     sim_phen_inputs = simulate_orthogroup_effects.out.pheno_inputs 
 
     sim_phen_inputs
-        .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
+        .combine(Channel.fromPath("/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv").splitCsv()) | simulate_map_phenotypes
 
 }
 
