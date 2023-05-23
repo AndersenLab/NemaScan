@@ -206,6 +206,7 @@ process simulate_orthogroup_effects {
 
 process simulate_map_phenotypes {
 
+    label 'sim_map_phenos'
     tag {"${SIMREP} - ${H2} - ${MAF}"}
 
     //errorStrategy 'retry'
