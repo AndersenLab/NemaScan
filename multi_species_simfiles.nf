@@ -11,8 +11,9 @@ nextflow.preview.dsl=2
 
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.master_snp_dir = "test_data/master_snps"
+params.simulate_h2 = "test_data/h2.csv"
 
-include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects} from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes} from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -29,9 +30,9 @@ workflow{
 
 File pop_file = new File("test_data/test_orthogroup_samples.txt") ;
 
-sp_ids = [["c_elegans", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz.tbi"],
-                ["c_briggsae", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz.tbi"],
-                ["c_tropicalis", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz.tbi"]]
+sp_ids = [["c_elegans", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_elegans/underground.gartersnake/plink_files" ],
+                ["c_briggsae", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_briggsae/aboveground.gartersnake/plink_files" ],
+                ["c_tropicalis", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_tropicalis/inbetweenground.gartersnake/plink_files"]]
 
 Channel.from(pop_file.collect { it.tokenize( ' ' ) })
           .map {SP, SM, STRAINS -> [SP, SM, STRAINS] }
@@ -46,7 +47,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
                     file(tuple[4]), // index
                     file(tuple[5]), // rename key
                     tuple[6]] // MAF
-        } |  prepare_repeated_simulation_files
+        } |  prepare_repeated_simulation_files_temp
 
     // eigen
     contigs = Channel.from(["1", "2", "3", "4", "5", "6"]) //Parallelize by chrom
@@ -65,8 +66,12 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
         .combine(Channel.fromPath("${params.master_snp_dir}"))
         | simulate_orthogroup_effects
     
-    simulate_orthogroup_effects.out.view()
+    //simulate_orthogroup_effects.out.view()
 
+    sim_phen_inputs = simulate_orthogroup_effects.pheno_inputs 
+
+    sim_phen_inputs
+        .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
 
 }
 
