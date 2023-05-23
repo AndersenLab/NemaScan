@@ -26,13 +26,6 @@ params.out = "Analysis_Results-${date}"
 params.fix = "fix"
 // params.algorithm = 'inbred' //options: inbred, loco - now run both
 
-// mediation only with c_elegans
-if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
-    med = false
-} else {
-    med = params.mediation
-}
-
 
 /*
 ~ ~ ~ > * Parameters setup - MAPPING
@@ -42,11 +35,17 @@ params.sparse_cut = 0.05
 params.group_qtl = 1000
 params.ci_size = 150
 params.p3d = "TRUE"
-params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 params.cores = 4
 params.pca = true
 params.species = "c_elegans"
+params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 
+// mediation only with c_elegans
+if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
+    med = false
+} else {
+    med = params.mediation
+}
 
 // VCF parameters
 if(params.debug) {

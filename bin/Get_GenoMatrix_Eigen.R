@@ -51,15 +51,21 @@ for(chrom in 1:length(chrom_geno)){
   eigen_increment <- 50
   
   while (significant_eigenvalues == test_eigenvalues) {
-    
-    # first test 200 eigenvalues
-    test_eigenvalues <- test_eigenvalues + eigen_increment
-    
-    print(glue::glue("Testing {test_eigenvalues} Eigenvalues"))
-    
+      
     # snpcor <- correlateR::cor(t(chrom_geno[[chrom]]))
     snpcor <- coop::pcor(t(chrom_geno[[chrom]]))
-    snpeigen <- eigs_sym(snpcor, test_eigenvalues, opts = list(retvec = FALSE))
+
+    # first test 100 eigenvalues
+    # got an error here with tropicalis debug
+    if(nrow(snpcor) < test_eigenvalues + eigen_increment) {
+        test_eigenvalues <- nrow(snpcor)-1
+    } else {
+        test_eigenvalues <- test_eigenvalues + eigen_increment
+    }
+
+    print(glue::glue("Testing {test_eigenvalues} Eigenvalues"))
+
+    snpeigen <- RSpectra::eigs_sym(snpcor, test_eigenvalues, opts = list(retvec = FALSE))
     snpeigen$values[snpeigen$values>1] <- 1
     
     significant_eigenvalues <- sum(snpeigen$values)
@@ -67,6 +73,7 @@ for(chrom in 1:length(chrom_geno)){
     if(significant_eigenvalues == test_eigenvalues){
       print(glue::glue("Significant Eigenvalues - {significant_eigenvalues} Exceeds or is Equal to the Number Tested {test_eigenvalues}\n Testing {eigen_increment} More"))
     }
+
     
   } # end while loop
   
