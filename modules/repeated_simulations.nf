@@ -74,17 +74,8 @@ process prepare_repeated_simulation_files_temp{
 
 
     """
-    cd ${plink_dir}
-    cat TO_SIMS.bed > TO_SIMS.bed
-    cat TO_SIMS.bim > TO_SIMS.bim
-    cat TO_SIMS.fam > TO_SIMS.fam
-    cat TO_SIMS.map > TO_SIMS.map
-    cat TO_SIMS.nosex > TO_SIMS.nosex
-    cat TO_SIMS.ped > TO_SIMS.ped
-    cat TO_SIMS.log > TO_SIMS.log 
-    cat ${sp}_${strain_set}_${MAF}_Genotype_Matrix.tsv > ${sp}_${strain_set}_${MAF}_Genotype_Matrix.tsv
-    cat renamed_chroms.vcf.gz > renamed_chroms.vcf.gz
-    cat renamed_chroms.vcf.gz.tbi > renamed_chroms.vcf.gz.tbi
+    cp plink_files/TO_SIMS* .
+    cp plink_files/*.tsv .
     """
     
 }
