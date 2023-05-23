@@ -204,7 +204,7 @@ process simulate_orthogroup_effects {
 
     output:
         tuple val(sp), val(strain_set), val(SIMREP), val(MAF), val(og1), val(og2), val(og3), val(og4), val(og5), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt"), emit: pheno_inputs
-        tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(master_snps_dir), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt")
+        //tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(master_snps_dir), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt")
 
 
     """

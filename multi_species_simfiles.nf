@@ -51,7 +51,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
 
     // eigen
     contigs = Channel.from(["1", "2", "3", "4", "5", "6"]) //Parallelize by chrom
-    contigs.combine(prepare_repeated_simulation_files.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
+    contigs.combine(prepare_repeated_simulation_files_temp.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
         .combine(Channel.fromPath("bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims_repeated
     
     // Collect the eigen results
@@ -68,7 +68,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
     
     //simulate_orthogroup_effects.out.view()
 
-    sim_phen_inputs = simulate_orthogroup_effects.pheno_inputs 
+    sim_phen_inputs = simulate_orthogroup_effects.out.pheno_inputs 
 
     sim_phen_inputs
         .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
