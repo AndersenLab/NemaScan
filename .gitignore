@@ -1,5 +1,6 @@
 test_data/vcfs/*
 test_data/plink_files/*
+test_data/master_snps/*
 work/*
 input_data/*/orthogroup_snps/*/*
 input_data/master_snps/*

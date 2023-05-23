@@ -1,0 +1,39 @@
+PLINK v1.90b6.12 64-bit (28 Oct 2019)
+Options in effect:
+  --allow-extra-chr
+  --biallelic-only
+  --extract plink.prune.in
+  --geno
+  --maf 0.05
+  --make-bed
+  --out TO_SIMS
+  --recode
+  --set-missing-var-ids @:#
+  --snps-only
+  --vcf renamed_chroms.vcf.gz
+
+Hostname: qnode9042
+Working directory: /projects/b1042/AndersenLab/work/Ryan/a8/ff1df1446064bc1101918dbfb19ca0
+Start time: Fri May 19 08:25:14 2023
+
+Random number seed: 1684502714
+192928 MB RAM detected; reserving 96464 MB for main workspace.
+--vcf: TO_SIMS-temporary.bed + TO_SIMS-temporary.bim + TO_SIMS-temporary.fam
+written.
+2621058 out of 3118882 variants loaded from .bim file.
+2621058 missing IDs set.
+4 people (0 males, 0 females, 4 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to TO_SIMS.nosex .
+--extract: 8509 variants remaining.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 4 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+0 variants removed due to missing genotype data (--geno).
+0 variants removed due to minor allele threshold(s)
+(--maf/--max-maf/--mac/--max-mac).
+8509 variants and 4 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to TO_SIMS.bed + TO_SIMS.bim + TO_SIMS.fam ... done.
+--recode ped to TO_SIMS.ped + TO_SIMS.map ... done.
+
+End time: Fri May 19 08:25:21 2023
