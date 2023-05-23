@@ -85,8 +85,8 @@ def simulate_og_effect_gamma(og_variants, n_var, og_effect_shape = 0.4, og_effec
 if __name__ == "__main__":
 
     #Define orthogroups from command line arguments
-    og1 = sys.argv[1]
-    og2 = sys.argv[2]
+#    og1 = sys.argv[1]
+#    og2 = sys.argv[2]
 #    og3 = sys.argv[3]
 #    og4 = sys.argv[4]
 #    og5 = sys.argv[5]
@@ -101,13 +101,13 @@ if __name__ == "__main__":
     sp = sys.argv[8]
 
     #og1 = "OG0010644"
-    #og2 = "OG0010836"
+    og1 = "OG0010836"
     #og3 = "OG0011342"
     #og4 = "OG0011339"
     #og5 = "OG0010147"
 
 
-    sim_ogs = [og1, og2]
+    sim_ogs = [og1]
 
     #Read in annotated strain_set variants
     strain_var = load_strain_set_variants(strain_set_variant_file)
