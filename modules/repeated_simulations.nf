@@ -194,7 +194,7 @@ process simulate_orthogroup_effects {
         tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(create_causal_qtls), file(master_snps_dir)
 
     output:
-        tuple val(sp), val(strain_set), val(SIMREP), val(MAF), val(og1), val(og2), val(og3), val(og4), val(og5), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt"), emit: pheno_inputs
+        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), val(og1), val(og2), val(og3), val(og4), val(og5), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt"), emit: pheno_inputs
         //tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(master_snps_dir), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt")
 
 
@@ -208,7 +208,7 @@ process simulate_map_phenotypes {
 
     tag {"${SIMREP} - ${H2} - ${MAF}"}
 
-    errorStrategy 'retry'
+    //errorStrategy 'retry'
 
     publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", pattern: "*loco.mlma", overwrite: true
@@ -222,7 +222,7 @@ process simulate_map_phenotypes {
 
 
     input:
-        tuple val(sp), val(strain_set), val(SIMREP), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(loci), val(H2)
+        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(loci), val(H2)
 
     output:
         tuple file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bed"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bim"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.fam"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.map"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.nosex"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.ped"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.log"), val(NQTL), val(SIMREP), file(loci), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par"), emit: sim_phen_output
