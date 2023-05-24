@@ -13,7 +13,7 @@ params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.master_snp_dir = "test_data/master_snps"
 // params.simulate_h2 = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv"
 
-include {prepare_repeated_simulation_files_temp; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes} from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes} from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -47,11 +47,11 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
                     file(tuple[5]), // plink_dir FOR TESTING 
                     file(tuple[6]), // rename key 
                     tuple[7]] // MAF
-        } |  prepare_repeated_simulation_files_temp
+        } |  prepare_repeated_simulation_files
 
     // eigen
     contigs = Channel.from(["1", "2", "3", "4", "5", "6"]) //Parallelize by chrom
-    contigs.combine(prepare_repeated_simulation_files_temp.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
+    contigs.combine(prepare_repeated_simulation_files.out.sim_geno) // Combine with Plink files and Genotype matrix + Sim INFO
         .combine(Channel.fromPath("bin/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims_repeated
     
     // Collect the eigen results
