@@ -1,14 +1,14 @@
 # Build dockerfile on change
-name: Build Docker (env/nemascan.Dockerfile)
+name: Build Docker (env/nemascan-nxf.Dockerfile)
 
 on:
   push:
     paths:
-    - 'Dockerfile'
+    - 'env/nemascan-nxf.Dockerfile'
     - '.github/workflows/build_cendr_docker.yml'
   pull_request:
     paths:
-    - 'Dockerfile'
+    - 'env/nemascan-nxf.Dockerfile'
     - '.github/workflows/build_cendr_docker.yml'
 
 jobs:
