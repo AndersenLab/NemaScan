@@ -9,7 +9,7 @@ on:
   pull_request:
     paths:
     - 'Dockerfile'
-    - '.github/workflows/build_docker.yml'
+    - '.github/workflows/build_cendr_docker.yml'
 
 jobs:
   build:
