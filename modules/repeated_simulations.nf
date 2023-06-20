@@ -2,7 +2,7 @@
 
 process prepare_repeated_simulation_files {
     container 'andersenlab/nemascan:20220407173056db3227'
-    cpus 4
+    cpus 5
     memory 30.GB
     time '30m'
 
@@ -226,15 +226,16 @@ process simulate_map_phenotypes {
         tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(loci), val(H2)
 
     output:
-        tuple file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bed"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bim"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.fam"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.map"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.nosex"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.ped"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.log"), val(NQTL), val(SIMREP), file(loci), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par"), emit: sim_phen_output
+        tuple file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bed"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bim"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.fam"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.map"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.nosex"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.ped"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.log"), val(SIMREP), file(loci), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par"), emit: sim_phen_output
         tuple file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.log"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.log"), emit: sim_GCTA_mapping_results
+        
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA", emit: lmm_exact_inbred_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA", emit: lmm_exact_inbred_pca_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma", emit: lmm_exact_loco_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma", emit: lmm_exact_loco_pca_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen", emit: simphen_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par", emit: simgen_analyze_sims
-        //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), emit: gcta_intervals
+        tuple val(sp), val(strain_set), val(strains), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), emit: gcta_intervals
 
     """
     gcta64 --bfile TO_SIMS \\
@@ -322,5 +323,42 @@ process simulate_map_phenotypes {
           --pheno ${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen \\
           --maf ${MAF} \\
           --thread-num 5
+    """
+}
+
+process get_gcta_intervals_repeated {
+    label 'get_gcta_intervals'
+
+    tag {"${SIMREP} - ${H2}"}
+
+    publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
+    publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"  
+    publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
+    publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"    
+    publishDir "${params.out}/Simulations/${og1}_${og2}_${og3}_${og4}_${og5}_${sp}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
+
+    // memory '70 GB'
+
+    input:
+    tuple val(sp), val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(lmmexact_inbred), file(lmmexact_inbred_pca), file(lmmexact_loco), file(lmmexact_loco_pca), \
+    file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(find_gcta_intervals_repeated), file(find_gcta_intervals_loco_repeated)
+
+    output:
+    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
+    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
+    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
+    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
+    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
+    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
+    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
+    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
+    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
+
+
+    """
+        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED_PCA
+        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
+        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO_PCA
     """
 }

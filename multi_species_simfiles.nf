@@ -14,7 +14,7 @@ params.master_snp_dir = "test_data/master_snps"
 params.sparse_cut = 0.05
 // params.simulate_h2 = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv"
 
-include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes} from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes; get_gcta_intervals_repeated} from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -74,5 +74,13 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
     sim_phen_inputs
         .combine(Channel.fromPath("/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv").splitCsv()) | simulate_map_phenotypes
 
+    simulate_map_phenotypes.out.gcta_intervals
+            .combine(Channel.from("${params.sthresh}"))
+            .combine(Channel.from("${params.group_qtl}"))
+            .combine(Channel.from("${params.ci_size}")) 
+            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_Repeated.R"))
+            .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO_Repeated.R")) | get_gcta_intervals_repeated
 }
 
