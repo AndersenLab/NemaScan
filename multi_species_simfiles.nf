@@ -15,6 +15,8 @@ params.sparse_cut = 0.05
 params.group_qtl = 1000
 params.ci_size = 150
 sthresh= "BF"
+params.maf = 0.05
+
 // params.simulate_h2 = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv"
 
 include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes; get_gcta_intervals_repeated} from './modules/repeated_simulations.nf'

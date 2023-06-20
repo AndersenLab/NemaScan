@@ -328,6 +328,7 @@ process simulate_map_phenotypes {
 
 process get_gcta_intervals_repeated {
     label 'get_gcta_intervals'
+    container = '/projects/b1059/singularity/andersenlab-nemascan-20220407173056db3227.img'
 
     tag {"${SIMREP} - ${H2}"}
 
