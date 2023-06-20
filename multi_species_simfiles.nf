@@ -83,8 +83,6 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}")) 
-            .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
-            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_Repeated.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO_Repeated.R")) | get_gcta_intervals_repeated
 }
