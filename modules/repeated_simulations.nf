@@ -194,7 +194,7 @@ process simulate_orthogroup_effects {
         tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(create_causal_qtls), file(master_snps_dir)
 
     output:
-        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), val(og1), val(og2), val(og3), val(og4), val(og5), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt"), emit: pheno_inputs
+        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt"), emit: pheno_inputs
         //tuple val(sp), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), val(SIMREP), file(master_snps_dir), file("${sp}_${strain_set}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${SIMREP}_causal_og_vars.txt")
 
 
@@ -223,7 +223,7 @@ process simulate_map_phenotypes {
 
 
     input:
-        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(loci), val(H2)
+        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), file(n_indep_tests), val(og1), val(og2), val(og3), val(og4), val(og5), file(loci), val(H2)
 
     output:
         tuple file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bed"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.bim"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.fam"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.map"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.nosex"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.ped"), file("TO_SIMS_${SIMREP}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}.log"), val(SIMREP), file(loci), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par"), emit: sim_phen_output
@@ -235,7 +235,7 @@ process simulate_map_phenotypes {
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma", emit: lmm_exact_loco_pca_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen", emit: simphen_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.par", emit: simgen_analyze_sims
-        tuple val(sp), val(strain_set), val(strains), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), emit: gcta_intervals
+        tuple val(sp), val(strain_set), val(SIMREP), val(H2), file(loci), file(gm), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${og1}_${og2}_${og3}_${og4}_${og5}_${sp}_${strain_set}_sims.phen"), emit: gcta_intervals
 
     """
     gcta64 --bfile TO_SIMS \\
@@ -340,7 +340,7 @@ process get_gcta_intervals_repeated {
     // memory '70 GB'
 
     input:
-    tuple val(sp), val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(lmmexact_inbred), file(lmmexact_inbred_pca), file(lmmexact_loco), file(lmmexact_loco_pca), \
+    tuple val(sp), val(strain_set), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF),val(og1), val(og2), val(og3), val(og4), val(og5), file(lmmexact_inbred), file(lmmexact_inbred_pca), file(lmmexact_loco), file(lmmexact_loco_pca), \
     file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(find_gcta_intervals_repeated), file(find_gcta_intervals_loco_repeated)
 
     output:
