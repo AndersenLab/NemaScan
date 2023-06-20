@@ -24,6 +24,7 @@ library(ggbeeswarm)
 #       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix,
 #       or a user defined number
 # 12 - strain set name (string)
+# 13 - mapping label
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -284,7 +285,7 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 # save processed mapping data
 
 readr::write_tsv(processed_mapping,
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_processed_{args[15]}_mapping.tsv"),
+                 path = glue::glue("{trait_name}_processed_{args[13]}_mapping.tsv"),
                  col_names = T)
 
 
@@ -292,11 +293,11 @@ readr::write_tsv(processed_mapping,
 qtl_region <- processed_mapping %>%
   na.omit() %>%
   dplyr::distinct(CHROM, marker, trait, startPOS,	peakPOS,	endPOS, peak_id) %>%
-  dplyr::mutate(algorithm = args[15])
+  dplyr::mutate(algorithm = args[13])
 
 # save processed mapping data
 readr::write_tsv(qtl_region,
-                 path = glue::glue("{trait_name}_{args[13]}_{args[14]}_{args[12]}_{args[15]}_qtl_region.tsv"),
+                 path = glue::glue("{trait_name}_{args[13]}_qtl_region.tsv"),
                  col_names = T)
 
 # ## LD ###

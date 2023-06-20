@@ -345,15 +345,15 @@ process get_gcta_intervals_repeated {
     file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(find_gcta_intervals_repeated), file(find_gcta_intervals_loco_repeated)
 
     output:
-    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
-    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
-    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
-    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
-    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
-    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
-    //tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
-    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
-    //tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
+    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
+    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
+    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
+    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
+    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
+    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
+    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
+    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
+    tuple  val(MAF),  val(SIMREP), val(H2),  file(loci), file(phenotypes), emit: simulated_phenotypes
 
 
     """
