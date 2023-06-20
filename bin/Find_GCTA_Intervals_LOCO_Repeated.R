@@ -24,9 +24,7 @@ library(ggbeeswarm)
 #       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix,
 #       or a user defined number
 # 12 - strain set name (string)
-# 13 - MAF (numeric)
-# 14 - effect size range (character)
-# 15 - mapping label
+
 
 # load arguments
 args <- commandArgs(trailingOnly = TRUE)

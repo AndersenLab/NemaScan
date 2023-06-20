@@ -357,9 +357,9 @@ process get_gcta_intervals_repeated {
 
 
     """
-        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
-        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED_PCA
-        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO
-        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO_PCA
+        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-INBRED
+        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-INBRED_PCA
+        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-LOCO
+        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-LOCO_PCA
     """
 }
