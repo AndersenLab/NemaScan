@@ -53,7 +53,7 @@ library("stringr", lib.loc = library.path)
 
 ## Strain Issues
 
-All strain names were converted to the corresponding isotype name, which can be looked up here: https://elegansvariation.org/strains/isotype_list. If you submitted replicate data, replicates for a given isotype were averaged to one mean value.
+All strain names were converted to the corresponding isotype name, which can be looked up here: https://caendr.org/. If you submitted replicate data, replicates for a given isotype were averaged to one mean value.
 
 ```{r}
 
