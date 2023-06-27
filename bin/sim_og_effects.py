@@ -84,12 +84,9 @@ def simulate_og_effect_gamma(og_variants, n_var, og_effect_shape = 0.4, og_effec
 
 if __name__ == "__main__":
 
-    #Define orthogroups from command line arguments
-#    og1 = sys.argv[1]
-#    og2 = sys.argv[2]
-#    og3 = sys.argv[3]
-#    og4 = sys.argv[4]
-#    og5 = sys.argv[5]
+    #Define orthogroups from command line argument where the orthogroups are separated by commas
+    sim_ogs = sys.argv[1].split(",")
+
 
     #Get the list of variants in the strain sets - from the .bim file
     strain_set_variant_file = sys.argv[2]
@@ -101,13 +98,13 @@ if __name__ == "__main__":
     sp = sys.argv[4]
 
     #og1 = "OG0010644"
-    og1 = "OG0010836"
+    #og1 = "OG0010836"
     #og3 = "OG0011342"
     #og4 = "OG0011339"
     #og5 = "OG0010147"
 
 
-    sim_ogs = [og1]
+    #sim_ogs = [og1]
 
     #Read in annotated strain_set variants
     strain_var = load_strain_set_variants(strain_set_variant_file)
