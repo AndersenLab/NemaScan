@@ -88,5 +88,15 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
             .combine(Channel.from("${params.ci_size}")) 
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_Repeated.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO_Repeated.R")) | get_gcta_intervals_repeated
+
+    // Process INBRED Results
+    get_gcta_intervals_repeated.out.processed_gcta_inbred_pca
+        .combine(Channel.fromPath("${params.bin_dir}/Assess_Repeated_Sims.R")) | assess_repeated_sims
+    
+    // Process LOCO Results
+    get_gcta_intervals_repeated.out.processed_gcta_loco_pca
+        .combine(Channel.fromPath("${params.bin_dir}/Assess_Repeated_Sims.R")) | assess_repeated_sims
+
+
 }
 

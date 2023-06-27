@@ -235,7 +235,7 @@ process simulate_map_phenotypes {
         path "${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma", emit: lmm_exact_loco_pca_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen", emit: simphen_analyze_sims
         path "${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.par", emit: simgen_analyze_sims
-        tuple val(sp), val(strain_set), val(SIMREP), val(H2), file(loci), file(gm), file(n_indep_tests), val(MAF),val(SIMID), val(OGS), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen"), emit: gcta_intervals
+        tuple val(sp), val(strain_set), val(SIMREP), val(H2), file(loci), file(gm), file(n_indep_tests), val(MAF),val(SIMID), val(OGS), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_inbred.fastGWA"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_inbred_pca.fastGWA"),file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_lmm-exact_pca.loco.mlma"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.par"),emit: gcta_intervals
 
     """
     gcta64 --bfile TO_SIMS \\
@@ -332,34 +332,47 @@ process get_gcta_intervals_repeated {
 
     tag {"${SIMREP} - ${H2}"}
 
-    publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
+    //publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
     publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"  
-    publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
+    //publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_mapping.tsv"
     publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"    
-    publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
+    //publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
     // memory '70 GB'
 
     input:
     tuple val(sp), val(strain_set), val(SIMREP), val(H2), file(loci), file(gm), file(n_indep_tests), val(MAF),val(SIMID), val(OGS), file(lmmexact_inbred), file(lmmexact_inbred_pca), file(lmmexact_loco), file(lmmexact_loco_pca), \
-    file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(find_gcta_intervals_repeated), file(find_gcta_intervals_loco_repeated)
+    file(phenotypes), file(effects), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(find_gcta_intervals_repeated), file(find_gcta_intervals_loco_repeated)
 
     output:
-    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
-    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
-    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
-    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
-    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
-    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
-    tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
-    tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
-    tuple  val(MAF),  val(SIMREP), val(H2),  file(loci), file(phenotypes), emit: simulated_phenotypes
+    //tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
+    //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
+    tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
+    //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
+    //tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
+    //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
+    tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
+    //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
+    //tuple  val(MAF),  val(SIMREP), val(H2),  file(loci), file(phenotypes), emit: simulated_phenotypes
 
 
     """
-        Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-INBRED
+        
         Rscript --vanilla ${find_gcta_intervals_repeated} ${gm} ${phenotypes} ${lmmexact_inbred_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-INBRED_PCA
-        Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-LOCO
         Rscript --vanilla ${find_gcta_intervals_loco_repeated} ${gm} ${phenotypes} ${lmmexact_loco_pca} ${n_indep_tests} ${sp} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${THRESHOLD} ${strain_set} ${MAF} LMM-EXACT-LOCO_PCA
+    """
+}
+
+process score_repeated_sims {
+    publishDir "${params.out}/Simulations/${sp}/${SIMID}", mode: 'copy', pattern: "*simulated.mapping.results.scores.tsv"
+
+    input: 
+    tuple val(sp), val(SIMID), file(effects), file(phenos), file(gm), file(processed_mapping), file(asses_sims)
+
+    output:
+    tuple val(sp), val(SIMID), file(effects), file(phenos), file(gm), file(processed_mapping), file("*simulated.mapping.results.scores.tsv")
+
+    """
+        Rscript --vanilla ${asses_sims} ${effects} ${phenos} ${gm} ${processed_mapping} ${sp} ${SIMID}
     """
 }
