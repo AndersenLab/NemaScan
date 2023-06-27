@@ -64,9 +64,12 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
     chrom_eigen_variants_sims_repeated.out.sim_geno_eigen_join
         .groupTuple(by:[0,1,2,3]). // Collect all chromosome eigen files with the same SP, strain_set, strains, and MAF
         join(chrom_eigen_variants_sims_repeated.out.sim_geno_meta, by:[0,1,2,3]) | collect_eigen_variants_sims_repeated
+    //Load the simulates key file 
+    File sim_key_file = new File("test_data/test_sim_setup.txt") ;
+    //create sim key channel
 
     collect_eigen_variants_sims_repeated.out
-        .combine(Channel.fromPath("test_data/causal_ogs.txt").splitCsv())
+        .combine(Channel.from(sim_key_file.collect { it.tokenize( ' ' ) }).map {SIMID, OGS -> [SIMID, OGS]})
         .combine(Channel.from(1..2)) // number of reps per OG trait
         .combine(Channel.fromPath("${params.bin_dir}/sim_og_effects.py"))
         .combine(Channel.fromPath("${params.master_snp_dir}"))

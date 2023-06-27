@@ -91,14 +91,14 @@ if __name__ == "__main__":
 #    og4 = sys.argv[4]
 #    og5 = sys.argv[5]
 
-    #Get the list of variants in the strain sets
-    strain_set_variant_file = sys.argv[6]
+    #Get the list of variants in the strain sets - from the .bim file
+    strain_set_variant_file = sys.argv[2]
 
     #Get the directory of the master snps files
-    master_snps_dir = sys.argv[7]
+    master_snps_dir = sys.argv[3]
 
     #Define the species
-    sp = sys.argv[8]
+    sp = sys.argv[4]
 
     #og1 = "OG0010644"
     og1 = "OG0010836"
