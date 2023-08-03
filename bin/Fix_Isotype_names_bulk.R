@@ -346,7 +346,10 @@ process_phenotypes <- function(df,
 ######## process pheno
 
 # load trait file
-traits <- data.table::fread(args[1])
+# traits <- readr::read_tsv(args[1])
+enc <- readr::guess_encoding(args[1])
+# traits <- readr::read_tsv(args[1], locale = readr::locale(encoding = as.character(enc[1,1])), col_names = F)
+traits <- read.delim(args[1], fileEncoding= as.character(enc[1,1]))
 
 # fix trait if needed (no space, no weird characters)
 cols <- colnames(traits)[2:length(colnames(traits))]
