@@ -348,8 +348,13 @@ process_phenotypes <- function(df,
 # load trait file
 # traits <- readr::read_tsv(args[1])
 enc <- readr::guess_encoding(args[1])
+if(grepl(".csv", args[1])) {
+    dlm <- ","
+} else {
+    dlm <- "\t"
+}
 # traits <- readr::read_tsv(args[1], locale = readr::locale(encoding = as.character(enc[1,1])), col_names = F)
-traits <- read.delim(args[1], fileEncoding= as.character(enc[1,1]))
+traits <- read.delim(args[1], fileEncoding= as.character(enc[1,1]), sep = dlm)
 
 # fix trait if needed (no space, no weird characters)
 cols <- colnames(traits)[2:length(colnames(traits))]
