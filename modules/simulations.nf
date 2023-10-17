@@ -22,8 +22,7 @@ process prepare_simulation_files {
 
 
     """
-    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
-    bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
+    bcftools view -s `echo ${strains} ${vcf} | tr -d '\\n'` |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
