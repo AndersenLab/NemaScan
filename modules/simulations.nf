@@ -22,8 +22,7 @@ process prepare_simulation_files {
 
 
     """
-    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
-    bcftools view -s `echo ${strains} | tr -d '\\n'` |\\
+    bcftools view -s `echo ${strains} ${vcf} | tr -d '\\n'` |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
@@ -170,7 +169,7 @@ process simulate_map_phenotypes {
 
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-    errorStrategy 'ignore'
+    
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true

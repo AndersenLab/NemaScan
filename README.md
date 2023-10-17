@@ -155,6 +155,23 @@ Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
 
 CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
+The VCF used should contain numeric chromosome ids (not roman numerals as is convention). A VCF with the correct chromosome ID can be generated using the following `bcftools` command and the chromosome name key file `input_data/all_species/rename_chromosomes`
+
+On Quest:
+```{bash}
+
+#load quest version of bcftools 
+module load bcftools
+
+#rename chromosomes
+rename_file=input_data/all_species/rename_chromosomes
+vcf=path/to/vcf
+
+bcftools annotate -O z --rename-chrs ${rename_file} ${vcf} > rename.vcf.gz
+```
+
+
+
 ### --simulate_nqtl 
 A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header) (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
 
