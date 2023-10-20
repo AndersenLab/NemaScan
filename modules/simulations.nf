@@ -300,9 +300,29 @@ process get_gcta_intervals {
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
+    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(phenotypes), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: sim_asses_input
 
     """
         Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+    """
+}
+
+process assess_sims {
+    
+    publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
+    
+    executor 'local'
+
+    input:
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect), path(var_effects), path(phenos), path(gm), path(mapping), path(R_assess_sims)
+    output: 
+        file("*_mapping.tsv")        
+    
+    script:
+    """
+    module load R/4.1.1
+
+    Rscript --vanilla ${R_assess_sims} ${mapping} ${gm} ${var_effects} ${phenos}
     """
 }
 
