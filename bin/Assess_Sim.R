@@ -12,7 +12,12 @@ args <- commandArgs(trailingOnly = TRUE)
 # 2. path to genotype_matrix
 # 3. path to variant effect file sims.par
 # 4. path to the phenotype file sims.phen
-#
+# 5. nQTL 
+# 6. simREP
+# 7. h2
+# 8. maf
+# 9. effect_distribution
+# 10. strain_set_id
 
 effects <- data.table::fread(
     args[3],
@@ -150,7 +155,13 @@ all.QTL <- data.frame(c(effects.scores$QTL, overlap$QTL)) %>%
             dplyr::full_join(.,overlap, by = "QTL") %>%
             dplyr::mutate(
                         #algorithm = algorithm_id ,
-                        top.hit = QTL == detected.peak
+                        top.hit = QTL == detected.peak,
+                        nQTL = args[5],
+                        simREP = args[6],
+                        h2 = args[7],
+                        maf = args[8],
+                        effect_distribution = args[9],
+                        strain_set_id = args[10]
                         #sim = x)
             )
          
