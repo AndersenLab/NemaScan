@@ -45,7 +45,7 @@ workflow{
             "${params.bin_dir}/Assess_Sim.R"
             ]
         
-        Channel.fromList([assess_1, assess_2]) | assess_sims
+        Channel.fromList([assess_1, assess_2]) | assess_sims | collectFile(name: "${params.out}/test") | view
 
         //both = Channel.from(assess_1, assess_2)
 
