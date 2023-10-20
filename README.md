@@ -180,6 +180,13 @@ A TSV file specifying the population in which to simulate GWA mappings. Multiple
 
 * `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
 
+### Assess_Simulated_Mappings.R
+After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. The NemaScan simulations workflow will generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
+
+```
+QTL	Simulated	Detected	CHROM	POS	RefAllele	Frequency	Effect	Simulated.QTL.VarExp	log10p	aboveBF	startPOS	peakPOS	endPOS	detected.peak	interval.Frequency	BETA	interval.log10p	peak_id	interval_size	interval.var.exp	top.hit
+```
+
 ## Annotations Profile (in development)
 
 `nextflow andersenlab/nemascan --vcf 20220216 -profile annotations --species briggsae --wb_build WS270`

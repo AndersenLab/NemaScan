@@ -158,4 +158,4 @@ all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
 all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
          
 #Write outputfile
-write.table(all.QTL, file = "all.QTL._mapping.tsv", sep = "\t", row.names = F, quote = F)
+write.table(all.QTL, file = "all.QTL._mapping.tsv", sep = "\t", row.names = F, quote = F, col.names = F)
