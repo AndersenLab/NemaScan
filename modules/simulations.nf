@@ -191,7 +191,7 @@ process simulate_map_phenotypes {
         path "${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_pca.loco.mlma", emit: lmm_exact_loco_pca_analyze_sims
         path "${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen", emit: simphen_analyze_sims
         path "${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par", emit: simgen_analyze_sims
-        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred_pca.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), emit: gcta_intervals
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred_pca.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), emit: gcta_intervals
 
     """
     gcta64 --bfile TO_SIMS \\
@@ -294,35 +294,35 @@ process get_gcta_intervals {
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
-    file(phenotypes), val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(aggregate_mappings), file(find_aggregate_intervals), file(find_gcta_intervals), file(find_gcta_intervals_loco)
+    file(var_effects), file(phenotypes) ,val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(aggregate_mappings), file(find_aggregate_intervals), file(find_gcta_intervals), file(find_gcta_intervals_loco)
 
     output:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld
     tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(phenotypes), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: sim_asses_input
-
+    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: assess_data 
+    
+    script:
     """
         Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
     """
 }
 
 process assess_sims {
+
+    container 'mckeowr1/asess_sims:1.1'
     
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
     
-    executor 'local'
-
     input:
-        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect), path(var_effects), path(phenos), path(gm), path(mapping), path(R_assess_sims)
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping), path(R_assess_sims)
     output: 
         file("*_mapping.tsv")        
     
     script:
     """
-    module load R/4.1.1
-
-    Rscript --vanilla ${R_assess_sims} ${mapping} ${gm} ${var_effects} ${phenos}
+    Rscript --vanilla ${R_assess_sims} ${mapping} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set}
     """
 }
 
