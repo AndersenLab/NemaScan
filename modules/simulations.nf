@@ -287,7 +287,8 @@ process get_gcta_intervals {
 
     tag {"${NQTL} - ${SIMREP} - ${H2}"}
 
-    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"
+    publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
     memory '48 GB'
@@ -297,35 +298,50 @@ process get_gcta_intervals {
     file(var_effects), file(phenotypes) ,val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(aggregate_mappings), file(find_aggregate_intervals), file(find_gcta_intervals), file(find_gcta_intervals_loco)
 
     output:
-    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta
-    tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld
-    tuple val(strain_set), val(strains), val(MAF), val(NQTL), val(SIMREP), val(H2), val(effect_range), file(loci), file(phenotypes), emit: simulated_phenotypes
-    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(phenotypes), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: sim_asses_input
-    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: assess_data 
-    
+    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), val("LMM-EXACT-INBRED_PCA"), emit: assess_data_inbred_pca 
+    tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), val("LMM-EXACT-LOCO_PCA"), emit: assess_data_loco_pca 
+
     script:
     """
-        Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED
+        Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED_PCA
+        Rscript --vanilla ${find_gcta_intervals_loco} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO_PCA
     """
 }
 
-process assess_sims {
+process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
     
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
-        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping), path(R_assess_sims)
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping_processed), val(algorithm_id), path(R_assess_sims)
     output: 
         file("*_mapping.tsv")        
     
     script:
     """
-    Rscript --vanilla ${R_assess_sims} ${mapping} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set}
+    Rscript --vanilla ${R_assess_sims} ${mapping_processed} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set} ${algorithm_id}
     """
+    
 }
+process assess_sims_LOCO {
 
+    container 'mckeowr1/asess_sims:1.1'
+    
+    publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
+    
+    input:
+        tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping_processed), val(algorithm_id), path(R_assess_sims)
+    output: 
+        file("*_mapping.tsv")        
+    
+    script:
+    """
+    Rscript --vanilla ${R_assess_sims} ${mapping_processed} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set} ${algorithm_id}
+    """
+    
+}
 /*
 ======================================
 ~ > *                            * < ~

@@ -18,6 +18,7 @@ args <- commandArgs(trailingOnly = TRUE)
 # 8. maf
 # 9. effect_distribution
 # 10. strain_set_id
+# 11. algorithm_id
 
 effects <- data.table::fread(
     args[3],
@@ -161,12 +162,14 @@ all.QTL <- data.frame(c(effects.scores$QTL, overlap$QTL)) %>%
                         h2 = args[7],
                         maf = args[8],
                         effect_distribution = args[9],
-                        strain_set_id = args[10]
+                        strain_set_id = args[10],
+                        algorithm_id = args[11]
                         #sim = x)
             )
          
 all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
 all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
          
+algorithm <- args[11]
 #Write outputfile
-write.table(all.QTL, file = "all.QTL._mapping.tsv", sep = "\t", row.names = F, quote = F, col.names = F)
+write.table(all.QTL, file = glue::glue("{algorithm}_all.QTL._mapping.tsv"), sep = "\t", row.names = F, quote = F, col.names = F)
