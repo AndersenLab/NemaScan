@@ -184,7 +184,17 @@ A TSV file specifying the population in which to simulate GWA mappings. Multiple
 After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. The NemaScan simulations workflow will generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
 
 ```
-QTL	Simulated	Detected	CHROM	POS	RefAllele	Frequency	Effect	Simulated.QTL.VarExp	log10p	aboveBF	startPOS	peakPOS	endPOS	detected.peak	interval.Frequency	BETA	interval.log10p	peak_id	interval_size	interval.var.exp	top.hit
+[1] "MAPPING DF NAMEs"
+ [1] "QTL"                  "Simulated"            "Detected"            
+ [4] "CHROM"                "POS"                  "RefAllele"           
+ [7] "Frequency"            "Effect"               "Simulated.QTL.VarExp"
+[10] "log10p"               "aboveBF"              "startPOS"            
+[13] "peakPOS"              "endPOS"               "detected.peak"       
+[16] "interval.Frequency"   "BETA"                 "interval.log10p"     
+[19] "peak_id"              "interval_size"        "interval.var.exp"    
+[22] "top.hit"              "nQTL"                 "simREP"              
+[25] "h2"                   "maf"                  "effect_distribution" 
+[28] "strain_set_id"        "algorithm_id"        
 ```
 
 ## Annotations Profile (in development)
