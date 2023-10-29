@@ -294,7 +294,7 @@ include {pull_vcf; fix_strain_names_bulk; fix_strain_names_alt; vcf_to_geno_matr
 include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps; gcta_lmm_exact_mapping_nopca} from './modules/mapping.nf'
 include {mediation_data; multi_mediation; simple_mediation; summary_mediation} from './modules/mediation.nf'
 include {summarize_mapping; generate_plots; LD_between_regions; prep_ld_files; gcta_fine_maps; divergent_and_haplotype; html_report_main} from './modules/post-mapping.nf'
-include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals} from './modules/simulations.nf'
+include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals; assess_sims_INBRED; assess_sims_LOCO} from './modules/simulations.nf'
 
 /*
 ~ ~ ~ > * WORKFLOW
@@ -620,6 +620,11 @@ workflow {
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO.R")) | get_gcta_intervals
      
+        get_gcta_intervals.out.assess_data_inbred_pca 
+            .combine(Channel.fromPath("${params.bin_dir}/Assess_Sim.R")) | assess_sims_INBRED | collectFile(name: "${params.out}/INBRED_PCA_all_sims.tsv") | view
+        get_gcta_intervals.out.assess_data_loco_pca 
+            .combine(Channel.fromPath("${params.bin_dir}/Assess_Sim.R")) | assess_sims_LOCO | collectFile(name: "${params.out}/LOCO_PCA_all_sims.tsv") | view
+
     
     }
 }
