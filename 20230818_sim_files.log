@@ -1,0 +1,5 @@
+N E X T F L O W  ~  version 21.04.2
+Launching `prepare_sims.nf` [scruffy_pare] - revision: b98314745c
+WARN: DSL 2 PREVIEW MODE IS DEPRECATED - USE THE STABLE VERSION INSTEAD -- Read more at https://www.nextflow.io/docs/latest/dsl2.html#dsl2-migration-notes
+[-        ] process > prepare_simulation_files_ld -
+slurmstepd: error: *** JOB 5650788 ON qnode0102 CANCELLED AT 2023-08-24T11:41:25 DUE TO NODE FAILURE, SEE SLURMCTLD LOG FOR DETAILS ***

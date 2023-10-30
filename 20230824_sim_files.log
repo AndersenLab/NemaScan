@@ -1,0 +1,171 @@
+N E X T F L O W  ~  version 21.04.2
+Launching `prepare_sims.nf` [happy_laplace] - revision: adf8c2d8ac
+WARN: DSL 2 PREVIEW MODE IS DEPRECATED - USE THE STABLE VERSION INSTEAD -- Read more at https://www.nextflow.io/docs/latest/dsl2.html#dsl2-migration-notes
+[-        ] process > prepare_simulation_files_ld -
+
+[-        ] process > prepare_simulation_files_ld [  0%] 0 of 1
+
+executor >  slurm (1)
+[f8/347f45] process > prepare_simulation_files_ld... [  0%] 0 of 1
+
+executor >  slurm (1)
+[f8/347f45] process > prepare_simulation_files_ld... [  0%] 0 of 1
+
+executor >  slurm (1)
+[f8/347f45] process > prepare_simulation_files_ld... [  0%] 0 of 2
+
+executor >  slurm (2)
+[1d/de48a0] process > prepare_simulation_files_ld... [  0%] 0 of 2
+
+executor >  slurm (2)
+[1d/de48a0] process > prepare_simulation_files_ld... [  0%] 0 of 3
+
+executor >  slurm (3)
+[30/5be875] process > prepare_simulation_files_ld... [  0%] 0 of 3
+
+executor >  slurm (3)
+[30/5be875] process > prepare_simulation_files_ld... [  0%] 0 of 3
+
+executor >  slurm (3)
+[30/5be875] process > prepare_simulation_files_ld... [  0%] 0 of 4
+
+executor >  slurm (4)
+[60/6ebc03] process > prepare_simulation_files_ld... [  0%] 0 of 4
+
+executor >  slurm (4)
+[60/6ebc03] process > prepare_simulation_files_ld... [  0%] 0 of 5
+
+executor >  slurm (5)
+[68/00f0c0] process > prepare_simulation_files_ld... [  0%] 0 of 5
+
+executor >  slurm (5)
+[68/00f0c0] process > prepare_simulation_files_ld... [  0%] 0 of 5
+
+executor >  slurm (5)
+[68/00f0c0] process > prepare_simulation_files_ld... [  0%] 0 of 6
+
+executor >  slurm (6)
+[0c/822b65] process > prepare_simulation_files_ld... [  0%] 0 of 6
+
+executor >  slurm (6)
+[0c/822b65] process > prepare_simulation_files_ld... [  0%] 0 of 6
+
+executor >  slurm (6)
+[0c/822b65] process > prepare_simulation_files_ld... [  0%] 0 of 7
+
+executor >  slurm (7)
+[88/6797fa] process > prepare_simulation_files_ld... [  0%] 0 of 7
+
+executor >  slurm (7)
+[88/6797fa] process > prepare_simulation_files_ld... [  0%] 0 of 7
+
+executor >  slurm (7)
+[88/6797fa] process > prepare_simulation_files_ld... [  0%] 0 of 8
+
+executor >  slurm (8)
+[05/648d2e] process > prepare_simulation_files_ld... [  0%] 0 of 8
+
+executor >  slurm (8)
+[05/648d2e] process > prepare_simulation_files_ld... [  0%] 0 of 8
+
+executor >  slurm (8)
+[05/648d2e] process > prepare_simulation_files_ld... [  0%] 0 of 9
+
+executor >  slurm (9)
+[87/c32b72] process > prepare_simulation_files_ld... [  0%] 0 of 9
+
+executor >  slurm (9)
+[87/c32b72] process > prepare_simulation_files_ld... [  0%] 0 of 10
+
+executor >  slurm (10)
+[da/a286b9] process > prepare_simulation_files_ld... [  0%] 0 of 10
+
+executor >  slurm (10)
+[da/a286b9] process > prepare_simulation_files_ld... [  0%] 0 of 10
+
+executor >  slurm (10)
+[da/a286b9] process > prepare_simulation_files_ld... [  0%] 0 of 11
+
+executor >  slurm (11)
+[1c/6ae039] process > prepare_simulation_files_ld... [  0%] 0 of 11
+
+executor >  slurm (11)
+[1c/6ae039] process > prepare_simulation_files_ld... [  0%] 0 of 11
+
+executor >  slurm (11)
+[1c/6ae039] process > prepare_simulation_files_ld... [  0%] 0 of 12
+
+executor >  slurm (11)
+[1c/6ae039] process > prepare_simulation_files_ld... [  0%] 0 of 13
+
+executor >  slurm (12)
+[be/65aa80] process > prepare_simulation_files_ld... [  0%] 0 of 13
+
+executor >  slurm (13)
+[20/7a9172] process > prepare_simulation_files_ld... [  0%] 0 of 13
+
+executor >  slurm (13)
+[20/7a9172] process > prepare_simulation_files_ld... [  0%] 0 of 15
+
+executor >  slurm (14)
+[fb/e27374] process > prepare_simulation_files_ld... [  0%] 0 of 15
+
+executor >  slurm (15)
+[1a/94f17d] process > prepare_simulation_files_ld... [  0%] 0 of 15
+
+executor >  slurm (15)
+[1a/94f17d] process > prepare_simulation_files_ld... [  0%] 0 of 15
+
+executor >  slurm (15)
+[1a/94f17d] process > prepare_simulation_files_ld... [  7%] 1 of 15
+
+executor >  slurm (15)
+[fb/e27374] process > prepare_simulation_files_ld... [ 13%] 2 of 15
+
+executor >  slurm (15)
+[be/65aa80] process > prepare_simulation_files_ld... [ 20%] 3 of 15
+
+executor >  slurm (15)
+[f8/347f45] process > prepare_simulation_files_ld... [ 27%] 4 of 15
+
+executor >  slurm (15)
+[68/00f0c0] process > prepare_simulation_files_ld... [ 33%] 5 of 15
+
+executor >  slurm (15)
+[30/5be875] process > prepare_simulation_files_ld... [ 40%] 6 of 15
+
+executor >  slurm (15)
+[0c/822b65] process > prepare_simulation_files_ld... [ 47%] 7 of 15
+
+executor >  slurm (15)
+[1d/de48a0] process > prepare_simulation_files_ld... [ 53%] 8 of 15
+
+executor >  slurm (15)
+[60/6ebc03] process > prepare_simulation_files_ld... [ 60%] 9 of 15
+
+executor >  slurm (15)
+[20/7a9172] process > prepare_simulation_files_ld... [ 67%] 10 of 15
+
+executor >  slurm (15)
+[da/a286b9] process > prepare_simulation_files_ld... [ 73%] 11 of 15
+
+executor >  slurm (15)
+[1c/6ae039] process > prepare_simulation_files_ld... [ 80%] 12 of 15
+
+executor >  slurm (15)
+[05/648d2e] process > prepare_simulation_files_ld... [ 87%] 13 of 15
+
+executor >  slurm (15)
+[87/c32b72] process > prepare_simulation_files_ld... [ 93%] 14 of 15
+
+executor >  slurm (15)
+[88/6797fa] process > prepare_simulation_files_ld... [100%] 15 of 15 ✔
+
+executor >  slurm (15)
+[88/6797fa] process > prepare_simulation_files_ld... [100%] 15 of 15 ✔
+Completed at: 24-Aug-2023 13:33:41
+Duration    : 1h 22m 15s
+CPU hours   : 44.9
+Succeeded   : 15
+
+

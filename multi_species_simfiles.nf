@@ -19,7 +19,7 @@ params.maf = 0.05
 
 // params.simulate_h2 = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv"
 
-include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes; get_gcta_intervals_repeated} from './modules/repeated_simulations.nf'
+include {prepare_repeated_simulation_files; chrom_eigen_variants_sims_repeated; collect_eigen_variants_sims_repeated; simulate_orthogroup_effects; simulate_map_phenotypes; get_gcta_intervals_repeated; score_repeated_sims} from './modules/repeated_simulations.nf'
 
 //ce_vcf = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz")
 //ce_vcf_index = Channel.fromPath("/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.bcsq.vcf.gz.tbi")
@@ -33,11 +33,11 @@ rename_key = Channel.fromPath("input_data/all_species/rename_chromosomes")
 maf_file = Channel.fromPath("input_data/all_species/simulate_maf.csv").splitCsv()
 workflow{
 
-File pop_file = new File("test_data/test_orthogroup_samples.txt") ;
+File pop_file = new File("test_data/repeated_sim_strain_sets.txt") ;
 
-sp_ids = [["c_elegans", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_elegans/underground.gartersnake/plink_files" ],
-                ["c_briggsae", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_briggsae/aboveground.gartersnake/plink_files" ],
-                ["c_tropicalis", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz.tbi", "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/c_tropicalis/inbetweenground.gartersnake/plink_files"]]
+sp_ids = [["c_elegans", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.vcf.gz.tbi"],
+                ["c_briggsae", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_briggsae/WI/variation/20210803/vcf/WI.20210803.hard-filter.isotype.vcf.gz.tbi"],
+                ["c_tropicalis", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz", "/projects/b1059/data/c_tropicalis/WI/variation/20210901/vcf/WI.20210901.hard-filter.isotype.vcf.gz.tbi"]]
 
 Channel.from(pop_file.collect { it.tokenize( ' ' ) })
           .map {SP, SM, STRAINS -> [SP, SM, STRAINS] }
@@ -50,9 +50,8 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
                     (tuple[2]), //extract sample list
                     file(tuple[3]), // convert path to file obj for vcf
                     file(tuple[4]), // index
-                    file(tuple[5]), // plink_dir FOR TESTING 
-                    file(tuple[6]), // rename key 
-                    tuple[7]] // MAF
+                    file(tuple[5]), // rename key 
+                    tuple[6]] // MAF
         } |  prepare_repeated_simulation_files
 
     // eigen
@@ -65,7 +64,7 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
         .groupTuple(by:[0,1,2,3]). // Collect all chromosome eigen files with the same SP, strain_set, strains, and MAF
         join(chrom_eigen_variants_sims_repeated.out.sim_geno_meta, by:[0,1,2,3]) | collect_eigen_variants_sims_repeated
     //Load the simulates key file 
-    File sim_key_file = new File("test_data/test_sim_setup.txt") ;
+    File sim_key_file = new File("test_data/repeated_sim_keys.txt") ;
     //create sim key channel
 
     collect_eigen_variants_sims_repeated.out
@@ -80,7 +79,9 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
     sim_phen_inputs = simulate_orthogroup_effects.out.pheno_inputs 
 
     sim_phen_inputs
-        .combine(Channel.fromPath("/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv").splitCsv()) | simulate_map_phenotypes
+        .combine(Channel.fromPath("/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/test_data/h2.csv").splitCsv()) 
+        .combine(Channel.fromPath("${params.bin_dir}/check_vp.py"))
+        | simulate_map_phenotypes
 
     simulate_map_phenotypes.out.gcta_intervals
             .combine(Channel.from("${params.sthresh}"))
@@ -88,14 +89,10 @@ Channel.from(pop_file.collect { it.tokenize( ' ' ) })
             .combine(Channel.from("${params.ci_size}")) 
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_Repeated.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals_LOCO_Repeated.R")) | get_gcta_intervals_repeated
-
-    // Process INBRED Results
-    get_gcta_intervals_repeated.out.processed_gcta_inbred_pca
-        .combine(Channel.fromPath("${params.bin_dir}/Assess_Repeated_Sims.R")) | assess_repeated_sims
     
-    // Process LOCO Results
-    get_gcta_intervals_repeated.out.processed_gcta_loco_pca
-        .combine(Channel.fromPath("${params.bin_dir}/Assess_Repeated_Sims.R")) | assess_repeated_sims
+    get_gcta_intervals_repeated.out.processed_sims
+        .combine(Channel.fromPath("${params.bin_dir}/Assess_Repeated_Sims.R")) | score_repeated_sims
+    
 
 
 }

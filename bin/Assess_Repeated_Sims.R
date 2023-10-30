@@ -27,7 +27,7 @@ phenos_file <- args[2]
 #gm_file <- "Analysis_Results-20230627/Genotype_Matrix/c_elegans_underground.gartersnake_0.05_Genotype_Matrix.tsv"
 gm_file <- args[3]
 
-proc_mapping_file <- "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/Analysis_Results-20230627/Simulations/c_elegans/sim_id1/Mappings/c_elegans_2_0.8_processed_LMM-EXACT-INBRED_PCA_mapping.tsv"
+#proc_mapping_file <- "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/Analysis_Results-20230627/Simulations/c_elegans/sim_id1/Mappings/c_elegans_2_0.8_processed_LMM-EXACT-INBRED_PCA_mapping.tsv"
 proc_mapping_file <- args[4]
 
 sp_id <- args[5]
@@ -55,12 +55,11 @@ mapping_df <- data.table::fread(proc_mapping_file, header = T)
 file_name <- basename(proc_mapping_file)
 
 #Check if INBRED or LOCO in the file name
-if(str_detect(file_name, "INBRED"))
+if(str_detect(file_name, "INBRED")){
     mapping_algorithm <- "INBRED"
-else if(str_detect(file_name, "LOCO"))
+}else if(str_detect(file_name, "LOCO")){
     mapping_algorithm <- "LOCO"
-else
-    stop("Mapping algorithm not identified")
+}
 
 
 ## Start processing Files ##
@@ -169,4 +168,4 @@ all.QTL$Simulated <- factor(all.QTL$Simulated, levels = c("TRUE","FALSE"))
 all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
 
 #Write the results to file
-write.tsv(all.QTL, file = glue::glue("{sim_id}.{mapping_algorithm}.simulated.mapping.results.scores.tsv"), sep = "\t")
+write_tsv(all.QTL, file = glue::glue("{sim_id}.{mapping_algorithm}.simulated.mapping.results.scores.tsv"))

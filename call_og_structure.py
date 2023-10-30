@@ -36,7 +36,9 @@ def classify_orthogroups(sp1, sp2, sp3, og_file):
     return(orthogroups_dict)
 
 
-orthogroups = "Orthogroups.txt"
+orthogroups = "/projects/b1059/projects/Ryan/ortholog_sims/NemaScan/input_data/all_species/orthogroups/02.21.22_orthogroups/Orthogroups.txt"
+output = "/projects/b1059/projects/Ryan/ortholog_sims/20230614_pre_sim_ogs/data/orthogroups/orthogroups_structure.csv"
+
 sp1 = "Transcript" #elegans
 sp2 = "QX1410"
 sp3 = "transcript_CTROP"
@@ -44,8 +46,9 @@ sp3 = "transcript_CTROP"
 og_dicts = classify_orthogroups(sp1, sp2, sp3, orthogroups)
 
 
+
 col_name=["id", sp1, sp2, sp3, "structure"]
-with open("export.csv", 'w') as csvFile:
+with open(output, 'w') as csvFile:
         wr = csv.DictWriter(csvFile, fieldnames=col_name)
         wr.writeheader()
         for ele in og_dicts.values():

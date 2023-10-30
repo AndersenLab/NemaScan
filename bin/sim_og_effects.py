@@ -4,6 +4,8 @@ import numpy as np
 import sys
 
 # Load the strain set variants 
+
+
 def load_strain_set_variants(strain_set_variant_file):
     """
     Load the strain set variants from a plink .bim file

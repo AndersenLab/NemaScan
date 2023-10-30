@@ -7,7 +7,7 @@ process prepare_repeated_simulation_files {
     time '30m'
 
     input:
-        tuple val(sp), val(strain_set), val(strains), file(vcf), file(index), file(plink_dir), file(num_chroms), val(MAF)
+        tuple val(sp), val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
 
     output:
         tuple val(sp), val(strain_set), val(strains), file("TO_SIMS.bed"), file("TO_SIMS.bim"), file("TO_SIMS.fam"), file("TO_SIMS.map"), file("TO_SIMS.nosex"), file("TO_SIMS.ped"), file("TO_SIMS.log"), file("${sp}_${strain_set}_${MAF}_Genotype_Matrix.tsv"), val(MAF), emit: sim_geno
@@ -186,6 +186,7 @@ process collect_eigen_variants_sims_repeated_temp {
 
 process simulate_orthogroup_effects {
     label 'causal_ogs'
+    errorStrategy 'ignore'
     executor 'local'
     conda '/home/rjm6024/.conda/envs/vcf_stats_1.0'
 
@@ -209,8 +210,8 @@ process simulate_map_phenotypes {
     label 'sim_map_phenos'
     tag {"${SIMREP} - ${H2} - ${MAF}"}
 
-    //errorStrategy 'retry'
-
+    errorStrategy 'retry'
+    container = 'andersenlab/nemascan:20220407173056db3227'
     publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${sp}/${SIMID}/Mappings", pattern: "*loco.mlma", overwrite: true
     publishDir "${params.out}/Simulations/${sp}/${SIMID}/Phenotypes", pattern: "*.phen", overwrite: true
@@ -223,7 +224,7 @@ process simulate_map_phenotypes {
 
 
     input:
-        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), file(n_indep_tests), val(SIMID), val(OGS), file(loci), val(H2)
+        tuple val(sp), val(strain_set), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(SIMREP), val(MAF), file(n_indep_tests), val(SIMID), val(OGS), file(loci), val(H2), file(check_vp)
 
     output:
         tuple file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.bed"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.bim"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.fam"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.map"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.nosex"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.ped"), file("TO_SIMS_${SIMREP}_${MAF}_${SIMID}_${sp}_${strain_set}.log"), val(SIMREP), file(loci), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen"), file("${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.par"), emit: sim_phen_output
@@ -268,12 +269,13 @@ process simulate_map_phenotypes {
             --pheno ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen \\
             --reml --out check_vp \\
             --thread-num 5
-    vp=`grep Vp check_vp.hsq | head -1 | cut -f2`
-    if (( \$(echo "0.00001 > \$vp" |bc -l) ));
-      then
-        awk '{print \$1, \$2, \$3*1000}' ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen > temp.phen;
+    
+    python ${check_vp} --check_vp check_vp.hsq --simulated_phenos ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen 
+
+    if [[ -f "new_phenos.temp" ]]
+    then
         rm ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen
-        mv temp.phen ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen
+        mv new_phenos.temp ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen
     fi
 
     gcta64 --grm TO_SIMS_${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_gcta_grm \\
@@ -347,14 +349,14 @@ process get_gcta_intervals_repeated {
     output:
     //tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-INBRED_mapping.tsv"), emit: processed_gcta_inbred
     //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred    
-    tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
+    //tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), emit: processed_gcta_inbred_pca
     //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-INBRED_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_inbred_pca
     //tuple   val(SIMREP), val(H2), file(loci), file(gm),  file(n_indep_tests), file(phenotypes), val(THRESHOLD), file("*processed_LMM-EXACT-LOCO_mapping.tsv"), emit: processed_gcta_loco
     //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco
-    tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
+    //tuple   val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_gcta_loco_pca
     //tuple  val(MAF),  val(SIMREP), val(H2),  file("*LMM-EXACT-LOCO_PCA_qtl_region.tsv"), emit: gcta_qtl_to_ld_loco_pca
     //tuple  val(MAF),  val(SIMREP), val(H2),  file(loci), file(phenotypes), emit: simulated_phenotypes
-
+    tuple val(sp), val(SIMID), file(phenotypes), file(effects), file(gm), file("*processed_LMM-EXACT-INBRED_PCA_mapping.tsv"), file("*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"), emit: processed_sims
 
     """
         
@@ -367,12 +369,13 @@ process score_repeated_sims {
     publishDir "${params.out}/Simulations/${sp}/${SIMID}", mode: 'copy', pattern: "*simulated.mapping.results.scores.tsv"
 
     input: 
-    tuple val(sp), val(SIMID), file(effects), file(phenos), file(gm), file(processed_mapping), file(asses_sims)
+    tuple val(sp), val(SIMID), file(phenos), file(effects),  file(gm), file(inbred_processed_mapping), file(loco_processed_mapping), file(asses_sims)
 
     output:
-    tuple val(sp), val(SIMID), file(effects), file(phenos), file(gm), file(processed_mapping), file("*simulated.mapping.results.scores.tsv")
+    tuple val(sp), val(SIMID), file("*.INBRED.simulated.mapping.results.scores.tsv"), file("*.LOCO.simulated.mapping.results.scores.tsv"), emit: simulated_mapping_scores
 
     """
-        Rscript --vanilla ${asses_sims} ${effects} ${phenos} ${gm} ${processed_mapping} ${sp} ${SIMID}
+        Rscript --vanilla ${asses_sims} ${effects} ${phenos} ${gm} ${inbred_processed_mapping} ${sp} ${SIMID}
+        Rscript --vanilla ${asses_sims} ${effects} ${phenos} ${gm} ${loco_processed_mapping} ${sp} ${SIMID}
     """
 }
