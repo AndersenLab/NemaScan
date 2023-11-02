@@ -10,10 +10,11 @@
 
 
 process prepare_simulation_files {
-
+    
     cpus 4
     time '3h'
-    memory '2 GB'
+    memory '50GB'
+    maxRetries 0
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -187,6 +188,8 @@ process simulate_map_phenotypes {
     memory '1 GB'
     time '10min'
     cpus 4
+    maxRetries 10
+
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file(loci), val(H2)
@@ -303,6 +306,7 @@ process get_gcta_intervals {
     memory '500 MB'
     time '10min'
     cpus 1
+    maxRetries 3
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
@@ -347,7 +351,7 @@ process assess_sims_LOCO {
     memory '500 MB'
     time '10min'
     cpus 1
-
+    maxRetries 3
 
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
     
