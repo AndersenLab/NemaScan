@@ -10,7 +10,8 @@
 
 
 process prepare_simulation_files {
-    
+    container 'mckeowr1/prep_sims:1.1'
+
     cpus 4
     time '3h'
     memory '30GB'
