@@ -12,6 +12,8 @@
 process prepare_simulation_files {
 
     cpus 4
+    time '3h'
+    memory '2 GB'
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -78,8 +80,9 @@ process chrom_eigen_variants_sims {
 
     tag { CHROM }
 
-    cpus 6
-    memory params.eigen_mem
+    cpus 2
+    memory '800 MB'
+    time '10min'
 
     input:
         tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file(get_genomatrix_eigen)
@@ -109,6 +112,9 @@ process collect_eigen_variants_sims {
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
     cpus 1
+    memory '1 GB'
+    time '10min'
+
 
     input:
         tuple val(strain_set), val(strains), val(MAF), file(tests), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno)
@@ -149,7 +155,9 @@ process simulate_effects_genome {
 
     tag {NQTL}
 
-    cpus 4
+    cpus 1
+    memory '1 GB'
+    time '30min'
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -176,6 +184,8 @@ process simulate_map_phenotypes {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
+    memory '1 GB'
+    time '10min'
     cpus 4
 
     input:
@@ -290,7 +300,9 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '48 GB'
+    memory '500 MB'
+    time '10min'
+    cpus 1
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
@@ -311,6 +323,10 @@ process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
     
+    memory '500 MB'
+    time '10min'
+    cpus 1
+
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
@@ -328,6 +344,11 @@ process assess_sims_LOCO {
 
     container 'mckeowr1/asess_sims:1.1'
     
+    memory '500 MB'
+    time '10min'
+    cpus 1
+
+
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
