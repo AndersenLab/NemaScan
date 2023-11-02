@@ -13,7 +13,7 @@ process prepare_simulation_files {
     
     cpus 4
     time '3h'
-    memory '50GB'
+    memory '30GB'
     maxRetries 0
 
     input:
