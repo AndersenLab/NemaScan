@@ -15,7 +15,7 @@ process prepare_simulation_files {
     cpus 4
     time '3h'
     memory '30GB'
-    maxRetries 0
+    maxRetries 5
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -83,8 +83,8 @@ process chrom_eigen_variants_sims {
     tag { CHROM }
 
     cpus 2
-    memory '800 MB'
-    time '10min'
+    memory '20GB'
+    time '30min'
 
     input:
         tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file(get_genomatrix_eigen)
@@ -114,8 +114,8 @@ process collect_eigen_variants_sims {
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
     cpus 1
-    memory '1 GB'
-    time '10min'
+    memory '20GB'
+    time '30min'
 
 
     input:
@@ -158,7 +158,7 @@ process simulate_effects_genome {
     tag {NQTL}
 
     cpus 1
-    memory '1 GB'
+    memory '20GB'
     time '30min'
 
     input:
@@ -186,7 +186,7 @@ process simulate_map_phenotypes {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
-    memory '1 GB'
+    memory '20GB'
     time '10min'
     cpus 4
     maxRetries 10
@@ -304,8 +304,8 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '500 MB'
-    time '10min'
+    memory '40GB'
+    time '20min'
     cpus 1
     maxRetries 3
 
@@ -328,8 +328,8 @@ process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
     
-    memory '500 MB'
-    time '10min'
+    memory '20GB'
+    time '20min'
     cpus 1
 
     publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
@@ -349,8 +349,8 @@ process assess_sims_LOCO {
 
     container 'mckeowr1/asess_sims:1.1'
     
-    memory '500 MB'
-    time '10min'
+    memory '20GB'
+    time '20min'
     cpus 1
     maxRetries 3
 
