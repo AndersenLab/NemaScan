@@ -156,9 +156,10 @@ process simulate_effects_loc {
 process simulate_effects_genome {
 
     tag {NQTL}
-
+    
+    executor 'local'
     cpus 1
-    memory '20GB'
+    memory '2GB'
     time '30min'
 
     input:
@@ -186,6 +187,7 @@ process simulate_map_phenotypes {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
+    executor 'local'
     memory '20GB'
     time '10min'
     cpus 4
@@ -327,7 +329,8 @@ process get_gcta_intervals {
 process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
-    
+ 
+    executor 'local'   
     memory '20GB'
     time '20min'
     cpus 1
@@ -348,7 +351,8 @@ process assess_sims_INBRED {
 process assess_sims_LOCO {
 
     container 'mckeowr1/asess_sims:1.1'
-    
+ 
+    executor 'local'   
     memory '20GB'
     time '20min'
     cpus 1
