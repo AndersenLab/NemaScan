@@ -198,7 +198,14 @@ A TSV file specifying the population in which to simulate GWA mappings. Multiple
 * `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
 
 ### Assess_Simulated_Mappings.R
-After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. The NemaScan simulations workflow will generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
+After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. For each simulation run, the NemaScan simulations workflow will generate an output file for each simulation in the `${out.dir}/scored_sims` directory. To summarize these files, run the following command:
+
+```
+module load R/4.1.1
+Rscript `bin/Aggregate_Simulations.R` ${out.dir}/scored_sims
+```
+
+generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
 
 ```
 [1] "MAPPING DF NAMEs"
