@@ -10,6 +10,8 @@ library(purrr)
 library(coop)
 library(RSpectra)
 
+library(parallel) #mjs
+
 args <- commandArgs(trailingOnly = TRUE)
 
 phenotyped_strain_snps <- readr::read_tsv(args[1]) %>%

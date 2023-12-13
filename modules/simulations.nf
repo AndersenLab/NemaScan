@@ -156,9 +156,10 @@ process simulate_effects_loc {
 process simulate_effects_genome {
 
     tag {NQTL}
-
+    
+    executor 'local'
     cpus 1
-    memory '20GB'
+    memory '2GB'
     time '30min'
 
     input:
@@ -186,6 +187,7 @@ process simulate_map_phenotypes {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
 
+    executor 'local'
     memory '20GB'
     time '10min'
     cpus 4
@@ -308,7 +310,7 @@ process get_gcta_intervals {
     time '20min'
     cpus 1
     errorStrategy 'ignore'
-    
+
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
     file(var_effects), file(phenotypes) ,val(THRESHOLD), val(QTL_GROUP_SIZE), val(QTL_CI_SIZE), file(aggregate_mappings), file(find_aggregate_intervals), file(find_gcta_intervals), file(find_gcta_intervals_loco)
@@ -327,12 +329,9 @@ process get_gcta_intervals {
 process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
+    executor = 'local'
     
-    memory '20GB'
-    time '20min'
-    cpus 1
-
-    publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
+    publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping_processed), val(algorithm_id), path(R_assess_sims)
@@ -348,7 +347,8 @@ process assess_sims_INBRED {
 process assess_sims_LOCO {
 
     container 'mckeowr1/asess_sims:1.1'
-    
+ 
+    executor 'local'   
     memory '20GB'
     time '20min'
     cpus 1

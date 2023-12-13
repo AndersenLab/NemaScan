@@ -172,8 +172,17 @@ all.QTL$Detected <- factor(all.QTL$Detected, levels = c("TRUE","FALSE"))
          
 algorithm <- args[11]
 
-print("MAPPING DF NAMEs")
-names(all.QTL)
+#print("MAPPING DF NAMEs")
+#names(all.QTL)
+nQTL = args[5]
+simREP = args[6]
+h2 = args[7]
+maf = args[8]
+effect_distribution = args[9]
+strain_set_id = args[10]
 
 #Write outputfile
-write.table(all.QTL, file = glue::glue("{algorithm}_all.QTL._mapping.tsv"), sep = "\t", row.names = F, quote = F, col.names = F)
+write.table(
+    all.QTL,
+    file = glue::glue("{nQTL}_{simREP}_{h2}_{maf}_{effect_distribution}_{strain_set_id}_mapping.tsv"),
+    sep = "\t", row.names = F, quote = F, col.names = F)
