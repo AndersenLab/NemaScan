@@ -306,10 +306,10 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '40GB'
+    memory '50GB'
     time '20min'
     cpus 1
-    maxRetries 3
+    errorStrategy 'ignore'
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
@@ -329,13 +329,9 @@ process get_gcta_intervals {
 process assess_sims_INBRED {
 
     container 'mckeowr1/asess_sims:1.1'
- 
-    executor 'local'   
-    memory '20GB'
-    time '20min'
-    cpus 1
-
-    publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
+    executor = 'local'
+    
+    publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping_processed), val(algorithm_id), path(R_assess_sims)
