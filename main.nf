@@ -89,18 +89,18 @@ if(params.debug) {
     params.strains = "input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from cendr.
-    params.vcf = "20220216"
-    vcf_file = "20220216 - CeNDR"
-    vcf_index = "20220216 - CeNDR"
-    impute_file = "20220216 - CeNDR"
+    params.vcf = "20231213"
+    vcf_file = "20231213 - CeNDR"
+    vcf_index = "20231213 - CeNDR"
+    impute_file = "20231213 - CeNDR"
     download_vcf = true
     
 } else {
     // Check that params.vcf is valid
-    if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
+    if("${params.vcf}" == "20231213" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803" || "${params.vcf}" == "20231201" || "${params.vcf}" == "20240129") {
         // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
         // check to make sure 20210901 is tropicalis
-        if("${params.vcf}" == "20210901") {
+        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20231201") {
             if("${params.species}" == "c_elegans" || "${params.species}" == "c_briggsae") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_tropicalis). Please enter a new vcf date or a new species to continue.
@@ -109,7 +109,7 @@ if(params.debug) {
             }
         }
         // check to make sure vcf matches species for briggsae
-        if("${params.vcf}" == "20210803") {
+        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20240129") {
             if("${params.species}" == "c_elegans" || "${params.species}" == "c_tropicalis") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_briggsae). Please enter a new vcf date or a new species to continue.
@@ -118,7 +118,7 @@ if(params.debug) {
             }
         }
         // check to make sure vcf matches species for elegans
-        if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+        if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20231213") {
             if("${params.species}" == "c_briggsae" || "${params.species}" == "c_tropicalis") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_elegans). Please enter a new vcf date or a new species to continue.
@@ -146,7 +146,7 @@ if(params.debug) {
         // check that vcf file exists, if it does, use it. If not, throw error
         if (!file("${params.vcf}").exists()) {
             println """
-            Error: VCF file (${params.vcf}) does not exist. Please provide a valid filepath or a valid CeNDR release date (i.e. 20210121)
+            Error: VCF file (${params.vcf}) does not exist. Please provide a valid filepath or a valid CeNDR release date (i.e. 20231213)
             """
             System.exit(1)
         } else {
@@ -163,11 +163,11 @@ if(params.debug) {
 
             //choose default cendr date based on species for ann_file
             if(params.species == "c_elegans") {
-                default_date = "20220216"
+                default_date = "20231213"
             } else if(params.species == "c_briggsae") {
-                default_date = "20210803"
+                default_date = "20240129"
             } else {
-                default_date = "20210901"
+                default_date = "20231201"
             }
 
             // this does not work for another species...
