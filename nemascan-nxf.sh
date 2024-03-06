@@ -5,7 +5,7 @@
 ###################################################################################################################
 
 DEFAULT_DATA_DIR="gs://nf-pipelines/NemaScan/input_data"
-DEFAULT_VCF_VERSION="20220216"
+DEFAULT_VCF_VERSION="20231213"
 DEFAULT_GOOGLE_PROJECT="andersen-lab"
 DEFAULT_GOOGLE_ZONE="us-central1-a"
 DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL="nscalc-201573431837@andersen-lab.iam.gserviceaccount.com"
