@@ -361,6 +361,23 @@ Reports
 
 # Simulation Output Folder Structure
 
+The primary output of the simulations are two `.tsv` files that contain the output from all `assess_sims_INBRED` and `assess_sims_LOCO` processes.
+
+These are agrregated by the NF function `collectFile()` which I found worked best when the files had no headers. Therefore the output files do not have column ids. The colum names for the output files are
+
+```{r}
+ [1] "QTL"                  "Simulated"            "Detected"            
+ [4] "CHROM"                "POS"                  "RefAllele"           
+ [7] "Frequency"            "Effect"               "Simulated.QTL.VarExp"
+[10] "log10p"               "aboveBF"              "startPOS"            
+[13] "peakPOS"              "endPOS"               "detected.peak"       
+[16] "interval.Frequency"   "BETA"                 "interval.log10p"     
+[19] "peak_id"              "interval_size"        "interval.var.exp"    
+[22] "top.hit"              "nQTL"                 "simREP"              
+[25] "h2"                   "maf"                  "effect_distribution" 
+[28] "strain_set_id"        "algorithm_id"        
+```
+
 ```
 Genotype_Matrix
   ├── [strain_set]_[MAF]_Genotype_Matrix.tsv
