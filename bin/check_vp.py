@@ -58,7 +58,7 @@ if __name__ == "__main__":
     print(vp)
     
     #If VP is less than 0.000001 then print message 
-    if float(vp) < 0.000001:
+    if float(vp) <= 0.000001:
         print("Vp is less than 0.000001")
         #update the phenos file by multiplying the 3rd colum by 1000
         increase_pheno_var(phenos_file)
