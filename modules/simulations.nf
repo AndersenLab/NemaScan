@@ -241,12 +241,12 @@ process simulate_map_phenotypes {
             --reml --out check_vp \\
             --thread-num 5
     
-    python ${check_vp} --check_vp check_vp.hsq --simulated_phenos ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen 
+    python ${check_vp} --check_vp check_vp.hsq --simulated_phenos ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen 
 
     if [[ -f "new_phenos.temp" ]]
     then
-        rm ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen
-        mv new_phenos.temp ${SIMREP}_${H2}_${MAF}_${SIMID}_${sp}_${strain_set}_sims.phen
+        rm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
+        mv new_phenos.temp ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
     fi
 
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
