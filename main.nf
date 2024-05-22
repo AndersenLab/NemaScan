@@ -608,7 +608,8 @@ workflow {
         }
 
         sim_phen_inputs
-            .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) | simulate_map_phenotypes
+            .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) 
+            .combine(Channel.fromPath("${params.bin_dir}/check_vp.py")) | simulate_map_phenotypes
 
         // simulation mappings
         simulate_map_phenotypes.out.gcta_intervals
