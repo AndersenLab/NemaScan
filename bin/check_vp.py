@@ -39,7 +39,7 @@ def increase_pheno_var(phenos_file):
         for line in f:
             line = line.strip().split(' ')
             pheno = float(line[2])
-            new_pheno = pheno * 1000
+            new_pheno = pheno * 10000
            # print(new_pheno)
             with open('new_phenos.temp', 'a') as f:
                 f.write(line[0] + ' ' + line[1] + ' ' + str(new_pheno) + '\n')

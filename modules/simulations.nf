@@ -192,7 +192,8 @@ process simulate_map_phenotypes {
     memory '20GB'
     time '10min'
     cpus 4
-    maxRetries 10
+    maxRetries 2
+    errorStrategy 'ignore'
 
 
     input:
@@ -356,7 +357,7 @@ process assess_sims_LOCO {
     cpus 1
     maxRetries 3
 
-    publishDir "${params.out}", mode: 'copy', pattern: "*_mapping.tsv"
+    publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), val(MAF), val(effect_range), path(var_effects), path(phenotypes), path(gm), path(mapping_processed), val(algorithm_id), path(R_assess_sims)
