@@ -12,6 +12,9 @@ process pull_vcf {
 
     tag {"PULLING VCF FROM CeNDR"}
 
+    executor "local"
+    container null
+
     output:
         path "*hard-filter.isotype.vcf.gz", emit: hard_vcf 
         path "*hard-filter.isotype.vcf.gz.tbi", emit: hard_vcf_index 
@@ -44,7 +47,7 @@ process pull_vcf {
 
 process update_annotations {
 
-    //executor 'local'
+    label "xs"
 
     publishDir "${save_dir}", mode: 'copy'
 
@@ -61,13 +64,13 @@ process update_annotations {
 }   
 
 /*
-==============================================================
-~ > *                                                    * < ~
-~ ~ > *                                                * < ~ ~
-~ ~ ~ > *  FIX STRAIN NAMES TO MATCH THOSE ON CENDR  * < ~ ~ ~
-~ ~ > *                                                * < ~ ~
-~ > *                                                    * < ~
-==============================================================
+===============================================================
+~ > *                                                     * < ~
+~ ~ > *                                                 * < ~ ~
+~ ~ ~ > *  FIX STRAIN NAMES TO MATCH THOSE ON CAENDR  * < ~ ~ ~
+~ ~ > *                                                 * < ~ ~
+~ > *                                                     * < ~
+===============================================================
 */
 
 /*
@@ -76,6 +79,8 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 
 process fix_strain_names_bulk {
+
+    label "xs"
 
     tag {"BULK TRAIT"}
 
@@ -137,9 +142,6 @@ process fix_strain_names_alt {
 
 process vcf_to_geno_matrix {
 
-    //executor 'local'
-
-    //machineType 'n1-standard-4'
     label "ml"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
@@ -209,8 +211,7 @@ process chrom_eigen_variants {
 
     tag { CHROM }
 
-    // machineType 'n1-highmem-2'
-    label "large"
+    label "ml"
 
     input:
         tuple val(CHROM), file(genotypes), file(get_genomatrix_eigen)
@@ -234,10 +235,8 @@ process chrom_eigen_variants {
 
 process collect_eigen_variants {
 
-    //executor 'local'
-    label "small"
-
-    // machineType 'n1-standard-1'
+    executor 'local'
+    container null
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 

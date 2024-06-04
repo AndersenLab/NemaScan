@@ -11,9 +11,10 @@
 
 process mediation_data {
  
-  // executor 'local'
     tag {TRAIT}
+
     label "mediation"
+    label "xs"
 
     input:
         tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), val(algorithm), file(t_file), \
@@ -30,9 +31,7 @@ process mediation_data {
 
 process multi_mediation {
 
-    cpus 1
-    memory '2 GB'
-    errorStrategy 'ignore'
+    label "xs"
     label "mediation"
 
     tag {"${TRAIT}_${tch}_${tpeak}"}
@@ -56,10 +55,10 @@ process multi_mediation {
 
 process simple_mediation {
  
-    cpus 1
-    memory '2 GB'
     tag {"${TRAIT}_${gene}"}
+
     label "mediation"
+    label 'xs'
 
     input:
         tuple val(TRAIT),val(tch),val(tpeak), val(algorithm), val(gene), val(tstart),val(tend), file(pheno), file(tr_eqtl), file(geno), file(expression), file(simple_mediation)
@@ -76,8 +75,7 @@ process simple_mediation {
 
 process summary_mediation {
 
-    cpus 2
-    memory '32 GB'
+    label "ml"
     label "mediation"
 
     publishDir "${params.out}/INBRED/Mediation", mode: 'copy', pattern: "*mediation_inbred.tsv"

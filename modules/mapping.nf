@@ -14,8 +14,7 @@
 
 process prepare_gcta_files {
 
-    // machineType 'n1-standard-4'
-    label "large"
+    label "ml"
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -56,8 +55,7 @@ process prepare_gcta_files {
 
 process gcta_grm {
 
-    // machineType 'n1-highmem-4'
-    label "xl"
+    label "lg"
 
     input:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log)
@@ -89,8 +87,7 @@ process gcta_grm {
 
 process gcta_lmm_exact_mapping {
 
-    // machineType 'n1-highmem-4'
-    label "xl"
+    label "lg"
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*pca.fastGWA", overwrite: true
     publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*pca.loco.mlma", overwrite: true
@@ -108,18 +105,18 @@ process gcta_lmm_exact_mapping {
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
            --out ${TRAIT}_lmm-exact \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -127,23 +124,23 @@ process gcta_lmm_exact_mapping {
            --out ${TRAIT}_lmm-exact_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
 
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
            --out ${TRAIT}_lmm-exact_inbred \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -151,14 +148,14 @@ process gcta_lmm_exact_mapping {
            --out ${TRAIT}_lmm-exact_inbred_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     """
 }
 
 process gcta_lmm_exact_mapping_nopca {
 
     // machineType 'n1-highmem-4'
-    label "xl"
+    label "lg"
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*loco.mlma", overwrite: true
@@ -176,18 +173,18 @@ process gcta_lmm_exact_mapping_nopca {
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
            --out ${TRAIT}_lmm-exact \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -195,23 +192,23 @@ process gcta_lmm_exact_mapping_nopca {
            --out ${TRAIT}_lmm-exact_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
 
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
            --out ${TRAIT}_lmm-exact_inbred \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -219,15 +216,14 @@ process gcta_lmm_exact_mapping_nopca {
            --out ${TRAIT}_lmm-exact_inbred_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     """
 }
 
 
 process gcta_intervals_maps {
 
-    // machineType 'n1-highmem-8'
-    label "highmem"
+    label "lg"
 
     publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*_inbred.tsv"
     publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*_loco.tsv" 

@@ -4,30 +4,44 @@
 
 GWA Mapping and Simulation with _C. elegans, C. tropicalis, and C. briggsae_
 
-# Pipeline overview
+## Pipeline overview
 
 ![](img/nemascan.drawio.svg)
 
 ## Software Requirements
 
-* This pipeline requires Nextflow version 20.0+. On QUEST, you can access this version by loading the `nf20_env` conda environment prior to running the pipeline command:
+* This pipeline requires Nextflow version 23.0+. On QUEST or Rockfish, you can access this version by loading the `nf23_env` conda environment prior to running the pipeline command:
+
+### QUEST
 
 ```
 module load python/anaconda3.6
 source activate /projects/b1059/software/conda_envs/nf20_env
 ```
-
 * Singularity. On QUEST, you can get this with `module load singularity` before running
 
 *Note: previous versions of pipeline used conda environments on QUEST installed at `/projects/b1059/software/conda_envs/` but this will no longer be maintained*
 
-* On QUEST, all software requirements are provided within the pipeline using conda environments or a docker image. To run the pipeline outside of QUEST, you can load the docker image containing all necessary software, see more in `profiles` below.
+* On QUEST, all software requirements are provided within the pipeline using singularity and docker images. To run the pipeline outside of QUEST, you can use docker to load the proper container images.
 
-# Usage
+### Rockfish
+
+```
+module load python/anaconda/2022.05
+source activate /data/eande106/software/conda_envs/nf23_env
+```
+
+* Singularity. There is no need to specifically load singulariry on Rockfish as this is handled by the cluster. The exception to this is if one or more of the docker images is not already in the image cache. In this case, you can open an interactive session with `interact -n1`, then load singularity with `module load singularity`. You can now run nextflow and images will be properly pulled
+
+* On Rockfish, all software requirements are provided within the pipeline using singularity and docker images. To run the pipeline outside of Rockfish, you can use docker to load the proper container images.
+
+## Usage
 
 For usage help running NemaScan on Google Cloud, check out instructions [here](GCP_readme.md)
 
-## Running the pipeline manually (with git clone)
+### Running the pipeline manually (with git clone)
+
+In order to run locally, you will need docker running to handle docker images for dependencies
 
 ```
 git clone https://github.com/AndersenLab/NemaScan.git
@@ -35,7 +49,8 @@ cd NemaScan
 nextflow run main.nf --debug
 ```
 
-## Running the pipeline remotely
+### Running the pipeline remotely
+
 For reproducible pipelines, it is recommended to run NemaScan **without cloning the repo**. In this manner, you can also choose which branch and/or commit you wish to run. 
 
 ```
@@ -44,7 +59,7 @@ nextflow run andersenlab/nemascan --debug
 
 *Note: if you are running into issues with this, you can either (1) check out the help page for nextflow [here](http://andersenlab.org/dry-guide/latest/quest-nextflow/) or (2) try running manually with git clone (above)*
 
-## Testing/debugging the mapping profile
+### Testing/debugging the mapping profile
 
 If you are trying to run a GWAS mapping with NemaScan, it might be a good idea to first run the debug test. This test takes only a few minutes and if it completes successfully, there is a good chance your real data run will also finish.
 
@@ -54,16 +69,108 @@ nextflow run andersenlab/nemascan --debug
 
 To display the help message, run `nextflow andersenlab/nemascan --help` 
 
+## Profiles
 
+### Rockfish
 
-# Profiles and Parameters
+The Rockfish profile is used to properly configure the pipeline for running on Rockfish's slurm queuing system on the Andersen allocation. This is compatible with all three modes of analysis (GWAS mapping, matrix creation, and simulation). This is the default profile and will be invoked if no profile is specified. Alternatively, you can explicitly use this by passing the argument `-profile rockfish`.
 
-## Mappings Profile
+### QUEST
 
-This is the standard profile for running NemaScan. Use this profile to perform a genome-wide analysis with your trait of interest. To be explicit, you can use `-profile mappings`, however if no profile is provided, the pipeline will default to this one.
+The QUEST profile is used to properly configure the pipeline for running on QUEST's slurm queuing system on the Andersen allocation. This is compatible with all three modes of analysis (GWAS mapping, matrix creation, and simulation). This profile can be used by passing the argument `-profile quest`.
+
+### Local
+
+The local profile is for running the pipeline without cluster resources. Instead all jobs are run on the host machine. Additionally, this profile uses docker to handle dependencies. To use this profile, pass the argument `-profile local`.
+
+## Analysis modes
+
+### Simulation (default)
+
+This mode uses simulations to establish GWA performance benchmarks. Users can specify the heritability of simulated traits, the number of QTL underlying simulated traits of interest, the strains the user intends to use in a prospective GWA mapping experiment, or the location of previously detected QTL. Understanding the null expectations of GWA mappings within given parameter spaces may provide experimenters with additional guidance before initiating an experiment, or serve as a validation tool for previous mappings.
 
 ```
-nextflow run andersenlab/nemascan -profile mappings --vcf 20220216 --traitfile input_data/c_elegans/phenotypes/PC1.tsv
+nextflow andersenlab/nemascan --vcf 20220216 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
+module load R/3.6.3
+Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
+```
+
+#### Parameters
+
+`--vcf`
+CaeNDR release date for the VCF file with variant data (i.e. "20231213") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
+
+The VCF used should contain numeric chromosome ids (not roman numerals as is convention). A VCF with the correct chromosome ID can be generated using the following `bcftools` command and the chromosome name key file `input_data/all_species/rename_chromosomes`
+
+On Quest:
+```{bash}
+
+#load quest version of bcftools 
+module load bcftools
+
+#rename chromosomes
+rename_file=input_data/all_species/rename_chromosomes
+vcf=path/to/vcf
+
+bcftools annotate -O z --rename-chrs ${rename_file} ${vcf} > rename.vcf.gz
+```
+
+`--simulate_nqtl` 
+A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header) (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
+
+`--simulate_reps`
+The number of replicates to simulate per number of QTL and heritability (Default: 2).
+
+`--simulate_h2`
+A CSV file with phenotype heritability. (format: one value per line, no column header) (Default is located: `input_data/all_species/simulate_h2.csv`).
+
+`--simulate_eff`
+A CSV file specifying a range of causal QTL effects. QTL effects will be drawn from a uniform distribution bound by these two values. If the user wants to specify _Gamma_ distributed effects, the value in this file can be simply specified as "gamma". (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_effect_sizes.csv).
+
+`--simulate_strains`
+A TSV file specifying the population in which to simulate GWA mappings. Multiple populations can be simulated at once, but causal QTL will be drawn independently for each population as a result of minor allele frequency and LD pruning prior to mapping. (format: one line per population; supplied population name and a comma-separated list of each strain in the population) (Default is located: input_data/all_species/simulate_strains.tsv).
+
+#### Optional Simulation Parameters
+
+* `--simulate_maf` - A single column CSV file that defines the minor allele frequency threshold used to filter the VCF prior to simulations (Default: 0.05).
+
+* `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_locations.bed).
+
+* `--group_qtl` - QTL within this distance of each other (bp) will be grouped as a single QTL by `Find_GCTA_Intervals_*.R`. (Default: 1000)
+
+* `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
+
+#### Assess_Simulated_Mappings.R
+After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. For each simulation run, the NemaScan simulations workflow will generate an output file for each simulation in the `${out.dir}/scored_sims` directory. To summarize these files, run the following command:
+
+```
+module load R/4.1.1
+Rscript `bin/Aggregate_Simulations.R` ${out.dir}/scored_sims
+```
+
+generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
+
+```
+[1] "MAPPING DF NAMEs"
+ [1] "QTL"                  "Simulated"            "Detected"            
+ [4] "CHROM"                "POS"                  "RefAllele"           
+ [7] "Frequency"            "Effect"               "Simulated.QTL.VarExp"
+[10] "log10p"               "aboveBF"              "startPOS"            
+[13] "peakPOS"              "endPOS"               "detected.peak"       
+[16] "interval.Frequency"   "BETA"                 "interval.log10p"     
+[19] "peak_id"              "interval_size"        "interval.var.exp"    
+[22] "top.hit"              "nQTL"                 "simREP"              
+[25] "h2"                   "maf"                  "effect_distribution" 
+[28] "strain_set_id"        "algorithm_id"        
+```
+
+
+## GWAS Mappings
+
+Use this analysis mode to perform a genome-wide analysis with your trait of interest. You can invoke this mode using the argment `--mapping`. This is mutually exclusive with simulation mode and will disable running simulations if used.
+
+```
+nextflow run andersenlab/nemascan --mappings --vcf 20220216 --traitfile input_data/c_elegans/phenotypes/PC1.tsv
 ```
 
 *NOTE: you can also run specific branches or previous git commits easily. This can be especially useful to ensure that the version of NemaScan that you use doesn't change as you prepare your manuscript even if the code is updated.*
@@ -77,15 +184,13 @@ nextflow run andersenlab/nemascan --vcf 20220216 --traitfile input_data/c_elegan
 
 ```
 
-### --vcf
-
+`--vcf`
 CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
 
 #### Notes on VCF
 *If you want to use a custom VCF, you may provide the full path to the vcf in place of the CeNDR release date. This custom VCF will be used for BOTH GWA mapping and fine-mapping steps (instead of the imputed vcf).*
 
-### --traitfile
-
+`--traitfile`
 A tab-delimited formatted (.tsv) file that contains trait information.  Each phenotype file should be in the following format (replace trait_name with the phenotype of interest):
 
 | strain | trait_name_1 | trait_name_2 |
@@ -118,20 +223,18 @@ A tab-delimited formatted (.tsv) file that contains trait information.  Each phe
 * `--fix` - Defaults to *true*, can change to *false* to skip the outlier removal step for phenotypes and isotype name fixes.
 
 
-## Genomatrix Profile
+### Genomatrix Profile
 
-This profile takes a list of strains and outputs the genotype matrix but does not perform any other analysis for the genome-wide association. 
+This mode takes a list of strains and outputs the genotype matrix. It can be invoked using `--matrix` and is mutually exclusive with the simulation mode.
 
 ```
-nextflow run andersenlab/nemascan -profile genomatrix --vcf 20220216 --strains input_data/c_elegans/phenotypes/strain_file.tsv
+nextflow run andersenlab/nemascan -profile genomatrix --vcf 20231213 --strains input_data/c_elegans/phenotypes/strain_file.tsv
 ```
 
-### --vcf
+`--vcf`
+CeNDR release date for the VCF file with variant data (i.e. "20231213") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CaeNDR](https://elegansvariation.org/data/release/latest).
 
-CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
-
-### --strains
-
+`--strains`
 A file (.tsv) that contains a list of strains used for generating the genotype matrix. There is no header:
 
 ```
@@ -140,87 +243,7 @@ ECA640
 ...
 ECA250
 ```
-
-## Simulations Profile
-
-This profile uses simulations to establish GWA performance benchmarks. Users can specify the heritability of simulated traits, the number of QTL underlying simulated traits of interest, the strains the user intends to use in a prospective GWA mapping experiment, or the location of previously detected QTL. Understanding the null expectations of GWA mappings within given parameter spaces may provide experimenters with additional guidance before initiating an experiment, or serve as a validation tool for previous mappings.
-
-```
-nextflow andersenlab/nemascan -profile simulations --vcf 20220216 --simulate_nqtl input_data/all_species/simulate_nqtl.csv --simulate_reps 2 --simulate_h2 input_data/all_species/simulate_h2.csv --simulate_eff input_data/all_species/simulate_effect_sizes.csv --simulate_strains input_data/all_species/simulate_strains.tsv --out example_simulation_output
-module load R/3.6.3
-Rscript bin/Assess_Simulated_Mappings.R example_simulation_output
-```
-
-### --vcf
-
-CeNDR release date for the VCF file with variant data (i.e. "20220216") Hard-filter VCF will be used for the GWA mapping and imputed VCF will be used for fine mapping. If this flag is not used, the most recent VCF for the _C. elegans_ species will be downloaded from [CeNDR](https://elegansvariation.org/data/release/latest).
-
-The VCF used should contain numeric chromosome ids (not roman numerals as is convention). A VCF with the correct chromosome ID can be generated using the following `bcftools` command and the chromosome name key file `input_data/all_species/rename_chromosomes`
-
-On Quest:
-```{bash}
-
-#load quest version of bcftools 
-module load bcftools
-
-#rename chromosomes
-rename_file=input_data/all_species/rename_chromosomes
-vcf=path/to/vcf
-
-bcftools annotate -O z --rename-chrs ${rename_file} ${vcf} > rename.vcf.gz
-```
-
-
-
-### --simulate_nqtl 
-A single column CSV file that defines the number of QTL to simulate (format: one number per line, no column header) (Default is provided: `input_data/all_species/simulate_nqtl.csv`).
-
-### --simulate_reps
-The number of replicates to simulate per number of QTL and heritability (Default: 2).
-
-### --simulate_h2 
-A CSV file with phenotype heritability. (format: one value per line, no column header) (Default is located: `input_data/all_species/simulate_h2.csv`).
-
-### --simulate_eff
-A CSV file specifying a range of causal QTL effects. QTL effects will be drawn from a uniform distribution bound by these two values. If the user wants to specify _Gamma_ distributed effects, the value in this file can be simply specified as "gamma". (format: one value per line, no column header) (Default is located: input_data/all_species/simulate_effect_sizes.csv).
-
-### --simulate_strains
-A TSV file specifying the population in which to simulate GWA mappings. Multiple populations can be simulated at once, but causal QTL will be drawn independently for each population as a result of minor allele frequency and LD pruning prior to mapping. (format: one line per population; supplied population name and a comma-separated list of each strain in the population) (Default is located: input_data/all_species/simulate_strains.tsv).
-
-#### Optional Simulation Parameters
-
-* `--simulate_maf` - A single column CSV file that defines the minor allele frequency threshold used to filter the VCF prior to simulations (Default: 0.05).
-
-* `--simulate_qtlloc` - A .bed file specifying genomic regions from which causal QTL are to be drawn after MAF filtering and LD pruning. (format: CHROM START END for each genomic region, with no header. NOTE: CHROM is specified as NUMERIC, not roman numerals as is convention in _C. elegans_)(Default is located: input_data/all_species/simulate_locations.bed).
-
-* `--group_qtl` - QTL within this distance of each other (bp) will be grouped as a single QTL by `Find_GCTA_Intervals_*.R`. (Default: 1000)
-
-* `--ci_size` - The number of markers for which the detection interval will be extended past the last significant marker in the interval. (Default: 150)
-
-### Assess_Simulated_Mappings.R
-After running simulations we want to summarize the mapping results. The final process of the script `asses_simulations` runs an Rscript that records if the detected QTL were actually simulated and also generates information about the amount of phenotypic variance attributable to the casual variants. For each simulation run, the NemaScan simulations workflow will generate an output file for each simulation in the `${out.dir}/scored_sims` directory. To summarize these files, run the following command:
-
-```
-module load R/4.1.1
-Rscript `bin/Aggregate_Simulations.R` ${out.dir}/scored_sims
-```
-
-generate an output file for each mapping these files are then aggregated into a single file named `all_sims_assessed.tsv` in the output directory. This file has no column names but they are listed in order below. 
-
-```
-[1] "MAPPING DF NAMEs"
- [1] "QTL"                  "Simulated"            "Detected"            
- [4] "CHROM"                "POS"                  "RefAllele"           
- [7] "Frequency"            "Effect"               "Simulated.QTL.VarExp"
-[10] "log10p"               "aboveBF"              "startPOS"            
-[13] "peakPOS"              "endPOS"               "detected.peak"       
-[16] "interval.Frequency"   "BETA"                 "interval.log10p"     
-[19] "peak_id"              "interval_size"        "interval.var.exp"    
-[22] "top.hit"              "nQTL"                 "simREP"              
-[25] "h2"                   "maf"                  "effect_distribution" 
-[28] "strain_set_id"        "algorithm_id"        
-```
-
+<!-- 
 ## Annotations Profile (in development)
 
 `nextflow andersenlab/nemascan --vcf 20220216 -profile annotations --species briggsae --wb_build WS270`
@@ -247,15 +270,15 @@ nextflow run andersenlab/nemascan --traitfile <file> --vcf 20220216 -profile loc
 
 ```
 
-## GCP Profile
+### GCP Profile
 
 This profile is used to run GWA mappings on CeNDR using the GCP platform. Check out more on how to develop, test, and run nextflow on GCP [here](http://andersenlab.org/dry-guide/latest/pipeline-GCPconfig/).
 
 ```
 nextflow run andersenlab/nemascan --traitfile <file> --vcf 20220216 -profile gcp
-```
+``` -->
 
-# Input Data Folder Structure (`NemaScan/input_data`)
+## Input Data Folder Structure (`NemaScan/input_data`)
 
 ```
 all_species
@@ -286,7 +309,7 @@ c_elegans (repeated for c_tropicalis and c_briggsae)
       ├── strain_isotype_lookup.tsv
 ```
 
-# Mapping Output Folder Structure
+## Mapping Output Folder Structure
 
 ```
 Phenotypes
@@ -366,7 +389,7 @@ Reports
 * `traitname_qtlinterval_gene_plot.pdf` - variant annotation plot overlaid with gene CDS for QTL interval
 
 
-# Simulation Output Folder Structure
+## Simulation Output Folder Structure
 
 The primary output of the simulations are two `.tsv` files that contain the output from all `assess_sims_INBRED` and `assess_sims_LOCO` processes.
 
@@ -427,7 +450,7 @@ Simulations
 * `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.par` - Simulated QTL effects for each simulation regime. NOTE: Simulation regimes with identical numbers of simulated QTL, replicate indices, and simulated heritabilities should have _identical_ simulated QTL and effects.
 
 
-# Relevant Docker Images
+## Relevant Docker Images
 
 * `andersenlab/nemascan` ([link](https://hub.docker.com/r/andersenlab/nemascan)): Docker image is created within this pipeline using GitHub actions. Whenever a change is made to `env/nemascan.Dockerfile`, `env/conda.yml`, or `.github/workflows/build_docker.yml` GitHub actions will create a new docker image and push if successful
 * `andersenlab/mediation` ([link](https://hub.docker.com/r/andersenlab/mediation)): Docker image is created within this pipeline using GitHub actions. Whenever a change is made to `env/mediation.Dockerfile`, `env/med_conda.yml` or `.github/workflows/build_med_docker.yml` GitHub actions will create a new docker image and push if successful

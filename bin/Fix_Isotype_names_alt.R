@@ -32,9 +32,9 @@ resolve_isotypes <- function(...) {
             unique()
         
         if (length(isotype) == 0) {
-            message(glue::glue("WARNING: {x} is not a known strain. Isotype set to NA; Please check CeNDR"))
+            message(glue::glue("WARNING: {x} is not a known strain. Isotype set to NA; Please check CaeNDR"))
         } else if (length(isotype) > 1) {
-            message(glue::glue("WARNING: {x} resolves to multiple isotypes. Isotype set to NA; Please check CeNDR"))
+            message(glue::glue("WARNING: {x} resolves to multiple isotypes. Isotype set to NA; Please check CaeNDR"))
         }
         if (length(isotype) != 1) {
             isotype <- NA

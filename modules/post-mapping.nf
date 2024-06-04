@@ -1,5 +1,7 @@
 process summarize_mapping {
 
+    label "xs"
+
     publishDir "${params.out}/INBRED/Plots", mode: 'copy', pattern: "*_inbred.png"
     publishDir "${params.out}/LOCO/Plots", mode: 'copy', pattern: "*_loco.png"
 
@@ -17,6 +19,8 @@ process summarize_mapping {
 
 
 process generate_plots {
+
+    label "xs"
 
     publishDir "${params.out}/INBRED/Plots/LDPlots", mode: 'copy', pattern: "*_LD_inbred.plot.png"
     publishDir "${params.out}/INBRED/Plots/EffectPlots", mode: 'copy', pattern: "*_effect_inbred.plot.png"
@@ -43,19 +47,21 @@ process generate_plots {
 
 process LD_between_regions {
 
-  publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_inbred.tsv"
-  publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_loco.tsv"
+    label 'xs'
 
-  input:
+    publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_inbred.tsv"
+    publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*LD_between_QTL_regions_loco.tsv"
+
+    input:
         tuple file(geno), file(pheno), val(TRAIT), file(tests), file(aggregate_mapping_inbred), file(aggregate_mapping_loco), file(ld_between_regions)
 
-  output:
+    output:
         tuple val(TRAIT), path("*LD_between_QTL_regions_inbred.tsv"),  path("*LD_between_QTL_regions_loco.tsv") optional true
 
-  """
+    """
     Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_inbred} ${TRAIT} inbred 
     Rscript --vanilla ${ld_between_regions} ${geno} ${aggregate_mapping_loco} ${TRAIT} loco
-  """
+    """
 }
 
 
@@ -75,8 +81,7 @@ process LD_between_regions {
 
 process prep_ld_files {
 
-    // machineType 'n1-standard-4'
-    label 'med'
+    label 'md'
 
     tag {TRAIT}
 
@@ -117,7 +122,7 @@ process prep_ld_files {
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
+        bcftools filter -i N_MISSING=0 -Oz --threads ${task.cpus} |\\
         bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
       else
         cat ${phenotype} | awk '\$0 !~ "strain" {print}' | cut -f1 > phenotyped_samples.txt
@@ -129,11 +134,11 @@ process prep_ld_files {
         awk '\$0 !~ "#" {print \$1":"\$2}' > \$trait.\$chromosome.\$start_pos.\$end_pos.txt
         bcftools view --regions \$chromosome:\$start_pos-\$end_pos ${imputed_vcf} \
         -S phenotyped_samples.txt |\\
-        bcftools filter -i N_MISSING=0 -Oz --threads 5 |\\
+        bcftools filter -i N_MISSING=0 -Oz --threads ${task.cpus} |\\
         bcftools annotate --rename-chrs ${num_chroms} -o finemap.vcf.gz
       fi
         plink --vcf finemap.vcf.gz \\
-            --threads 5 \\
+            --threads ${task.cpus} \\
             --snps-only \\
             --maf ${params.maf} \\
             --biallelic-only \\
@@ -147,7 +152,7 @@ process prep_ld_files {
         nsnps=`wc -l \$trait.\$chromosome.\$start_pos.\$end_pos.txt | cut -f1 -d' '`
         chrom_num=`cat ${num_chroms} | grep -w \$chromosome | cut -f2 -d' '`
         plink --r2 with-freqs \\
-            --threads 5 \\
+            --threads ${task.cpus} \\
             --allow-extra-chr \\
             --snps-only \\
             --ld-window-r2 0 \\
@@ -179,8 +184,8 @@ process prep_ld_files {
 
 
 process gcta_fine_maps {
-    // machineType 'n2-highmem-8'
-    label "highmem"
+
+    label "lg"
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*inbred.fastGWA"
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes_inbred.tsv"
@@ -203,36 +208,36 @@ process gcta_fine_maps {
     """
     tail -n +2 ${pheno} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_finemap_traits.tsv
     for i in *ROI_Genotype_Matrix_${algorithm}.tsv;
-      do
-      chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
-      start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
-      stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
-      gcta64 --bfile ${TRAIT} \\
-              --autosome \\
-              --maf ${params.maf} \\
-              --make-grm-inbred \\
-              --out ${TRAIT}.FM_grm_inbred.${algorithm} \\
-              --thread-num 9
-      gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
-              --make-bK-sparse ${params.sparse_cut} \\
-              --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
-              --thread-num 9
-      gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
-              --pca 1 \\
-              --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
-              --thread-num 9
-      gcta64 --fastGWA-lmm-exact \\
-              --grm-sparse ${TRAIT}.sparse_FM_grm_inbred.${algorithm} \\
-              --bfile ${TRAIT}.\$chr.\$start.\$stop \\
-              --qcovar ${TRAIT}.sparse_FM_grm_inbred.${algorithm}.eigenvec \\
-              --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm} \\
-              --pheno plink_finemap_traits.tsv \\
-              --maf ${params.maf} \\
-              --thread-num 9
-      
-      Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
-      
-      Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
+        do
+        chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
+        start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
+        stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
+        gcta64 --bfile ${TRAIT} \\
+                --autosome \\
+                --maf ${params.maf} \\
+                --make-grm-inbred \\
+                --out ${TRAIT}.FM_grm_inbred.${algorithm} \\
+                --thread-num ${task.cpus}
+        gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
+                --make-bK-sparse ${params.sparse_cut} \\
+                --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
+                --thread-num ${task.cpus}
+        gcta64 --grm ${TRAIT}.FM_grm_inbred.${algorithm} \\
+                --pca 1 \\
+                --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
+                --thread-num ${task.cpus}
+        gcta64 --fastGWA-lmm-exact \\
+                --grm-sparse ${TRAIT}.sparse_FM_grm_inbred.${algorithm} \\
+                --bfile ${TRAIT}.\$chr.\$start.\$stop \\
+                --qcovar ${TRAIT}.sparse_FM_grm_inbred.${algorithm}.eigenvec \\
+                --out ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm} \\
+                --pheno plink_finemap_traits.tsv \\
+                --maf ${params.maf} \\
+                --thread-num ${task.cpus}
+        
+        Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
+        
+        Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
     done
     """
 }
@@ -245,52 +250,52 @@ process gcta_fine_maps {
 
 process divergent_and_haplotype {
 
-  publishDir "${params.out}/INBRED/Divergent_and_haplotype", mode: 'copy', pattern: '*_inbred*'
-  publishDir "${params.out}/LOCO/Divergent_and_haplotype", mode: 'copy', pattern: '*loco*'
+    label "xs"
 
-  input:
-    tuple file("QTL_peaks.tsv"), val(algorithm), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
+    publishDir "${params.out}/INBRED/Divergent_and_haplotype", mode: 'copy', pattern: '*_inbred*'
+    publishDir "${params.out}/LOCO/Divergent_and_haplotype", mode: 'copy', pattern: '*loco*'
 
-  output:
-    tuple file("all_QTL_bins_inbred.bed"), file("all_QTL_div_inbred.bed"), file("haplotype_in_QTL_region_inbred.txt"), file("div_isotype_list2_inbred.txt"), emit: div_hap_table_inbred, optional: true 
-    tuple file("all_QTL_bins_loco.bed"), val(algorithm), file("all_QTL_div_loco.bed"), file("haplotype_in_QTL_region_loco.txt"), file("div_isotype_list2_loco.txt"), emit: div_hap_table_loco, optional: true 
+    input:
+        tuple file("QTL_peaks.tsv"), val(algorithm), file("divergent_bins"), file(divergent_df_isotype), file(haplotype_df_isotype), file(div_isotype_list)
 
-  """
-  awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$5,\$7}' > QTL_region_${algorithm}.bed
-  bedtools intersect -wa -a ${divergent_bins} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins_${algorithm}.bed
-  bedtools intersect -a ${divergent_df_isotype} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div_${algorithm}.bed
-  bedtools intersect -a ${haplotype_df_isotype} -b QTL_region_${algorithm}.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region_${algorithm}.txt
-  cp ${div_isotype_list} ./div_isotype_list2_${algorithm}.txt
-  """
+    output:
+        tuple file("all_QTL_bins_inbred.bed"), file("all_QTL_div_inbred.bed"), file("haplotype_in_QTL_region_inbred.txt"), file("div_isotype_list2_inbred.txt"), emit: div_hap_table_inbred, optional: true 
+        tuple file("all_QTL_bins_loco.bed"), val(algorithm), file("all_QTL_div_loco.bed"), file("haplotype_in_QTL_region_loco.txt"), file("div_isotype_list2_loco.txt"), emit: div_hap_table_loco, optional: true 
+
+    """
+    awk NR\\>1 QTL_peaks.tsv | awk -v OFS='\t' '{print \$1,\$5,\$7}' > QTL_region_${algorithm}.bed
+    bedtools intersect -wa -a ${divergent_bins} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_bins_${algorithm}.bed
+    bedtools intersect -a ${divergent_df_isotype} -b QTL_region_${algorithm}.bed | sort -k1,1 -k2,2n | uniq > all_QTL_div_${algorithm}.bed
+    bedtools intersect -a ${haplotype_df_isotype} -b QTL_region_${algorithm}.bed -wo | sort -k1,1 -k2,2n | uniq > haplotype_in_QTL_region_${algorithm}.txt
+    cp ${div_isotype_list} ./div_isotype_list2_${algorithm}.txt
+    """
 
 }
 
 // generate trait-specific html reports
 process html_report_main {
 
-  //executor 'local'
-  tag {"${TRAIT} - HTML REPORT" }
+    tag {"${TRAIT} - HTML REPORT" }
 
-  // machineType 'n1-highmem-2'
-  label "highmem"
+    label "lg"
 
-  publishDir "${params.out}/Reports/scripts/", pattern: "*.Rmd", overwrite: true, mode: 'copy'
-  publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
+    publishDir "${params.out}/Reports/scripts/", pattern: "*.Rmd", overwrite: true, mode: 'copy'
+    publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
 
-  input:
-  // there is no way this will work for every trait... UGH
-    tuple val(TRAIT), file(qtl_peaks_inbred), file(qtl_peaks_loco), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
-    file(ns_report_template_md), file(render_markdown), file(ns_report_alg), val(mediate), val(species), file(qtl_bins_inbred), file(qtl_div_inbred), \
-    file(haplotype_qtl_inbred), file(div_isotype_inbred), file(qtl_bins_loco), val(algorithm), file(qtl_div_loco),file(haplotype_qtl_loco), file(div_isotype_loco),  \
-    file(pmap_inbred), file(pmap_loco), file(fastGWA_inbred), file(prLD_inbred), file(bcsq_genes_inbred), file(fastGWA_loco), file(prLD_loco), file(bcsq_genes_loco), \
-    file(roi_geno_inbred), file(roi_ld_inbred), file(roi_geno_loco), file(roi_ld_loco),\
-    file(mediation_summary_inbred), file(mediation_summary_loco)
+    input:
+        // there is no way this will work for every trait... UGH
+        tuple val(TRAIT), file(qtl_peaks_inbred), file(qtl_peaks_loco), file(pheno), file(strain_issues), file(tests), file(geno), file(ns_report_md), \
+        file(ns_report_template_md), file(render_markdown), file(ns_report_alg), val(mediate), val(species), file(qtl_bins_inbred), file(qtl_div_inbred), \
+        file(haplotype_qtl_inbred), file(div_isotype_inbred), file(qtl_bins_loco), val(algorithm), file(qtl_div_loco),file(haplotype_qtl_loco), file(div_isotype_loco),  \
+        file(pmap_inbred), file(pmap_loco), file(fastGWA_inbred), file(prLD_inbred), file(bcsq_genes_inbred), file(fastGWA_loco), file(prLD_loco), file(bcsq_genes_loco), \
+        file(roi_geno_inbred), file(roi_ld_inbred), file(roi_geno_loco), file(roi_ld_loco),\
+        file(mediation_summary_inbred), file(mediation_summary_loco)
 
-  output:
-    tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
+    output:
+        tuple file("NemaScan_Report_*.Rmd"), file("NemaScan_Report_*.html")
 
 
-  """
+    """
     # edit the file paths for generating these reports
     cat ${ns_report_md} | \\
     sed "s+TRAIT_NAME_HOLDER+${TRAIT}+g" | \\
@@ -320,14 +325,14 @@ process html_report_main {
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_inbred}"+g' | \\
     sed 's+../../{alg}/Mediation/++g' | \\
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_inbred}"+g' > NemaScan_Report_region_INBRED_${TRAIT}.Rmd
-    
+
     cat "${ns_report_template_md}" | \\
     sed 's+../../{alg}/Fine_Mappings/Data/++g' | \\
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_bins_{stringr::str_to_lower(alg)}.bed")+"${qtl_bins_loco}"+g' | \\
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/all_QTL_div_{stringr::str_to_lower(alg)}.bed")+"${qtl_div_loco}"+g' | \\
     sed 's+../../{alg}/Mediation/++g' | \\
     sed 's+glue::glue("../../{alg}/Divergent_and_haplotype/haplotype_in_QTL_region_{stringr::str_to_lower(alg)}.txt")+"${haplotype_qtl_loco}"+g' > NemaScan_Report_region_LOCO_${TRAIT}.Rmd
-    
+
     Rscript --vanilla ${render_markdown} NemaScan_Report_${TRAIT}_main.Rmd
-  """
+    """
 }

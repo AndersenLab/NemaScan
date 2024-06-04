@@ -10,12 +10,9 @@
 
 
 process prepare_simulation_files {
-    container 'mckeowr1/prep_sims:1.1'
-
-    cpus 4
-    time '3h'
-    memory '30GB'
-    maxRetries 5
+    
+    label "prep_sims"
+    label "ml"
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -82,9 +79,7 @@ process chrom_eigen_variants_sims {
 
     tag { CHROM }
 
-    cpus 2
-    memory '20GB'
-    time '30min'
+    label "ml"
 
     input:
         tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file(get_genomatrix_eigen)
@@ -109,14 +104,11 @@ process chrom_eigen_variants_sims {
 
 process collect_eigen_variants_sims {
 
-    //executor 'local'
+    executor 'local'
+    container null
+    label "md"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
-
-    cpus 1
-    memory '20GB'
-    time '30min'
-
 
     input:
         tuple val(strain_set), val(strains), val(MAF), file(tests), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno)
@@ -138,7 +130,7 @@ process simulate_effects_loc {
 
     tag {NQTL}
 
-    cpus 4
+    label "md"
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -157,10 +149,7 @@ process simulate_effects_genome {
 
     tag {NQTL}
     
-    executor 'local'
-    cpus 1
-    memory '2GB'
-    time '30min'
+    label "xs"
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -180,21 +169,12 @@ process simulate_map_phenotypes {
 
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-    container = 'andersenlab/nemascan:20220407173056db3227'
-
+    label "md"
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.phen", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Phenotypes", pattern: "*.par", overwrite: true
-
-    executor 'local'
-    memory '20GB'
-    time '10min'
-    cpus 4
-    maxRetries 2
-    errorStrategy 'ignore'
-
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file(loci), val(H2), file(check_vp)
@@ -216,7 +196,7 @@ process simulate_map_phenotypes {
          --simu-causal-loci ${loci} \\
          --simu-hsq ${H2} \\
          --simu-rep 1 \\
-         --thread-num 5 \\
+         --thread-num ${task.cpus} \\
          --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims
     plink --bfile TO_SIMS \\
         --make-bed \\
@@ -232,15 +212,15 @@ process simulate_map_phenotypes {
     gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
             --autosome --maf ${MAF} --make-grm \\
             --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
-            --thread-num 5
+            --thread-num ${task.cpus}
     gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
             --autosome --maf ${MAF} --make-grm-inbred \\
             --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
-            --thread-num 5
+            --thread-num ${task.cpus}
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
             --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
             --reml --out check_vp \\
-            --thread-num 5
+            --thread-num ${task.cpus}
     
     python ${check_vp} --check_vp check_vp.hsq --simulated_phenos ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen 
 
@@ -253,18 +233,18 @@ process simulate_map_phenotypes {
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
            --pca 1 \\
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact \\
            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
            --maf ${MAF} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
@@ -272,23 +252,23 @@ process simulate_map_phenotypes {
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_pca \\
            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
            --maf ${MAF} \\
-           --thread-num 5
+           --thread-num ${task.cpus}
 
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
           --make-bK-sparse ${params.sparse_cut} \\
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
-          --thread-num 5
+          --thread-num ${task.cpus}
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
           --pca 1 \\
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
-          --thread-num 5
+          --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
           --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred \\
           --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
           --maf ${MAF} \\
-          --thread-num 5
+          --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
           --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --qcovar ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred.eigenvec \\
@@ -296,7 +276,7 @@ process simulate_map_phenotypes {
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred_pca \\
           --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
           --maf ${MAF} \\
-          --thread-num 5
+          --thread-num ${task.cpus}
     """
 }
 
@@ -309,10 +289,7 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '50GB'
-    time '20min'
-    cpus 1
-    errorStrategy 'ignore'
+    label 'ml'
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
@@ -331,8 +308,8 @@ process get_gcta_intervals {
 
 process assess_sims_INBRED {
 
-    container 'mckeowr1/asess_sims:1.1'
-    executor = 'local'
+    label 'assess_sims'
+    label 'sm'
     
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
@@ -349,13 +326,8 @@ process assess_sims_INBRED {
 }
 process assess_sims_LOCO {
 
-    container 'mckeowr1/asess_sims:1.1'
- 
-    executor 'local'   
-    memory '20GB'
-    time '20min'
-    cpus 1
-    maxRetries 3
+    label 'assess_sims'
+    label 'md'
 
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     

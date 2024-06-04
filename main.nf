@@ -57,6 +57,7 @@ if(params.debug) {
 
     // for genomatrix profile
     params.strains = "${params.data_dir}/${params.species}/phenotypes/strain_file.tsv"
+    download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
     // vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
@@ -76,6 +77,7 @@ if(params.debug) {
     ann_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv")
 
     params.strains = "input_data/${params.species}/phenotypes/strain_file.tsv"
+    download_vcf = false
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from caendr.
     params.vcf = "20231213"
@@ -83,7 +85,6 @@ if(params.debug) {
     vcf_index = "20231213 - CaeNDR"
     impute_file = "20231213 - CaeNDR"
     download_vcf = true
-    
 } else {
     // Check that params.vcf is valid
     if("${params.vcf}" == "20231213" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
@@ -165,6 +166,11 @@ if(params.debug) {
     }
 }
 
+if (params.matrix || params.mapping){
+    simulation = false
+} else {
+    simulation = true
+}
 
 
 if (params.help) {
@@ -185,34 +191,28 @@ O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O
     log.info "nextflow main.nf --traitfile input_data/${params.species}/phenotypes/PC1.tsv --vcf 20231213"
     log.info ""
     log.info "Profiles available:"
-    log.info "standard              Profile                Perform simulation analysis on Rockfish"
+    log.info "standard              Profile                Perform selected analysis on Rockfish (default simulation)"
     log.info "rockfish              Profile                Perform selected analysis on Rockfish (default simulation)"
     log.info "quest                 Profile                Perform selected analysis on QUEST (default simulation)"
     log.info "gcp                   Profile                Perform selected analysis on GCP (default GWA mappings)"
     log.info "local                 Profile                Perform selected analysis using docker on local machine"
-    log.info "mapping               Profile                Perform GWA mappings"
-    log.info "matrix                Profile                Generate geno matrix from VCF file"
     log.info "----------------------------------------------------------------"
-    log.info "             -profile mappings USAGE"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20231213 --traitfile input_data/${params.species}/phenotypes/PC1.tsv -profile mappings"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "Mandatory arguments:"
-    log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
-    log.info "--vcf                    String                Generally a CaeNDR release date (i.e. 20231213). Can also provide a user-specified VCF with index in same folder."
-    log.info "Optional arguments:"
-    log.info "--MAF, --maf             String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
-    log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
-    log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
-    log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
-    log.info "----------------------------------------------------------------"
-    log.info "             -profile simulations USAGE"
+    log.info "Optional arguments (General):"
+    log.info "--out                    String                Name of folder that will contain the results"
+    log.info "Optional arguments (Marker):"
+    log.info "--sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
+    log.info "--group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
+    log.info "--ci_size                Integer               Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)"
+    log.info ""    
+    log.info "Information describing the stucture of the input files can be located in input_files/README.txt"
+    log.info ""
+    log.info "Flags:"
+    log.info "--help                                      Display this message"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20210121 -profile simulations"
+    log.info "             for simulation (default)"
     log.info "----------------------------------------------------------------"
+    log.info "nextflow main.nf --vcf 20231213"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--simulate_nqtl          File.                 A CSV file with the number of QTL to simulate per phenotype, one value per line (Default is located: input_data/all_species/simulate_nqtl.csv)"
@@ -225,21 +225,24 @@ O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O
     log.info "--simulate_qtlloc        File                  A BED file with three columns: chromosome name (numeric 1-6), start postion, end postion. The genomic range specified is where markers will be pulled from to simulate QTL (Default: null [which defaults to using the whole genome to randomly simulate a QTL])"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "Optional arguments (General):"
-    log.info "--out                    String                Name of folder that will contain the results"
-    log.info "Optional arguments (Marker):"
-    log.info "--sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
-    log.info "--group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
-    log.info "--ci_size                Integer               Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)"
-    log.info ""
-    log.info "--------------------------------------------------------"
-    log.info "Information describing the stucture of the input files can be located in input_files/README.txt"
-    log.info ""
-    log.info ""
-    log.info "Flags:"
-    log.info "--help                                      Display this message"
-    log.info ""
-    log.info "--------------------------------------------------------"
+    log.info "             for GWAS mappings (--mapping)"
+    log.info "----------------------------------------------------------------"
+    log.info "nextflow main.nf --vcf 20231213 --traitfile input_data/${params.species}/phenotypes/PC1.tsv --mapping"
+    log.info "----------------------------------------------------------------"
+    log.info "Mandatory arguments:"
+    log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
+    log.info "--vcf                    String                Generally a CaeNDR release date (i.e. 20231213). Can also provide a user-specified VCF with index in same folder."
+    log.info "Optional arguments:"
+    log.info "--MAF, --maf             String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
+    log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
+    log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
+    log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
+    log.info "----------------------------------------------------------------"
+    log.info "----------------------------------------------------------------"
+    log.info "             for vcf to geno matrix (--matrix)"
+    log.info "----------------------------------------------------------------"
+    log.info "nextflow main.nf --vcf 20210121 --matrix"
+    log.info "----------------------------------------------------------------"
     exit 1
 } else {
     log.info '''
@@ -527,7 +530,8 @@ workflow {
             }
         }
     
-    } else if(params.matrix) {
+    }
+    if(params.matrix) {
 
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
@@ -540,7 +544,8 @@ workflow {
         vcf_file.combine(vcf_index)
                 .combine(pheno_strains) | vcf_to_geno_matrix
 
-    }  else if(params.simulate) {
+    }
+    if(simulation) {
 
         // for simulations
         File pop_file = new File(params.simulate_strains);
