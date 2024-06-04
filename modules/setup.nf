@@ -107,6 +107,8 @@ process fix_strain_names_bulk {
 
 process fix_strain_names_alt {
 
+    label "xs"
+
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "*.txt"
 
     input:
@@ -138,7 +140,7 @@ process vcf_to_geno_matrix {
     //executor 'local'
 
     //machineType 'n1-standard-4'
-    label "large"
+    label "ml"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 

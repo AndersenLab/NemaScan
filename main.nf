@@ -1,14 +1,16 @@
 #! usr/bin/env nextflow
 
-if( !nextflow.version.matches('>20.0') ) {
-    println "This workflow requires Nextflow version 20.0 or greater -- You are running version $nextflow.version"
-    println "On QUEST, you can use `module load python/anaconda3.6; source activate /projects/b1059/software/conda_envs/nf20_env`"
+if( !nextflow.version.matches('>23.0') ) {
+    println "This workflow requires Nextflow version 23.0 or greater -- You are running version $nextflow.version"
+    if ( !params.matches("Local") ) {
+        println "On ${params.platform}, you can use `module load python/${params.anaconda}; source activate ${params.softwareDir}/conda_envs/nf23_env`"
+    } else {
+        println "Locally, you can create and activate a conda environment with 'nextflow>=23.0'"
+    }
     exit 1
 }
 
-nextflow.preview.dsl=2
-// nextflow.enable.dsl=2
-
+nextflow.enable.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
 
@@ -16,28 +18,15 @@ date = new Date().format( 'yyyyMMdd' )
 ~ ~ ~ > * Parameters setup - GENERAL
 */
 
-params.help = null
-params.debug = null
-download_vcf = null
-params.finemap = true
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
-params.fix = "fix"
 // params.algorithm = 'inbred' //options: inbred, loco - now run both
 
 
 /*
 ~ ~ ~ > * Parameters setup - MAPPING
 */
-params.maf = 0.05
-params.sparse_cut = 0.05
-params.group_qtl = 1000
-params.ci_size = 150
-params.p3d = "TRUE"
-params.cores = 4
-params.pca = true
-params.species = "c_elegans"
 params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
 
 // mediation only with c_elegans
@@ -88,16 +77,16 @@ if(params.debug) {
 
     params.strains = "input_data/${params.species}/phenotypes/strain_file.tsv"
 } else if(!params.vcf) {
-    // if there is no VCF date provided, pull the latest vcf from cendr.
-    params.vcf = "20220216"
-    vcf_file = "20220216 - CeNDR"
-    vcf_index = "20220216 - CeNDR"
-    impute_file = "20220216 - CeNDR"
+    // if there is no VCF date provided, pull the latest vcf from caendr.
+    params.vcf = "20231213"
+    vcf_file = "20231213 - CaeNDR"
+    vcf_index = "20231213 - CaeNDR"
+    impute_file = "20231213 - CaeNDR"
     download_vcf = true
     
 } else {
     // Check that params.vcf is valid
-    if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
+    if("${params.vcf}" == "20231213" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
         // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
         // check to make sure 20210901 is tropicalis
         if("${params.vcf}" == "20210901") {
@@ -118,7 +107,7 @@ if(params.debug) {
             }
         }
         // check to make sure vcf matches species for elegans
-        if("${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+        if("${params.vcf}" == "20231213" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             if("${params.species}" == "c_briggsae" || "${params.species}" == "c_tropicalis") {
                 println """
                 Error: VCF file (${params.vcf}) does not match species ${params.species} (should be c_elegans). Please enter a new vcf date or a new species to continue.
@@ -126,33 +115,33 @@ if(params.debug) {
                 System.exit(1)
             }
         }
-        // use the vcf data from QUEST when a cendr date is provided
-        vcf_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-        vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+        // use the vcf data from QUEST when a caendr date is provided
+        vcf_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+        vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
 
         impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
-        impute_vcf = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
-        impute_vcf_index = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+        impute_vcf = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
+        impute_vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-        // check if cendr release date is before 20210121, use snpeff annotation
+        // check if caendr release date is before 20210121, use snpeff annotation
         if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
         } else {
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+            ann_file = Channel.fromPath("${parms.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
         }
     } else {
         // check that vcf file exists, if it does, use it. If not, throw error
         if (!file("${params.vcf}").exists()) {
             println """
-            Error: VCF file (${params.vcf}) does not exist. Please provide a valid filepath or a valid CeNDR release date (i.e. 20210121)
+            Error: VCF file (${params.vcf}) does not exist. Please provide a valid filepath or a valid CaeNDR release date (i.e. 20210121)
             """
             System.exit(1)
         } else {
             // if it DOES exist
             println """
-            WARNING: Using a non-CeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
+            WARNING: Using a non-CaeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
             """
             vcf_file = Channel.fromPath("${params.vcf}")
             vcf_index = Channel.fromPath("${params.vcf}.tbi")
@@ -161,17 +150,17 @@ if(params.debug) {
             impute_vcf = Channel.fromPath("${params.vcf}")
             impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
 
-            //choose default cendr date based on species for ann_file
+            //choose default caendr date based on species for ann_file
             if(params.species == "c_elegans") {
-                default_date = "20220216"
+                default_date = "20231213"
             } else if(params.species == "c_briggsae") {
-                default_date = "20210803"
+                default_date = "20231213"
             } else {
-                default_date = "20210901"
+                default_date = "20231213"
             }
 
             // this does not work for another species...
-            ann_file = Channel.fromPath("/projects/b1059/data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
         }
     }
 }
@@ -180,38 +169,39 @@ if(params.debug) {
 
 if (params.help) {
     log.info '''
-O~~~     O~~                                   O~~ ~~
-O~ O~~   O~~                                 O~~    O~~
-O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
-O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
-O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
-O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
-O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+O~~~     O~~                                      O~~ ~~
+O~ O~~   O~~                                    O~~    O~~
+O~~ O~~  O~~    O~~    O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
+O~~  O~~ O~~  O~   O~~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
+O~~   O~ O~~ O~~~~~ O~~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
+O~~    O~ ~~ O~         O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
+O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O~~~  O~~
     '''
     log.info "----------------------------------------------------------------"
     log.info "                      USAGE                                     "
     log.info "----------------------------------------------------------------"
     log.info ""
     log.info "nextflow main.nf --debug"
-    log.info "nextflow main.nf --traitfile input_data/${params.species}/phenotypes/PC1.tsv --vcf 20210121"
+    log.info "nextflow main.nf --traitfile input_data/${params.species}/phenotypes/PC1.tsv --vcf 20231213"
     log.info ""
     log.info "Profiles available:"
-    log.info "mappings              Profile                Perform GWA mappings with a provided trait file"
-    log.info "simulations           Profile                Perform phenotype simulations with GCTA"
-    log.info "gcp                   Profile                Perform GWA mappings on GCP (used for cendr)"
-    log.info "genomatrix            Profile                Generate a genotype matrix given a set of strains"
-    log.info "mappings_docker       Profile                Perform GWA mappings using a docker container for reproducibility"
-    log.info "local                 Profile                Perform GWA mappings using a docker container with low memory and cpu avail. (need --finemap false)"
+    log.info "standard              Profile                Perform simulation analysis on Rockfish"
+    log.info "rockfish              Profile                Perform selected analysis on Rockfish (default simulation)"
+    log.info "quest                 Profile                Perform selected analysis on QUEST (default simulation)"
+    log.info "gcp                   Profile                Perform selected analysis on GCP (default GWA mappings)"
+    log.info "local                 Profile                Perform selected analysis using docker on local machine"
+    log.info "mapping               Profile                Perform GWA mappings"
+    log.info "matrix                Profile                Generate geno matrix from VCF file"
     log.info "----------------------------------------------------------------"
     log.info "             -profile mappings USAGE"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20210121 --traitfile input_data/${params.species}/phenotypes/PC1.tsv -profile mappings"
+    log.info "nextflow main.nf --vcf 20231213 --traitfile input_data/${params.species}/phenotypes/PC1.tsv -profile mappings"
     log.info "----------------------------------------------------------------"
     log.info "----------------------------------------------------------------"
     log.info "Mandatory arguments:"
     log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
-    log.info "--vcf                    String                Generally a CeNDR release date (i.e. 20210121). Can also provide a user-specified VCF with index in same folder."
+    log.info "--vcf                    String                Generally a CaeNDR release date (i.e. 20231213). Can also provide a user-specified VCF with index in same folder."
     log.info "Optional arguments:"
     log.info "--MAF, --maf             String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
     log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
@@ -237,7 +227,6 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "----------------------------------------------------------------"
     log.info "Optional arguments (General):"
     log.info "--out                    String                Name of folder that will contain the results"
-    log.info "--e_mem                  String                Value that corresponds to the amount of memory to allocate for eigen decomposition of chromosomes (DEFAULT = 100)"
     log.info "Optional arguments (Marker):"
     log.info "--sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
     log.info "--group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
@@ -251,28 +240,16 @@ O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~
     log.info "--help                                      Display this message"
     log.info ""
     log.info "--------------------------------------------------------"
-    log.info ""
-    log.info " Required software packages to be in users path"
-    log.info "BCFtools               v1.9"
-    log.info "plink                  v1.9"
-    log.info "R-cegwas2              Found on GitHub"
-    log.info "R-tidyverse            v1.2.1"
-    log.info "R-correlateR           Found on GitHub"
-    log.info "R-rrBLUP               v4.6"
-    log.info "R-sommer               v3.5"
-    log.info "R-RSpectra             v0.13-1"
-    log.info "R-ggbeeswarm           v0.6.0"
-    log.info "--------------------------------------------------------"
     exit 1
 } else {
     log.info '''
-O~~~     O~~                                   O~~ ~~
-O~ O~~   O~~                                 O~~    O~~
-O~~ O~~  O~~   O~~    O~~~ O~~ O~~    O~~     O~~         O~~~   O~~    O~~ O~~
-O~~  O~~ O~~ O~   O~~  O~~  O~  O~~ O~~  O~~    O~~     O~~    O~~  O~~  O~~  O~~
-O~~   O~ O~~O~~~~~ O~~ O~~  O~  O~~O~~   O~~       O~~ O~~    O~~   O~~  O~~  O~~
-O~~    O~ ~~O~         O~~  O~  O~~O~~   O~~ O~~    O~~ O~~   O~~   O~~  O~~  O~~
-O~~      O~~  O~~~~   O~~~  O~  O~~  O~~ O~~~  O~~ ~~     O~~~  O~~ O~~~O~~~  O~~
+O~~~     O~~                                      O~~ ~~
+O~ O~~   O~~                                    O~~    O~~
+O~~ O~~  O~~    O~~    O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
+O~~  O~~ O~~  O~   O~~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
+O~~   O~ O~~ O~~~~~ O~~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
+O~~    O~ ~~ O~         O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
+O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O~~~  O~~
 '''
 log.info ""
 log.info "Trait File                              = ${params.traitfile}"
@@ -301,7 +278,7 @@ include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_vari
 */
 workflow {
 
-    // if no VCF is provided, download the latest version from CeNDR
+    // if no VCF is provided, download the latest version from CaeNDR
     if(download_vcf) {
         pull_vcf()
 
@@ -313,7 +290,7 @@ workflow {
     }
 
     // for mapping
-    if(params.maps) {
+    if(params.mapping) {
 
         // Fix strain names
          Channel.fromPath("${params.traitfile}")
@@ -662,7 +639,7 @@ workflow.onComplete {
     P3D                                     = ${params.p3d}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Mapping                                 = ${params.maps}
+    Mapping                                 = ${params.mapping}
     Simulation                              = ${params.simulate}
     Simulate QTL effects                    = ${params.simulate_qtlloc}
     Annotation                              = ${params.annotate}
