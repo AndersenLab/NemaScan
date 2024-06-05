@@ -548,13 +548,11 @@ workflow {
     if(simulation) {
 
         // for simulations
-        File pop_file = new File(params.simulate_strains);
-
-        Channel.from(pop_file.collect { it.tokenize( ' ' ) })
+        Channel.fromPath("${params.data_dir}/${params.simulate_strains}").collect { it.tokenize( ' ' ) })
             .map { SM, STRAINS -> [SM, STRAINS] }
             .combine(vcf_file.combine(vcf_index))
             .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes"))
-            .combine(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
+            .combine(Channel.fromPath("${params.data_dir}/${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
         contigs = Channel.from(["1", "2", "3", "4", "5", "6"])
@@ -569,9 +567,9 @@ workflow {
         if(params.simulate_qtlloc){
 
             collect_eigen_variants_sims.out
-                .combine(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
-                .combine(Channel.fromPath("${params.simulate_qtlloc}"))
-                .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
+                .combine(Channel.fromPath("${params.data_dir}/${params.simulate_nqtl}").splitCsv())
+                .combine(Channel.fromPath("${params.data_dir}/${params.simulate_qtlloc}"))
+                .combine(Channel.fromPath("${params.data_dir}/${params.simulate_eff}").splitCsv())
                 .combine(Channel.from(1..params.simulate_reps))
                 .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_loc
 
@@ -580,8 +578,8 @@ workflow {
         } else {
 
             collect_eigen_variants_sims.out
-                .combine(Channel.fromPath("${params.simulate_nqtl}").splitCsv())
-                .combine(Channel.fromPath("${params.simulate_eff}").splitCsv())
+                .combine(Channel.fromPath("${params.data_dir}/${params.simulate_nqtl}").splitCsv())
+                .combine(Channel.fromPath("${params.data_dir}/${params.simulate_eff}").splitCsv())
                 .combine(Channel.from(1..params.simulate_reps))
                 .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_genome
 
@@ -590,8 +588,8 @@ workflow {
         }
 
         sim_phen_inputs
-            .combine(Channel.fromPath("${params.simulate_h2}").splitCsv()) 
-            .combine(Channel.fromPath("${params.bin_dir}/check_vp.py")) | simulate_map_phenotypes
+            .combine(Channel.fromPath("${params.data_dir}/${params.simulate_h2}").splitCsv()) 
+            .combine(Channel.fromPath("${params.data_dir}/${params.bin_dir}/check_vp.py")) | simulate_map_phenotypes
 
         // simulation mappings
         simulate_map_phenotypes.out.gcta_intervals
