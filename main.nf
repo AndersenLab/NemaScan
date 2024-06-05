@@ -548,7 +548,7 @@ workflow {
     if(simulation) {
 
         // for simulations
-        Channel.fromPath("${params.data_dir}/${params.simulate_strains}").collect { it.tokenize( ' ' ) })
+        Channel.fromPath("${params.data_dir}/${params.simulate_strains}").collect { it.tokenize( ' ' ) }
             .map { SM, STRAINS -> [SM, STRAINS] }
             .combine(vcf_file.combine(vcf_index))
             .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes"))
