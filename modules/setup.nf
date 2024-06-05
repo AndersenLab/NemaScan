@@ -143,6 +143,7 @@ process fix_strain_names_alt {
 process vcf_to_geno_matrix {
 
     label "ml"
+    label "plink"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
