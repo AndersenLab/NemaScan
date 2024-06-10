@@ -12,9 +12,6 @@ process pull_vcf {
 
     tag {"PULLING VCF FROM CeNDR"}
 
-    executor "local"
-    container null
-
     output:
         path "*hard-filter.isotype.vcf.gz", emit: hard_vcf 
         path "*hard-filter.isotype.vcf.gz.tbi", emit: hard_vcf_index 
@@ -143,7 +140,7 @@ process fix_strain_names_alt {
 process vcf_to_geno_matrix {
 
     label "ml"
-    label "plink"
+    label "nemascan"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 

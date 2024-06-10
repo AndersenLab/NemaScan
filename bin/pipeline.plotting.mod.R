@@ -93,7 +93,7 @@ for.plot <- combined.mappings %>%
         if(!("MtDNA" %in% mito_check$CHROM)) dplyr::filter(., CHROM != "MtDNA") else .
     }
 
-BF <- combined.mappings %>% 
+BF <- for.plot %>% 
     dplyr::group_by(trait) %>% 
     dplyr::filter(log10p != 0) %>% 
     dplyr::distinct(marker, log10p) %>%
@@ -160,7 +160,8 @@ man.plot <- ggplot() +
   facet_grid(. ~ CHROM, scales = "free_x", space = facet_scales) + 
   ggtitle(BF.frame$trait)
 
-ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan_", args[3], ".plot.png"), width = 8, height = 4)
+
+  ggsave(man.plot, filename = paste0(BF.frame$trait,"_manhattan_", args[3], ".plot.png"), width = 8, height = 4)
 
 
 ## SWEPTNESS & EFFECTS SUMMARY ##

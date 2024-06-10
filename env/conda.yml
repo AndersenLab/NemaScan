@@ -1,4 +1,4 @@
-name: nemascan
+name: base
 channels:
   - defaults
   - bioconda
@@ -6,7 +6,6 @@ channels:
   - biobuilds
   - conda-forge
 dependencies:
-  - bcftools=1.9
   - pandoc=2.12
   - plink=1.90b6.12
   - bedtools=2.29.2

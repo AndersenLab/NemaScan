@@ -58,28 +58,31 @@ process gcta_grm {
     label "lg"
 
     input:
-        tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log)
+        tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), \
+              file(ped), file(log), val(algorithm)
 
     output:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), \
-        file(ped), file(log), file("${TRAIT}_gcta_grm.grm.bin"), file("${TRAIT}_gcta_grm.grm.id"), \
-        file("${TRAIT}_gcta_grm.grm.N.bin"), file("${TRAIT}_gcta_grm_inbred.grm.bin"), file("${TRAIT}_gcta_grm_inbred.grm.id")
+              file(ped), file(log), file("${TRAIT}_gcta_grm_${algorithm}.grm.bin"), \
+              file("${TRAIT}_gcta_grm_${algorithm}.grm.id"), \
+              file("${TRAIT}_gcta_grm_${algorithm}.grm.N.bin"), val(algorithm)
 
     when:
-        params.maps
+        params.mapping
 
     """
+    if [[ ${algorithm} == "inbred" ]];
+    then
+        option="--make-grm-inbred"
+    else
+        options="--make-grm"
+    fi
+
     gcta64 --bfile ${TRAIT} \\
            --autosome \\
            --maf ${params.maf} \\
-           --make-grm \\
-           --out ${TRAIT}_gcta_grm \\
-           --thread-num 5
-    gcta64 --bfile ${TRAIT} \\
-           --autosome \\
-           --maf ${params.maf} \\
-           --make-grm-inbred \\
-           --out ${TRAIT}_gcta_grm_inbred \\
+           \${option} \\
+           --out ${TRAIT}_gcta_grm_${algorithm} \\
            --thread-num 5
     """
 }
@@ -89,63 +92,44 @@ process gcta_lmm_exact_mapping {
 
     label "lg"
 
-    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*pca.fastGWA", overwrite: true
-    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*pca.loco.mlma", overwrite: true
+    publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*inbred_pca.fastGWA", overwrite: true
+    publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*loco_pca.mlma", overwrite: true
 
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
-    file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
-    file(grm_bin_inbred), file(grm_id_inbred)
+          file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin),
+          val(algorithm)
 
     output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred_pca.fastGWA"), file("${TRAIT}_lmm-exact_pca.loco.mlma")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_${algorithm}_pca.*", arity=1)
 
 
     """
-    gcta64 --grm ${TRAIT}_gcta_grm \\
+    if [[ ${algorithm} == "inbred" ]];
+    then
+        options="--fastqGWA-lmm-exact --grm-sparse"
+    else
+        options="--mlma-loco --grm"
+    fi
+    
+    gcta64 --grm ${TRAIT}_gcta_grm_${algorithm} \\
            --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm \\
+           --out ${TRAIT}_sparse_grm_${algorithm} \\
            --thread-num ${task.cpus}
-    gcta64 --grm ${TRAIT}_gcta_grm \\
+    gcta64 --grm ${TRAIT}_gcta_grm_${algorithm} \\
            --pca 1 \\
-           --out ${TRAIT}_sparse_grm \\
+           --out ${TRAIT}_sparse_grm_${algorithm} \\
            --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
+    gcta64 \${options} ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
+           --out ${TRAIT}_lmm-exact_${algorithm} \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
+    gcta64 \${options} ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm.eigenvec \\
-           --out ${TRAIT}_lmm-exact_pca \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
-
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --pca 1 \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm_inbred.eigenvec \\
-           --out ${TRAIT}_lmm-exact_inbred_pca \\
+           --qcovar ${TRAIT}_sparse_grm_${algorithm}.eigenvec \\
+           --out ${TRAIT}_lmm-exact_${algorithm}_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
@@ -163,57 +147,38 @@ process gcta_lmm_exact_mapping_nopca {
     input:
     tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), \
     file(nosex), file(ped), file(log), file(grm_bin), file(grm_id), file(grm_nbin), \
-    file(grm_bin_inbred), file(grm_id_inbred)
+    val(algorithm)
 
     output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_${algorithm}.*", arity=1)
 
 
     """
-    gcta64 --grm ${TRAIT}_gcta_grm \\
+    if [[ ${algorithm} == "inbred" ]];
+    then
+        options="--fastqGWA-lmm-exact --grm-sparse"
+    else
+        options="--mlma-loco --grm"
+    fi
+    
+    gcta64 --grm ${TRAIT}_gcta_grm_${algorithm} \\
            --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm \\
+           --out ${TRAIT}_sparse_grm_${algorithm} \\
            --thread-num ${task.cpus}
-    gcta64 --grm ${TRAIT}_gcta_grm \\
+    gcta64 --grm ${TRAIT}_gcta_grm_${algorithm} \\
            --pca 1 \\
-           --out ${TRAIT}_sparse_grm \\
+           --out ${TRAIT}_sparse_grm_${algorithm} \\
            --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
+    gcta64 \${options} ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
+           --out ${TRAIT}_lmm-exact_${algorithm} \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
+    gcta64 \${options} ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm.eigenvec \\
-           --out ${TRAIT}_lmm-exact_pca \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
-
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --pca 1 \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --qcovar ${TRAIT}_sparse_grm_inbred.eigenvec \\
-           --out ${TRAIT}_lmm-exact_inbred_pca \\
+           --qcovar ${TRAIT}_sparse_grm_${algorithm}.eigenvec \\
+           --out ${TRAIT}_lmm-exact_${algorithm}_pca \\
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
@@ -230,19 +195,18 @@ process gcta_intervals_maps {
 
     input:
         tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
-        val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco), file(find_aggregate_intervals_maps)
+              val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact), \
+              file(find_aggregate_intervals_maps), val(algorithm)
 
     output:
-        tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), emit: maps_to_plot
-        path "*AGGREGATE_qtl_region_inbred.tsv", emit: qtl_peaks_inbred
-        tuple file("*AGGREGATE_mapping_inbred.tsv"), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html
-
-        path "*AGGREGATE_qtl_region_loco.tsv", emit: qtl_peaks_loco
-       //  tuple val('loco'), file("*AGGREGATE_mapping_loco.tsv"), val(TRAIT), emit: for_html_loco
+        tuple file(geno), file(pheno), val(TRAIT), file(tests), file("*AGGREGATE_mapping_${algorithm}.tsv"), emit: maps_to_plot
+        path "*AGGREGATE_qtl_region${algorithm}.tsv", emit: qtl_peaks
+        tuple file("*AGGREGATE_mapping_${algorithm}.tsv"), val(TRAIT), val(algorithm), emit: for_html
 
     """
-    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact_inbred} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE inbred
-    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact_loco} ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} ${TRAIT}_AGGREGATE loco
+    Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact} \\
+                      ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} \\
+                      ${TRAIT}_AGGREGATE ${algorithm}
     """
 }
 

@@ -175,13 +175,13 @@ if (params.matrix || params.mapping){
 
 if (params.help) {
     log.info '''
-O~~~     O~~                                      O~~ ~~
+O~~~     O~~                                      O~ O~~
 O~ O~~   O~~                                    O~~    O~~
-O~~ O~~  O~~    O~~    O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
-O~~  O~~ O~~  O~   O~~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
-O~~   O~ O~~ O~~~~~ O~~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
-O~~    O~ ~~ O~         O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
-O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O~~~  O~~
+O~~ O~~  O~~    O~~   O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
+O~~  O~~ O~~  O~   O~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
+O~~   O~ O~~ O~~~~~ O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
+O~~    O~O~~ O~        O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
+O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~~  O~~
     '''
     log.info "----------------------------------------------------------------"
     log.info "                      USAGE                                     "
@@ -246,13 +246,13 @@ O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O
     exit 1
 } else {
     log.info '''
-O~~~     O~~                                      O~~ ~~
+O~~~     O~~                                      O~ O~~
 O~ O~~   O~~                                    O~~    O~~
-O~~ O~~  O~~    O~~    O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
-O~~  O~~ O~~  O~   O~~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
-O~~   O~ O~~ O~~~~~ O~~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
-O~~    O~ ~~ O~         O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
-O~~      O~~   O~~~~   O~~~  O~  O~~   O~~ O~~~    O~~ ~~      O~~~   O~~ O~~~ O~~~  O~~
+O~~ O~~  O~~    O~~   O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
+O~~  O~~ O~~  O~   O~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
+O~~   O~ O~~ O~~~~~ O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
+O~~    O~O~~ O~        O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
+O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~~  O~~
 '''
 log.info ""
 log.info "Trait File                              = ${params.traitfile}"
@@ -500,7 +500,7 @@ workflow {
                         .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
                         .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
                         .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
-                        .join(prep_ld_files.out.finemap_LD_loco, remainder: true)  | html_report_main
+                        .join(prep_ld_files.out.finemap_LD_loco, remainder: true).view { "$it" }  | html_report_main
                 }  
             } else {
                 // generate main html report
@@ -548,14 +548,15 @@ workflow {
     if(simulation) {
 
         // for simulations
-        Channel.fromPath("${params.data_dir}/${params.simulate_strains}").collect { it.tokenize( ' ' ) }
+        Channel.fromPath("${params.data_dir}/${params.simulate_strains}")
+            .splitCsv(sep:" ")
             .map { SM, STRAINS -> [SM, STRAINS] }
             .combine(vcf_file.combine(vcf_index))
             .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes"))
             .combine(Channel.fromPath("${params.data_dir}/${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
-        contigs = Channel.from(["1", "2", "3", "4", "5", "6"])
+        contigs = Channel.from([1, 2, 3, 4, 5, 6])
         contigs.combine(prepare_simulation_files.out.sim_geno)
             .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
 
@@ -645,7 +646,6 @@ workflow.onComplete {
     Mapping                                 = ${params.mapping}
     Simulation                              = ${params.simulate}
     Simulate QTL effects                    = ${params.simulate_qtlloc}
-    Annotation                              = ${params.annotate}
     Result Directory                        = ${params.out}
     """
 

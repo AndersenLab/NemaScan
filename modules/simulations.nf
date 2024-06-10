@@ -23,7 +23,9 @@ process prepare_simulation_files {
 
 
     """
-    bcftools view -s `echo ${strains} ${vcf} | tr -d '\\n'` |\\
+    export > node_name.txt
+    bcftools view --force-samples -s ${strains} ${vcf} | \\
+    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
@@ -90,10 +92,11 @@ process chrom_eigen_variants_sims {
 
 
     """
-        cat ${geno} |\\
-        awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
-        Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
-        mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
+    export > node_name.txt
+    cat ${geno} |\\
+    awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+    Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
+    mv ${CHROM}_independent_snvs.csv ${CHROM}_${strain_set}_${MAF}_independent_snvs.csv
     """
 
 }
@@ -106,7 +109,6 @@ process collect_eigen_variants_sims {
 
     executor 'local'
     container null
-    label "md"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -118,9 +120,9 @@ process collect_eigen_variants_sims {
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file("${strain_set}_${MAF}_total_independent_tests.txt")
 
     """
-        cat *independent_snvs.csv |\\
-        grep -v inde |\\
-        awk '{s+=\$1}END{print s}' > ${strain_set}_${MAF}_total_independent_tests.txt
+    cat *independent_snvs.csv |\\
+    grep -v inde |\\
+    awk '{s+=\$1}END{print s}' > ${strain_set}_${MAF}_total_independent_tests.txt
     """
 
 }
@@ -139,8 +141,9 @@ process simulate_effects_loc {
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(SIMREP), val(effect_range), file("causal.variants.sim.${NQTL}.${SIMREP}.txt")
 
     """
-        Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
-        mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+    export > node_name.txt
+    Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range} ${qtl_loc_bed}
+    mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
     """
 }
 
@@ -159,8 +162,9 @@ process simulate_effects_genome {
 
 
     """
-        Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range}
-        mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
+    export > node_name.txt
+    Rscript --vanilla ${create_causal_qtls} ${bim} ${NQTL} ${effect_range}
+    mv causal.variants.sim.${NQTL}.txt causal.variants.sim.${NQTL}.${SIMREP}.txt
     """
 }
 
@@ -170,6 +174,7 @@ process simulate_map_phenotypes {
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
     label "md"
+    label "prep_sims"
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
@@ -191,6 +196,7 @@ process simulate_map_phenotypes {
         tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact_inbred_pca.fastGWA"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_lmm-exact.loco.mlma"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.par"), file("${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen"), emit: gcta_intervals
 
     """
+    export > node_name.txt
     gcta64 --bfile TO_SIMS \\
          --simu-qt \\
          --simu-causal-loci ${loci} \\
@@ -301,8 +307,9 @@ process get_gcta_intervals {
 
     script:
     """
-        Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED_PCA
-        Rscript --vanilla ${find_gcta_intervals_loco} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO_PCA
+    export > node_name.txt
+    Rscript --vanilla ${find_gcta_intervals} ${gm} ${phenotypes} ${lmmexact_inbred} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-INBRED_PCA
+    Rscript --vanilla ${find_gcta_intervals_loco} ${gm} ${phenotypes} ${lmmexact_loco} ${n_indep_tests} ${NQTL} ${SIMREP} ${QTL_GROUP_SIZE} ${QTL_CI_SIZE} ${H2} ${params.maf} ${THRESHOLD} ${strain_set} ${MAF} ${effect_range} LMM-EXACT-LOCO_PCA
     """
 }
 
@@ -310,7 +317,7 @@ process assess_sims_INBRED {
 
     label 'assess_sims'
     label 'sm'
-    
+
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
@@ -320,6 +327,7 @@ process assess_sims_INBRED {
     
     script:
     """
+    export > node_name.txt
     Rscript --vanilla ${R_assess_sims} ${mapping_processed} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set} ${algorithm_id}
     """
     
@@ -338,6 +346,7 @@ process assess_sims_LOCO {
     
     script:
     """
+    export > node_name.txt
     Rscript --vanilla ${R_assess_sims} ${mapping_processed} ${gm} ${var_effects} ${phenotypes} ${NQTL} ${SIMREP} ${H2} ${MAF} ${effect_range} ${strain_set} ${algorithm_id}
     """
     
