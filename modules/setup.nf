@@ -19,16 +19,26 @@ process pull_vcf {
         path "*impute.isotype.vcf.gz.tbi", emit: impute_vcf_index 
         path "*.strain-annotation*.tsv", emit: ann_vcf
 
-    """
-        wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
-        tabix -p vcf WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
+    script:
+        """
+            wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
+            tabix -p vcf WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
 
-        wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz
-        tabix -p vcf WI.${params.vcf}.impute.isotype.vcf.gz
+            wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz
+            tabix -p vcf WI.${params.vcf}.impute.isotype.vcf.gz
 
-        wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv
+            wget https://storage.googleapis.com/caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv
 
-    """
+        """
+    
+    stub:
+        """
+        touch vcf WI.${params.vcf}.small.hard-filter.isotype.vcf.gz
+        touch vcf WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi
+        touch vcf WI.${params.vcf}.impute.isotype.vcf.gz
+        touch vcf WI.${params.vcf}.impute.isotype.vcf.gz.tbi
+        touch vcf WI.${params.vcf}.strain-annotation.tsv
+        """
 }
 
 
@@ -54,9 +64,16 @@ process update_annotations {
     output:
         tuple file("*canonical_geneset.gtf.gz"), file("c_${params.species}_${params.wbb}_refFlat.txt")
 
-    """
+    script:
+        """
         Rscript --vanilla ${update_annotations} ${params.wbb} ${params.species} ${gtf_to_refflat}
-    """
+        """
+
+    stub:
+        """
+        touch canonical_geneset.gtf.gz
+        touch c_${params.species}_${params.wbb}_refFlat.txt
+        """
 
 }   
 
@@ -92,7 +109,8 @@ process fix_strain_names_bulk {
         path "Phenotyped_Strains.txt", emit: phenotyped_strains_to_analyze 
         path "strain_issues.txt", emit: strain_issues
 
-    """
+    script:
+        """
         # for now, don't fix isotypes for non elegans
         Rscript --vanilla ${fix_script} ${phenotypes} $run_fix $isotype_lookup
 
@@ -102,9 +120,7 @@ process fix_strain_names_bulk {
             echo "ERROR: Please provide at least 40 strains for a GWAS mapping."
             exit 1
         fi
-
-    """
-
+        """
 }
 
 process fix_strain_names_alt {
@@ -120,10 +136,10 @@ process fix_strain_names_alt {
         path "Phenotyped_Strains.txt", emit: phenotyped_strains_to_analyze 
         file("strain_issues.txt")
 
-    """
+    script:
+        """
         Rscript --vanilla ${fix_script} ${phenotypes} $run_fix $isotype_lookup
-    """
-
+        """
 }
 
 
@@ -220,7 +236,7 @@ process chrom_eigen_variants {
 
 
     """
-        cat Genotype_Matrix.tsv |\\
+        cat ${genotypes} |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
         Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
     """

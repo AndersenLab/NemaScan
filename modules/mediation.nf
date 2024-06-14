@@ -41,8 +41,8 @@ process multi_mediation {
 
 
     output:
-        tuple val(TRAIT), val(algorithm), path("${TRAIT}_${tch}_${tpeak}_medmulti_${algorithm}.tsv"), emit: result_multi_mediate optional true
-        path "${TRAIT}_${tch}_${tpeak}_elist_${algorithm}.tsv", emit: eQTL_gene optional true
+        tuple val(TRAIT), val(algorithm), path("${TRAIT}_${tch}_${tpeak}_medmulti_${algorithm}.tsv"), emit: result_multi_mediate, optional: true
+        path "${TRAIT}_${tch}_${tpeak}_elist_${algorithm}.tsv", emit: eQTL_gene, optional: true
         // val 'algorithm', emit: med_alg
 
 

@@ -271,9 +271,11 @@ log.info ""
 
 // Includes
 include {pull_vcf; fix_strain_names_bulk; fix_strain_names_alt; vcf_to_geno_matrix; chrom_eigen_variants; collect_eigen_variants} from './modules/setup.nf'
-include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_intervals_maps; gcta_lmm_exact_mapping_nopca} from './modules/mapping.nf'
+include {prepare_gcta_files; gcta_grm; gcta_lmm_exact_mapping; gcta_lmm_exact_mapping_nopca; gcta_intervals_maps} from './modules/mapping.nf'
+include {summarize_mapping; generate_plots; LD_between_regions; divergent_and_haplotype} from './modules/post-mapping.nf'
+include {gcta_fine_maps; html_report_main} from './modules/post-mapping.nf'
+include {prep_ld_files as prep_ld_files_inbred; prep_ld_files as prep_ld_files_loco} from './modules/post-mapping.nf'
 include {mediation_data; multi_mediation; simple_mediation; summary_mediation} from './modules/mediation.nf'
-include {summarize_mapping; generate_plots; LD_between_regions; prep_ld_files; gcta_fine_maps; divergent_and_haplotype; html_report_main} from './modules/post-mapping.nf'
 include {prepare_simulation_files; chrom_eigen_variants_sims; collect_eigen_variants_sims; simulate_effects_loc; simulate_effects_genome; simulate_map_phenotypes; get_gcta_intervals; assess_sims_INBRED; assess_sims_LOCO} from './modules/simulations.nf'
 
 /*
@@ -329,7 +331,6 @@ workflow {
                 .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping_nopca
         }
         
-
         // process GWAS mapping
         traits_to_map
             .combine(collect_eigen_variants.out)
@@ -361,12 +362,11 @@ workflow {
             .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
             .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
 
-        // run mediation with gaotian's eqtl
+        // // run mediation with gaotian's eqtl
         if(med) {
 
             File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
             transcript_eqtl = transcripteqtl_all.getAbsolutePath()
-
 
             traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
@@ -376,13 +376,13 @@ workflow {
             peaks_inbred
                 .splitCsv(sep: '\t', skip: 1)
                 .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-                .combine(Channel.from("inbred"))
+                .combine(Channel.of("inbred"))
                 .mix(peaks_loco
                     .splitCsv(sep: '\t', skip: 1)
                     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-                    .combine(Channel.from("loco")))
+                    .combine(Channel.of("loco")))
                 .combine(traits_to_mediate, by: 0)
-                .combine(Channel.from(transcript_eqtl))
+                .combine(Channel.of(transcript_eqtl))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
             mediation_data.out
@@ -397,27 +397,10 @@ workflow {
                  .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                  .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
-            // peaks_inbred
-            //     .splitCsv(sep: '\t', skip: 1)
-            //     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-            //     .combine(Channel.from("inbred"))
-            //     .mix(peaks_loco
-            //         .splitCsv(sep: '\t', skip: 1)
-            //         .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-            //         .combine(Channel.from("loco")))
-
             multi_mediation.out.result_multi_mediate
                 .groupTuple(by: [0,1])
                 .join(simple_mediation.out.groupTuple(by: [0,1]), by: [0,1], remainder: true)
                 .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R")) | summary_mediation
-
-
-
-            // traits_to_mediate
-            //     .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R"))
-            //     .combine(simple_mediation.out.collect().toList())
-            //     .combine(multi_mediation.out.result_multi_mediate.collect().toList()).view()  | summary_mediation
-
         }
 
 
@@ -426,31 +409,40 @@ workflow {
             // prep LD files
             peaks_inbred
                 .splitCsv(sep: '\t', skip: 1)
-                .combine(Channel.from("inbred"))
+                .combine(Channel.of("inbred"))
                 .join(generate_plots.out.maps_from_plot_inbred, by: 3)
-                .mix(peaks_loco
-                    .splitCsv(sep: '\t', skip: 1)
-                    .combine(Channel.from("loco"))
-                    .join(generate_plots.out.maps_from_plot_loco, by: 3)) 
                 .combine(impute_vcf.combine(impute_vcf_index))
                 .combine(pheno_strains)
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files_inbred
+            peaks_loco
+                .splitCsv(sep: '\t', skip: 1)
+                .combine(Channel.of("loco"))
+                .join(generate_plots.out.maps_from_plot_loco, by: 3)
+                .combine(impute_vcf.combine(impute_vcf_index))
+                .combine(pheno_strains)
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files_loco
 
             //fine mapping
-            prep_ld_files.out.finemap_preps
+            prep_inbred = prep_ld_files_inbred.out.finemap_preps
+                .join(gcta_grm.out)
+            prep_loco = prep_ld_files_loco.out.finemap_preps
+                .join(gcta_grm.out)
+
+            prep_inbred.mix(prep_loco)
                 .combine(ann_file)
                 .combine(Channel.fromPath("${params.genes}"))
                 .combine(Channel.fromPath("${params.bin_dir}/Finemap_QTL_Intervals.R"))
-                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R"))
-                .combine(gcta_grm.out, by: 0) | gcta_fine_maps
+                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
+
 
             // divergent regions and haplotypes
             // only for elegans right now
             if(params.species == "c_elegans") {
                 peaks_inbred
-                    .combine(Channel.from("inbred"))
-                    .mix(peaks_loco
-                        .combine(Channel.from("loco")))
+                    .combine(Channel.of("inbred"))
+                    .mix(
+                        peaks_loco
+                        .combine(Channel.of("loco")))
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
                     .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
@@ -458,75 +450,97 @@ workflow {
 
                 if(med) {
                     // generate main html report
-                    // Note: the order things get added matters, because if there is no QTL/fine mapping it will produce errors
-                    peaks_inbred
-                        .combine(peaks_loco)
-                        .combine(traits_to_map) // trait names)
-                        .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-                        .combine(collect_eigen_variants.out) // independent tests
-                        .combine(vcf_to_geno_matrix.out) // genotype matrix
+
+                    report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
+                        .combine(peaks_inbred)                              // QTL_peaks_inbred.tsv
+                        .combine(peaks_loco)                                // QTL_peaks_inbred.tsv
+                        .combine(fix_strain_names_bulk.out.strain_issues)   // strain_issues.txt
+                        .combine(collect_eigen_variants.out)                // total_independent_tests.txt
+                        .combine(vcf_to_geno_matrix.out)                    // Genotype_Matrix.tsv
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
-                        .combine(Channel.from(med)) // true or false - plot mediaton?
-                        .combine(Channel.from("${params.species}"))
-                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)
-                        .combine(divergent_and_haplotype.out.div_hap_table_loco)
-                        .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
-                        .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
-                        .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
-                        .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
-                        .join(prep_ld_files.out.finemap_LD_loco, remainder: true)
-                        .join(summary_mediation.out.final_mediation_inbred, remainder: true)
-                        .join(summary_mediation.out.final_mediation_loco, remainder: true) | html_report_main // more finemap data prep
-                } else {
+                        .combine(Channel.of(med))                           // val(true|false) - plot mediaton?
+                        .combine(Channel.of("${params.species}"))           // val(species)
+                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)  // 4 files
+                        .combine(divergent_and_haplotype.out.div_hap_table_loco)    // 4 files
+                        .join(gcta_intervals_maps.out.for_html)             // *AGGREGATE_mapping_inbred.tsv *AGGREGATE_mapping_loco.tsv
+                        .join(gcta_fine_maps.out.finemap_GWA_inbred, remainder: true)   // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_df_inbred, remainder: true)    // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_genes_inbred, remainder: true) // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_GWA_loco, remainder: true)     // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_df_loco, remainder: true)      // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_genes_loco, remainder: true)   // fine mapping data
+                        .join(prep_ld_files_inbred.out.finemap_LD, remainder: true)     // LD files
+                        .join(prep_ld_files_inbred.out.finemap_ROI, remainder: true)    // LD files
+                        .join(prep_ld_files_loco.out.finemap_LD, remainder: true)       // LD files
+                        .join(prep_ld_files_loco.out.finemap_ROI, remainder: true)      // LD files
+                        .join(summary_mediation.out.final_mediation_inbred, by:2, remainder: true)
+                        .join(summary_mediation.out.final_mediation_loco, by:2, remainder: true) | html_report_main
+        //         } else {
                     // generate main html report
-                    peaks_inbred
-                        .combine(peaks_loco)
-                        .combine(traits_to_map) // trait names)
-                        .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-                        .combine(collect_eigen_variants.out) // independent tests
-                        .combine(vcf_to_geno_matrix.out) // genotype matrix
+
+                    report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
+                        .combine(peaks_inbred)                              // QTL_peaks_inbred.tsv
+                        .combine(peaks_loco)                                // QTL_peaks_inbred.tsv
+                        .combine(fix_strain_names_bulk.out.strain_issues)   // strain_issues.txt
+                        .combine(collect_eigen_variants.out)                // total_independent_tests.txt
+                        .combine(vcf_to_geno_matrix.out)                    // Genotype_Matrix.tsv
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                         .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                         .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
-                        .combine(Channel.from(med)) // true or false - plot mediaton?
-                        .combine(Channel.from("${params.species}"))
-                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)
-                        .combine(divergent_and_haplotype.out.div_hap_table_loco)
-                        .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
-                        .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
-                        .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
-                        .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
-                        .join(prep_ld_files.out.finemap_LD_loco, remainder: true).view { "$it" }  | html_report_main
-                }  
-            } else {
+                        .combine(Channel.of(med))                           // val(true|false) - plot mediaton?
+                        .combine(Channel.of("${params.species}"))           // val(species)
+                        .combine(divergent_and_haplotype.out.div_hap_table_inbred)  // 4 files
+                        .combine(divergent_and_haplotype.out.div_hap_table_loco)    // 4 files
+                        .join(gcta_intervals_maps.out.for_html)             // *AGGREGATE_mapping_inbred.tsv *AGGREGATE_mapping_loco.tsv
+                        .join(gcta_fine_maps.out.finemap_GWA_inbred, remainder: true)   // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_df_inbred, remainder: true)    // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_genes_inbred, remainder: true) // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_GWA_loco, remainder: true)     // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_df_loco, remainder: true)      // fine mapping data
+                        .join(gcta_fine_maps.out.finemap_genes_loco, remainder: true)   // fine mapping data
+                        .join(prep_ld_files_inbred.out.finemap_LD, remainder: true)     // LD files
+                        .join(prep_ld_files_inbred.out.finemap_ROI, remainder: true)    // LD files
+                        .join(prep_ld_files_loco.out.finemap_LD, remainder: true)       // LD files
+                        .join(prep_ld_files_loco.out.finemap_ROI, remainder: true)      // LD files
+                        
+                    report_input.combine(Channel.of(null)).combine(Channel.of(null)) | html_report_main
+        //         }  
+        //     } else {
                 // generate main html report
-                peaks_inbred
-                    .combine(peaks_loco)
-                    .combine(traits_to_map) // trait names)
-                    .combine(fix_strain_names_bulk.out.strain_issues) // strain issues file
-                    .combine(collect_eigen_variants.out) // independent tests
-                    .combine(vcf_to_geno_matrix.out) // genotype matrix
+
+                report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
+                    .combine(peaks_inbred)                              // QTL_peaks_inbred.tsv
+                    .combine(peaks_loco)                                // QTL_peaks_inbred.tsv
+                    .combine(fix_strain_names_bulk.out.strain_issues)   // strain_issues.txt
+                    .combine(collect_eigen_variants.out)                // total_independent_tests.txt
+                    .combine(vcf_to_geno_matrix.out)                    // Genotype_Matrix.tsv
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_main.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_region_template.Rmd"))
                     .combine(Channel.fromPath("${params.bin_dir}/render_markdown.R"))
                     .combine(Channel.fromPath("${params.bin_dir}/NemaScan_Report_algorithm_template.Rmd"))
-                    .combine(Channel.from(med)) // true or false - plot mediaton?
-                    .combine(Channel.from("${params.species}"))
-                    // don't have divergent files, so make them fake lol
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .combine(Channel.from("${params.species}")).combine(Channel.from("${params.species}"))
-                    .combine(Channel.from("${params.species}"))
-                    .join(gcta_intervals_maps.out.for_html, by: 2) // processed mapping data
-                    .join(gcta_fine_maps.out.finemap_html_inbred, remainder: true) // fine mapping data
-                    .join(gcta_fine_maps.out.finemap_html_loco, remainder: true)
-                    .join(prep_ld_files.out.finemap_LD_inbred, remainder: true)
-                    .join(prep_ld_files.out.finemap_LD_loco, remainder: true) | html_report_main // more finemap data prep
+                    .combine(Channel.of(med))                           // val(true|false) - plot mediaton?
+                    .combine(Channel.of("${params.species}"))           // val(species)
+                    .combine(Channel.of(null)).combine(Channel.of(null))  // dummy files for divergent_and_haplotype
+                    .combine(Channel.of(null)).combine(Channel.of(null))  // dummy files for divergent_and_haplotype
+                    .combine(Channel.of(null)).combine(Channel.of(null))  // dummy files for divergent_and_haplotype
+                    .combine(Channel.of(null)).combine(Channel.of(null))  // dummy files for divergent_and_haplotype
+                    .join(gcta_intervals_maps.out.for_html)             // *AGGREGATE_mapping_inbred.tsv *AGGREGATE_mapping_loco.tsv
+                    .join(gcta_fine_maps.out.finemap_GWA_inbred, remainder: true)   // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_df_inbred, remainder: true)    // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_genes_inbred, remainder: true) // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_GWA_loco, remainder: true)     // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_df_loco, remainder: true)      // fine mapping data
+                    .join(gcta_fine_maps.out.finemap_genes_loco, remainder: true)   // fine mapping data
+                    .join(prep_ld_files_inbred.out.finemap_LD, remainder: true)     // LD files
+                    .join(prep_ld_files_inbred.out.finemap_ROI, remainder: true)    // LD files
+                    .join(prep_ld_files_loco.out.finemap_LD, remainder: true)       // LD files
+                    .join(prep_ld_files_loco.out.finemap_ROI, remainder: true)      // LD files
+                    
+                report_input.combine(Channel.of(null)).combine(Channel.of(null)) | html_report_main
             }
         }
     
@@ -537,7 +551,7 @@ workflow {
         Channel.fromPath("${params.strains}")
             .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
             .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_alt.R"))
-            .combine(Channel.from("${params.fix}")) | fix_strain_names_alt
+            .combine(Channel.of("${params.fix}")) | fix_strain_names_alt
         
         pheno_strains = fix_strain_names_alt.out.phenotyped_strains_to_analyze
 
@@ -556,7 +570,7 @@ workflow {
             .combine(Channel.fromPath("${params.data_dir}/${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
-        contigs = Channel.from([1, 2, 3, 4, 5, 6])
+        contigs = Channel.of([1, 2, 3, 4, 5, 6])
         contigs.combine(prepare_simulation_files.out.sim_geno)
             .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
 
@@ -571,7 +585,7 @@ workflow {
                 .combine(Channel.fromPath("${params.data_dir}/${params.simulate_nqtl}").splitCsv())
                 .combine(Channel.fromPath("${params.data_dir}/${params.simulate_qtlloc}"))
                 .combine(Channel.fromPath("${params.data_dir}/${params.simulate_eff}").splitCsv())
-                .combine(Channel.from(1..params.simulate_reps))
+                .combine(Channel.of(1..params.simulate_reps))
                 .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_loc
 
             sim_phen_inputs = simulate_effects_loc.out
@@ -581,7 +595,7 @@ workflow {
             collect_eigen_variants_sims.out
                 .combine(Channel.fromPath("${params.data_dir}/${params.simulate_nqtl}").splitCsv())
                 .combine(Channel.fromPath("${params.data_dir}/${params.simulate_eff}").splitCsv())
-                .combine(Channel.from(1..params.simulate_reps))
+                .combine(Channel.of(1..params.simulate_reps))
                 .combine(Channel.fromPath("${params.bin_dir}/create_causal_QTLs.R")) | simulate_effects_genome
 
             sim_phen_inputs = simulate_effects_genome.out
@@ -594,9 +608,9 @@ workflow {
 
         // simulation mappings
         simulate_map_phenotypes.out.gcta_intervals
-            .combine(Channel.from("${params.sthresh}"))
-            .combine(Channel.from("${params.group_qtl}"))
-            .combine(Channel.from("${params.ci_size}")) 
+            .combine(Channel.of("${params.sthresh}"))
+            .combine(Channel.of("${params.group_qtl}"))
+            .combine(Channel.of("${params.ci_size}")) 
             .combine(Channel.fromPath("${params.bin_dir}/Aggregate_Mappings.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals.R"))
             .combine(Channel.fromPath("${params.bin_dir}/Find_GCTA_Intervals.R"))
@@ -649,6 +663,6 @@ workflow.onComplete {
     Result Directory                        = ${params.out}
     """
 
-    println summary
+    // println summary
 
 }
