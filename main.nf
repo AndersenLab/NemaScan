@@ -451,7 +451,7 @@ workflow {
                 if(med) {
                     // generate main html report
 
-                    report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
+                    traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
                         .combine(peaks_inbred)                              // QTL_peaks_inbred.tsv
                         .combine(peaks_loco)                                // QTL_peaks_inbred.tsv
                         .combine(fix_strain_names_bulk.out.strain_issues)   // strain_issues.txt
@@ -476,9 +476,9 @@ workflow {
                         .join(prep_ld_files_inbred.out.finemap_ROI, remainder: true)    // LD files
                         .join(prep_ld_files_loco.out.finemap_LD, remainder: true)       // LD files
                         .join(prep_ld_files_loco.out.finemap_ROI, remainder: true)      // LD files
-                        .join(summary_mediation.out.final_mediation_inbred, by:2, remainder: true)
-                        .join(summary_mediation.out.final_mediation_loco, by:2, remainder: true) | html_report_main
-        //         } else {
+                        .join(summary_mediation.out.final_mediation_inbred, remainder: true)
+                        .join(summary_mediation.out.final_mediation_loco, remainder: true) | html_report_main
+                } else {
                     // generate main html report
 
                     report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
@@ -508,8 +508,8 @@ workflow {
                         .join(prep_ld_files_loco.out.finemap_ROI, remainder: true)      // LD files
                         
                     report_input.combine(Channel.of(null)).combine(Channel.of(null)) | html_report_main
-        //         }  
-        //     } else {
+                }  
+            } else {
                 // generate main html report
 
                 report_input = traits_to_map                           // [[t1, t1.tsv], [t2, t2.tsv], ..., [tN, tN.tsv]]
@@ -570,7 +570,7 @@ workflow {
             .combine(Channel.fromPath("${params.data_dir}/${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
-        contigs = Channel.of([1, 2, 3, 4, 5, 6])
+        contigs = Channel.of(1, 2, 3, 4, 5, 6)
         contigs.combine(prepare_simulation_files.out.sim_geno)
             .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants_sims
 

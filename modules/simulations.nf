@@ -84,7 +84,19 @@ process chrom_eigen_variants_sims {
     label "ml"
 
     input:
-        tuple val(CHROM), val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), val(MAF), file(get_genomatrix_eigen)
+        tuple val(CHROM), \
+        val(strain_set), \
+        val(strains), \
+        file(bed), \
+        file(bim), \
+        file(fam), \
+        file(map), \
+        file(sex), \
+        file(ped), \
+        file(log), \
+        file(geno), \
+        val(MAF), \
+        file(get_genomatrix_eigen)
 
     output:
         tuple val(strain_set), val(strains), val(MAF), file(bed), file(bim), file(fam), file(map), file(sex), file(ped), file(log), file(geno), emit: sim_geno_meta
@@ -202,8 +214,10 @@ process simulate_map_phenotypes {
          --simu-causal-loci ${loci} \\
          --simu-hsq ${H2} \\
          --simu-rep 1 \\
+         --autosome-num 6 \\
          --thread-num ${task.cpus} \\
          --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims
+    echo "a"
     plink --bfile TO_SIMS \\
         --make-bed \\
         --snps-only \\
@@ -215,19 +229,23 @@ process simulate_map_phenotypes {
         --out TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
         --allow-extra-chr \\
         --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
+    echo "b"
     gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
             --autosome --maf ${MAF} --make-grm \\
             --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
             --thread-num ${task.cpus}
+    echo "c"
     gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
             --autosome --maf ${MAF} --make-grm-inbred \\
             --out TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
             --thread-num ${task.cpus}
+    echo "d"
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
             --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
             --reml --out check_vp \\
             --thread-num ${task.cpus}
     
+    echo "e"
     python ${check_vp} --check_vp check_vp.hsq --simulated_phenos ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen 
 
     if [[ -f "new_phenos.temp" ]]
@@ -236,14 +254,17 @@ process simulate_map_phenotypes {
         mv new_phenos.temp ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
     fi
 
+    echo "f"
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
            --thread-num ${task.cpus}
+    echo "g"
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm \\
            --pca 1 \\
            --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
            --thread-num ${task.cpus}
+    echo "h"
     gcta64 --mlma-loco \\
            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
@@ -251,6 +272,7 @@ process simulate_map_phenotypes {
            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
            --maf ${MAF} \\
            --thread-num ${task.cpus}
+    echo "i"
     gcta64 --mlma-loco \\
            --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
            --grm ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm \\
@@ -259,15 +281,18 @@ process simulate_map_phenotypes {
            --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
            --maf ${MAF} \\
            --thread-num ${task.cpus}
+    echo "j"
 
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
           --make-bK-sparse ${params.sparse_cut} \\
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --thread-num ${task.cpus}
+    echo "k"
     gcta64 --grm TO_SIMS_${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_gcta_grm_inbred \\
           --pca 1 \\
           --out ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --thread-num ${task.cpus}
+    echo "l"
     gcta64 --fastGWA-lmm-exact \\
           --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
@@ -275,6 +300,7 @@ process simulate_map_phenotypes {
           --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen \\
           --maf ${MAF} \\
           --thread-num ${task.cpus}
+    echo "m"
     gcta64 --fastGWA-lmm-exact \\
           --grm-sparse ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred \\
           --qcovar ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sparse_grm_inbred.eigenvec \\
