@@ -221,7 +221,7 @@ O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~
     log.info "Optional arguments:"
     log.info "--simulate_reps          String                The number of replicates to simulate per number of QTL and heritability (Default: 2)"
     log.info "--simulate_maf           File                  A CSV file where each line is a minor allele frequency threshold to test for simulations (Default: input_data/all_species/simulate_maf.csv)"
-    log.info "--simulate_eff           File                  A CSV file where each line is an effect size to test for simulations (Default: input_data/all_species/simulate_effect_sizes.csv)"
+    log.info "--simulate_eff           File                  A CSV file where each line is an effect size range (e.g. 0.2-0.3) to test for simulations (Default: input_data/all_species/simulate_effect_sizes.csv)"
     log.info "--simulate_strains       File                  A TSV file with two columns: the first is a name for the strain set and the second is a comma-separated strain list without spaces (Default: input_data/all_species/simulate_strains.csv)"
     log.info "--simulate_qtlloc        File                  A BED file with three columns: chromosome name (numeric 1-6), start postion, end postion. The genomic range specified is where markers will be pulled from to simulate QTL (Default: null [which defaults to using the whole genome to randomly simulate a QTL])"
     log.info "----------------------------------------------------------------"
