@@ -86,6 +86,7 @@ if(params.debug) {
     impute_file = "20231213 - CaeNDR"
     download_vcf = true
 } else {
+    download_vcf = false
     // Check that params.vcf is valid
     if("${params.vcf}" == "20231213" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20210901" || "${params.vcf}" == "20210803") {
         // if("${params.vcf}" in ["20210121", "20200815", "20180527", "20170531", "20210901"]) {
@@ -604,7 +605,7 @@ workflow {
 
         sim_phen_inputs
             .combine(Channel.fromPath("${params.data_dir}/${params.simulate_h2}").splitCsv()) 
-            .combine(Channel.fromPath("${params.data_dir}/${params.bin_dir}/check_vp.py")) | simulate_map_phenotypes
+            .combine(Channel.fromPath("${params.bin_dir}/check_vp.py")) | simulate_map_phenotypes
 
         // simulation mappings
         simulate_map_phenotypes.out.gcta_intervals

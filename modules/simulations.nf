@@ -228,6 +228,7 @@ process simulate_map_phenotypes {
         --recode \\
         --out TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
         --allow-extra-chr \\
+        --allow-no-sex \\
         --pheno ${NQTL}_${SIMREP}_${H2}_${MAF}_${effect_range}_${strain_set}_sims.phen
     echo "b"
     gcta64 --bfile TO_SIMS_${NQTL}_${SIMREP}_${MAF}_${effect_range}_${strain_set} \\
