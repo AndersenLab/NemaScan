@@ -2,7 +2,7 @@
 
 if( !nextflow.version.matches('>23.0') ) {
     println "This workflow requires Nextflow version 23.0 or greater -- You are running version $nextflow.version"
-    if ( !params.matches("Local") ) {
+    if ( !params.matches("Local")) {
         println "On ${params.platform}, you can use `module load python/${params.anaconda}; source activate ${params.softwareDir}/conda_envs/nf23_env`"
     } else {
         println "Locally, you can create and activate a conda environment with 'nextflow>=23.0'"
@@ -156,9 +156,9 @@ if(params.debug) {
             if(params.species == "c_elegans") {
                 default_date = "20231213"
             } else if(params.species == "c_briggsae") {
-                default_date = "20231213"
+                default_date = "20240129"
             } else {
-                default_date = "20231213"
+                default_date = "20231201"
             }
 
             // this does not work for another species...
