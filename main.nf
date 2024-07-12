@@ -131,7 +131,7 @@ if(params.debug) {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
             ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
         } else {
-            ann_file = Channel.fromPath("${parms.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
         }
     } else {
         // check that vcf file exists, if it does, use it. If not, throw error
@@ -433,7 +433,8 @@ workflow {
                 .combine(ann_file)
                 .combine(Channel.fromPath("${params.genes}"))
                 .combine(Channel.fromPath("${params.bin_dir}/Finemap_QTL_Intervals.R"))
-                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R")) | gcta_fine_maps
+                .combine(Channel.fromPath("${params.bin_dir}/plot_genes.R"))
+                .combine(Channel.of("${params.species}")) | gcta_fine_maps
 
 
             // divergent regions and haplotypes

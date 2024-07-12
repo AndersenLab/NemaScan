@@ -225,6 +225,9 @@ process_phenotypes <- function(df,
     # get strain isotypes
     strain_isotypes_db <- data.table::fread(args[3])
     # identify strains that were phenotyped, but are not part of an isotype
+    strains_in <- df$strain %in% strain_isotypes_db$strain
+    message(glue::glue("{df$strain} "))
+    message(glue::glue("{strains_in} "))
     non_isotype_strains <- dplyr::filter(df,
                                          !(strain %in% c(strain_isotypes_db$strain, "PD1074")),
                                          !(strain %in% strain_isotypes_db$isotype))
@@ -233,7 +236,7 @@ process_phenotypes <- function(df,
         
         strains_to_remove <- unique(non_isotype_strains$strain)
         
-        message(glue::glue("WARNING: Removing strain(s) {strains_to_remove} because they do not fall into a defined isotype."))
+        message(glue::glue("WARNING: Removing strain(s) {strains_to_remove} because they do not fall into a defined isotype.\n"))
         
         df_non_isotypes_removed <- dplyr::filter( df, !( strain %in% strains_to_remove) )
     } else {
@@ -271,7 +274,7 @@ process_phenotypes <- function(df,
             fix <- df %>%
                 dplyr::mutate(strain = isotype) %>%
                 dplyr::select(-ref_strain, -num)
-            message(glue::glue("WARNING: Non-isotype reference strain {df$strain[1]} renamed to isotype {i}."))
+            message(glue::glue("WARNING: Non-isotype reference strain {df$strain[1]} renamed to isotype {i}.\n"))
         } else {
             # remove non-isotype strains
             fix <- df %>%
@@ -280,10 +283,10 @@ process_phenotypes <- function(df,
             
             # warn the user
             if(sum(df$ref_strain) > 0) {
-                message(glue::glue("WARNING: Non-isotype reference strain(s) {paste(df %>% dplyr::filter(!ref_strain) %>% dplyr::pull(strain) %>% unique(), collapse = ', ')} from isotype group {i} removed."))
+                message(glue::glue("WARNING: Non-isotype reference strain(s) {paste(df %>% dplyr::filter(!ref_strain) %>% dplyr::pull(strain) %>% unique(), collapse = ', ')} from isotype group {i} removed.\n"))
             } 
             else {
-                message(glue::glue("WARNING: Non-isotype reference strain(s) {paste(df %>% dplyr::filter(!ref_strain) %>% dplyr::pull(strain) %>% unique(), collapse = ', ')} from isotype group {i} removed. To include this isotype in the analysis, you can (1) phenotype {i} or (2) evaluate the similarity of these strains and choose one representative for the group."))
+                message(glue::glue("WARNING: Non-isotype reference strain(s) {paste(df %>% dplyr::filter(!ref_strain) %>% dplyr::pull(strain) %>% unique(), collapse = ', ')} from isotype group {i} removed. To include this isotype in the analysis, you can (1) phenotype {i} or (2) evaluate the similarity of these strains and choose one representative for the group.\n"))
             }
         }
         # add to data

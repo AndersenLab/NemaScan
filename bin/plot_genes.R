@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 library(dplyr)
+library(tibble)
 library(tidyr)
 library(ggplot2)
 library(stringr)
@@ -12,6 +13,8 @@ library(purrr)
 # 2 = phenotype file
 # 3 = gene file
 # 4 = annotation file
+# 5 = algorithm
+# 6 = species
 
 args <- commandArgs(trailingOnly = TRUE)
 
@@ -52,6 +55,8 @@ query_regions <- pr_trait_ld %>%
 
 query_regions
 
+# query_regions == CHROM, start_pos, end_pos
+
 # update 20210330 KSE: use impute vcf for genotypes and hard vcf annotation file for annotations
 # this could be bcsq or snpeff
 annotations <- data.table::fread(args[4])
@@ -63,6 +68,8 @@ if("CONSEQUENCE" %in% names(annotations)) {
     ann_type <- "snpeff"
 }
 
+species = args[6]
+
 # do this for each QTL separately, then combine
 annotation_out <- list()
 for(r in 1:nrow(query_regions)){
@@ -70,6 +77,8 @@ for(r in 1:nrow(query_regions)){
     sq <- query_regions$start_pos[r]
     eq <- query_regions$end_pos[r]
     
+
+
 
 # a function to check how many strains in the mapping set are in the column "Strains" of the annotation file 
 
@@ -93,6 +102,8 @@ for(r in 1:nrow(query_regions)){
       dplyr::select(CHROM=CHR,POS,strains_used=strains) %>% 
       dplyr::distinct()  
     
+# strain_list == CHROM, POS, strains_used
+
 # count and filter
     annotations_region <- annotations %>%
       dplyr::filter(CHROM == cq,
@@ -115,7 +126,6 @@ for(r in 1:nrow(query_regions)){
       }%>%
       tidyr::unite(marker, CHROM, POS, sep = "_")
     
-
     # pull variants from finemap impute -- don't need this?
     # impute_vcf <- data.table::fread(args[4]) %>%
     #     dplyr::select(marker:POS, REF:strains)
@@ -142,7 +152,12 @@ for(r in 1:nrow(query_regions)){
 }
 
 # combine annotations for regions
-annotation_df <- dplyr::bind_rows(annotation_out) %>%
+annotation_out = dplyr::bind_rows(annotation_out)
+if(ann_type == "bcsq" && species != "c_elegans") {
+    annotation_out = tibble::add_column(annotation_out, dplyr::select(annotation_out, GENE) %>% dplyr::rename(WORMBASE_ID = GENE))
+}
+
+annotation_df <- annotation_out %>%
     dplyr::left_join(pr_trait_ld, ., by = c("marker", "REF", "ALT")) %>% {
         if(ann_type == "bcsq") dplyr::rename(., gene_id = WORMBASE_ID) else dplyr::select(., -gene_name)
     }
@@ -186,7 +201,7 @@ tidy_genes_in_region <- if(ann_type == "bcsq") {
  #         path = glue::glue("{analysis_trait}_{cq}_{sq}-{eq}_{ann_type}_genes_{args[5]}.tsv"))
 
 write_tsv(tidy_genes_in_region,
-          path = glue::glue("{analysis_trait}_{cq}_{output_sq}-{output_eq}_{ann_type}_genes_{args[5]}.tsv"))
+          file = glue::glue("{analysis_trait}_{cq}_{output_sq}-{output_eq}_{ann_type}_genes_{args[5]}.tsv"))
 
 
 for(r in 1:length(unique(ugly_genes_in_region$start_pos))){

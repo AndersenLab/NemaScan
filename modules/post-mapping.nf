@@ -204,7 +204,7 @@ process gcta_fine_maps {
               file(formatted_traits), file(trait_bed), file(trait_bim), file(trait_fam), \
               file(trait_map), file(trait_nosex), file(trait_ped), file(grm_bin), file(grm_id), \
               file(grm_nbin), file(grm_bin_inbred), file(grm_id_inbred), \
-              file(annotation), file(genefile), file(finemap_qtl_intervals), file(plot_genes)
+              file(annotation), file(genefile), file(finemap_qtl_intervals), file(plot_genes), val(species)
 
     output:
         tuple file("*.fastGWA"), val(TRAIT), file("*.prLD_df*.tsv"), file("*.pdf"), file("*_genes*.tsv"), val(algorithm)
@@ -248,7 +248,7 @@ process gcta_fine_maps {
         
         Rscript --vanilla ${finemap_qtl_intervals} ${TRAIT}.\$chr.\$start.\$stop.finemap_inbred.${algorithm}.fastGWA \$i ${TRAIT}.\$chr.\$start.\$stop.LD_${algorithm}.tsv ${algorithm}
         
-        Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm}
+        Rscript --vanilla ${plot_genes} ${TRAIT}.\$chr.\$start.\$stop.prLD_df_${algorithm}.tsv ${pheno} ${genefile} ${annotation} ${algorithm} ${species}
     done
     """
 }
