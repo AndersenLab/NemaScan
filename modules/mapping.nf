@@ -112,14 +112,7 @@ process gcta_lmm_exact_mapping {
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
+           --thread-num ${task.cpus}\
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -136,13 +129,6 @@ process gcta_lmm_exact_mapping {
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm_inbred \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
            --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm_inbred \\
@@ -184,24 +170,10 @@ process gcta_lmm_exact_mapping_nopca {
            --pheno ${traits} \\
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
-    gcta64 --mlma-loco \\
-           --grm ${TRAIT}_sparse_grm \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
 
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm_inbred \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
            --thread-num ${task.cpus}
     gcta64 --fastGWA-lmm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm_inbred \\
@@ -222,7 +194,7 @@ process gcta_intervals_maps {
     publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*_loco.tsv" 
 
     input:
-        tuple val(TRAIT), file(pheno), file(tests), file(geno), val(P3D), val(sig_thresh), \
+        tuple val(TRAIT), file(pheno), file(tests), file(geno), val(sig_thresh), \
               val(qtl_grouping_size), val(qtl_ci_size), file(lmmexact_inbred), file(lmmexact_loco), \
               file(find_aggregate_intervals_maps)
 

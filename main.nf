@@ -167,10 +167,9 @@ if(params.debug) {
     }
 }
 
-if (params.matrix || params.mapping){
-    simulation = false
-} else {
-    simulation = true
+if (!params.matrix && !params.mapping && !params.simulation){
+    log.info "At least one running mode must be set to true (mapping, matrix, or simulation)"
+    exit 1
 }
 
 
@@ -178,11 +177,11 @@ if (params.help) {
     log.info '''
 O~~~     O~~                                      O~ O~~
 O~ O~~   O~~                                    O~~    O~~
-O~~ O~~  O~~    O~~   O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
-O~~  O~~ O~~  O~   O~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
-O~~   O~ O~~ O~~~~~ O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
-O~~    O~O~~ O~        O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
-O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~~  O~~
+O~~ O~~  O~~    O~~  O~~~ O~~ O~~     O~~       O~~          O~~~    O~~    O~~~ O~~
+O~~  O~~ O~~  O~   O~ O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~  O~~  O~~
+O~~   O~ O~~ O~~~~~O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~  O~~  O~~
+O~~    O~O~~ O~       O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~  O~~  O~~
+O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~  O~~
     '''
     log.info "----------------------------------------------------------------"
     log.info "                      USAGE                                     "
@@ -192,82 +191,104 @@ O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~
     log.info "nextflow main.nf --traitfile input_data/${params.species}/phenotypes/PC1.tsv --vcf 20231213"
     log.info ""
     log.info "Profiles available:"
-    log.info "standard              Profile                Perform selected analysis on Rockfish (default simulation)"
-    log.info "rockfish              Profile                Perform selected analysis on Rockfish (default simulation)"
-    log.info "quest                 Profile                Perform selected analysis on QUEST (default simulation)"
+    log.info "standard              Profile                Perform selected analysis on Rockfish (default GWA mapping)"
+    log.info "rockfish              Profile                Perform selected analysis on Rockfish (default GWA mapping)"
+    log.info "quest                 Profile                Perform selected analysis on QUEST (default GWA mapping)"
     log.info "gcp                   Profile                Perform selected analysis on GCP (default GWA mappings)"
     log.info "local                 Profile                Perform selected analysis using docker on local machine"
-    log.info "----------------------------------------------------------------"
-    log.info "Optional arguments (General):"
-    log.info "--out                    String                Name of folder that will contain the results"
-    log.info "Optional arguments (Marker):"
-    log.info "--sthresh                String                Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
-    log.info "--group_qtl              Integer               If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
-    log.info "--ci_size                Integer               Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)"
-    log.info ""    
-    log.info "Information describing the stucture of the input files can be located in input_files/README.txt"
     log.info ""
-    log.info "Flags:"
-    log.info "--help                                      Display this message"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "             for simulation (default)"
-    log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20231213"
-    log.info "----------------------------------------------------------------"
-    log.info "Mandatory arguments:"
-    log.info "--simulate_nqtl          File.                 A CSV file with the number of QTL to simulate per phenotype, one value per line (Default is located: input_data/all_species/simulate_nqtl.csv)"
-    log.info "--simulate_h2            File                  A CSV file with phenotype heritability, one value per line (Default is located: input_data/all_species/simulate_h2.csv)"
-    log.info "Optional arguments:"
-    log.info "--simulate_reps          String                The number of replicates to simulate per number of QTL and heritability (Default: 2)"
-    log.info "--simulate_maf           File                  A CSV file where each line is a minor allele frequency threshold to test for simulations (Default: input_data/all_species/simulate_maf.csv)"
-    log.info "--simulate_eff           File                  A CSV file where each line is an effect size range (e.g. 0.2-0.3) to test for simulations (Default: input_data/all_species/simulate_effect_sizes.csv)"
-    log.info "--simulate_strains       File                  A TSV file with two columns: the first is a name for the strain set and the second is a comma-separated strain list without spaces (Default: input_data/all_species/simulate_strains.csv)"
-    log.info "--simulate_qtlloc        File                  A BED file with three columns: chromosome name (numeric 1-6), start postion, end postion. The genomic range specified is where markers will be pulled from to simulate QTL (Default: null [which defaults to using the whole genome to randomly simulate a QTL])"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
+    log.info "Mandatory argument (General):"
+    log.info "--traitfile             File                 Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
+    log.info ""
+    log.info "Optional arguments (General):"
+    log.info "--vcf                   String               Generally a CaeNDR release date (i.e. 20231213). Can also provide a user-specified VCF with index in same folder. (Default: 20231213)"
+    log.info "--download_vcf          Bool                 Fetch VCF files from CaeNDR (Default: false)"
+    log.info "--species               String               Which species analysis is on, c_elegans, c_briggsae, or c_tropicalis (Default: c_elegans)"
+    log.info "--mapping               Bool                 Whether or not to run GWAS mapping (Default: true)"
+    log.info "--matrix                Bool                 Whether or not to create genotype matrix (Default: false)"
+    log.info "--simulation            Bool                 Whether or not to run GWAS mapping (Default: false)"
+    log.info "--out                   String               Name of folder that will contain the results (Default: Analysis_Results-{date})"
+    log.info ""
+    log.info "-----------------------------------------------------------------------------"
     log.info "             for GWAS mappings (--mapping)"
-    log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20231213 --traitfile input_data/${params.species}/phenotypes/PC1.tsv --mapping"
-    log.info "----------------------------------------------------------------"
-    log.info "Mandatory arguments:"
-    log.info "--traitfile              String                Name of file that contains phenotypes. File should be tab-delimited with the columns: strain trait1 trait2 ..."
-    log.info "--vcf                    String                Generally a CaeNDR release date (i.e. 20231213). Can also provide a user-specified VCF with index in same folder."
-    log.info "Optional arguments:"
-    log.info "--MAF, --maf             String                Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
-    log.info "--lmm                    String                Perform GCTA mapping with --fastGWA-lmm algorithm (Default: RUN, option to not run is null)"
-    log.info "--lmm-exact              String                Perform GCTA mapping with --fastGWA-lmm-exact algorithm (Default: RUN, option to not run is null)"
-    log.info "--sparse_cut             String                Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
-    log.info "----------------------------------------------------------------"
-    log.info "----------------------------------------------------------------"
-    log.info "             for vcf to geno matrix (--matrix)"
-    log.info "----------------------------------------------------------------"
-    log.info "nextflow main.nf --vcf 20210121 --matrix"
-    log.info "----------------------------------------------------------------"
+    log.info "-----------------------------------------------------------------------------"
+    log.info "--pca                   Bool                Use PCA as a covariate for mapping (Default: false)"
+    log.info "--finemap               Bool                Perform fine-mapping (Default: true)"
+    log.info "--mediation             Bool                Whether or not to run mediation analysis (Default: false)"
+    log.info "--fix                   Bool                Filter and prune trait values (Default: true)"
+    log.info ""
+    log.info "-----------------------------------------------------------------------------"
+    log.info "             for GWAS mappings (--mapping) or genotype matrix (--matrix)"
+    log.info "-----------------------------------------------------------------------------"
+    log.info "--strains               File                A file (.tsv) that contains a list of strains used for generating the genotype matrix (Default: `input_data/{species}/phenotypes/strain_file.tsv`)"
+    log.info ""
+    log.info "-----------------------------------------------------------------------------"
+    log.info "             for simulation (--simulation)"
+    log.info "-----------------------------------------------------------------------------"
+    log.info "--simulate_nqtl         File                A CSV file with the number of QTL to simulate per phenotype, one value per line (Default is located: input_data/all_species/simulate_nqtl.csv)"
+    log.info "--simulate_h2           File                A CSV file with phenotype heritability, one value per line (Default is located: input_data/all_species/simulate_h2.csv)"
+    log.info "--simulate_reps         Integer             The number of replicates to simulate per number of QTL and heritability (Default: 2)"
+    log.info "--simulate_maf          File                A CSV file where each line is a minor allele frequency threshold to test for simulations (Default: input_data/all_species/simulate_maf.csv)"
+    log.info "--simulate_eff          File                A CSV file where each line is an effect size range (e.g. 0.2-0.3) to test for simulations (Default: input_data/all_species/simulate_effect_sizes.csv)"
+    log.info "--simulate_strains      File                A TSV file with two columns: the first is a name for the strain set and the second is a comma-separated strain list without spaces (Default: input_data/all_species/simulate_strains.csv)"
+    log.info "--simulate_qtlloc       File                A BED file with three columns: chromosome name (numeric 1-6), start postion, end postion. The genomic range specified is where markers will be pulled from to simulate QTL (Default: null [which defaults to using the whole genome to randomly simulate a QTL])"
+    log.info ""
+    log.info "-----------------------------------------------------------------------------"
+    log.info "             for GWAS mappings (--mapping) or simulation (--simulation)"
+    log.info "-----------------------------------------------------------------------------"
+    log.info "--sthresh               String              Significance threshold for QTL - Options: BF - for bonferroni correction, EIGEN - for SNV eigen value correction, or another number e.g. 4"
+    log.info "--group_qtl             Integer             If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)"
+    log.info "--ci_size               Integer             Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)"
+    log.info "--maf                   Decimal             Minimum minor allele frequency to use for single-marker mapping (Default: 0.05)"
+    log.info "--sparse_cut            Decimal             Any off-diagonal value in the genetic relatedness matrix greater than this is set to 0 (Default: 0.05)"
+
+
     exit 1
 } else {
     log.info '''
 O~~~     O~~                                      O~ O~~
 O~ O~~   O~~                                    O~~    O~~
-O~~ O~~  O~~    O~~   O~~~ O~~ O~~     O~~       O~~          O~~~    O~~     O~~ O~~
-O~~  O~~ O~~  O~   O~  O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~   O~~  O~~
-O~~   O~ O~~ O~~~~~ O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~   O~~  O~~
-O~~    O~O~~ O~        O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~   O~~  O~~
-O~~      O~~   O~~~~  O~~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~~  O~~
+O~~ O~~  O~~    O~~  O~~~ O~~ O~~     O~~       O~~          O~~~    O~~    O~~~ O~~
+O~~  O~~ O~~  O~   O~ O~~  O~  O~~  O~~  O~~      O~~      O~~     O~~  O~~  O~~  O~~
+O~~   O~ O~~ O~~~~~O~ O~~  O~  O~~ O~~   O~~         O~~  O~~     O~~   O~~  O~~  O~~
+O~~    O~O~~ O~       O~~  O~  O~~ O~~   O~~   O~~    O~~  O~~    O~~   O~~  O~~  O~~
+O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~  O~~
 '''
-log.info ""
-log.info "Trait File                              = ${params.traitfile}"
-log.info "Strain File                             = ${params.strains}"
-log.info "Species                                 = ${params.species}"
-log.info ""
-log.info "VCF                                     = ${params.vcf}"
-log.info "Impute VCF                              = ${impute_file}"
-log.info ""
-log.info "Significance Threshold                  = ${params.sthresh}"
-log.info "Result Directory                        = ${params.out}"
-log.info "Minor allele frequency                  = ${params.maf}"
-log.info "Mediation run?                          = ${med}"
-log.info ""
+    log.info ""
+    log.info "Trait File                              = ${params.traitfile}"
+    log.info "VCF                                     = ${params.vcf}"
+    log.info "Download VCF                            = ${params.download_vcf}"
+    log.info "Species                                 = ${params.species}"
+    log.info "Mapping run?                            = ${params.mapping}"
+    log.info "Matrix run?                             = ${params.matrix}"
+    log.info "Simulation run?                         = ${params.simulation}"
+    log.info "Output directory                        = ${params.out}"
+    if (params.mapping){
+        log.info "PCA covariate                           = ${params.pca}"
+        log.info "Perform fine-mapping                    = ${params.finemap}"
+        log.info "Mediation run?                          = ${params.mediation}"
+        log.info "Fix traits                              = ${params.fix}"
+    }
+    if (params.mapping || params.matrix){
+        log.info "Strain File                             = ${params.strains}"
+    }
+    if (params.simulation){
+        log.info "Number of QTLs/phenotype simulated      = ${params.simulate_nqtl}"
+        log.info "Phenotype heritability file             = ${params.simulate_h2}"
+        log.info "Number of replicates to simulate        = ${params.simulate_reps}"
+        log.info "Minor allele freq. threshold file       = ${params.simulate_maf}"
+        log.info "Effect size range file                  = ${params.simulate_eff}"
+        log.info "Strain name and list file               = ${params.simulate_strains}"
+        log.info "Genome range file                       = ${params.simulate_qtlloc}"
+    }
+    if (params.simulation || params.mapping){
+        log.info "Significance Threshold                  = ${params.sthresh}"
+        log.info "Window for combining QTLs               = ${params.group_qtl}"
+        log.info "Number of SNVs to define QTL CI         = ${params.ci_size}"
+        log.info "Minor allele frequency                  = ${params.maf}"
+        log.info "Relatedness cutoff                      = ${params.sparse_cut}"
+    }
+    log.info ""
 }
 
 // Includes
@@ -299,10 +320,15 @@ workflow {
     if(params.mapping) {
 
         // Fix strain names
-         Channel.fromPath("${params.traitfile}")
+        if(params.fix) {
+            fix = "fix"
+        } else {
+            fix = "raw"
+        }
+        Channel.fromPath("${params.traitfile}")
                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
-                .combine(Channel.from("${params.fix}")) | fix_strain_names_bulk
+                .combine(Channel.of(fix)) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -336,7 +362,6 @@ workflow {
         traits_to_map
             .combine(collect_eigen_variants.out)
             .combine(vcf_to_geno_matrix.out)
-            .combine(Channel.from("${params.p3d}"))
             .combine(Channel.from("${params.sthresh}"))
             .combine(Channel.from("${params.group_qtl}"))
             .combine(Channel.from("${params.ci_size}"))
@@ -561,7 +586,7 @@ workflow {
                 .combine(pheno_strains) | vcf_to_geno_matrix
 
     }
-    if(simulation) {
+    if(params.simulation) {
 
         // for simulations
         Channel.fromPath("${params.data_dir}/${params.simulate_strains}")
@@ -651,18 +676,42 @@ workflow.onComplete {
     exit status : ${workflow.exitStatus}
     Error report: ${workflow.errorReport ?: '-'}
     Git info: $workflow.repository - $workflow.revision [$workflow.commitId]
+
     { Parameters }
     ---------------------------
     Phenotype File                          = ${params.traitfile}
     VCF                                     = ${params.vcf}
+    VCF downloaded                          = ${params.download_vcf}
+    Species                                 = ${params.species}
+    Mapping                                 = ${params.mapping}
+    Matrix                                  = ${params.matrix}
+    Simulation                              = ${params.simulate}
+    Result Directory                        = ${params.out}
+
+    -------Mapping only--------
+    PCA                                     = ${params.pca}
+    Finemap                                 = ${params.finemap}
+    Mediation                               = ${med}
+    Fix                                     = ${params.fix}
+
+    ------Mapping & Matrix-----
+    Strains                                 = ${params.strains}
+
+    -----Simulation only-------
+    Number of simulated QTLs                = ${params.simulate_nqtl}
+    Phenotype Heritability File             = ${params.simulate_h2}
+    Number of simulation replicates         = ${params.simulate_reps}
+    MAF Threshold File                      = ${params.simulate_maf}
+    Effect Size Range File                  = ${params.simulate_eff}
+    Strain Name and List File               = ${params.simulate_strains}
+    Marker Genomic Range File               = ${params.simulate_qtlloc}
+
+    ----Mapping & Simulation---
     Significance Threshold                  = ${params.sthresh}
-    P3D                                     = ${params.p3d}
     Threshold for grouping QTL              = ${params.group_qtl}
     Number of SNVs to define CI             = ${params.ci_size}
-    Mapping                                 = ${params.mapping}
-    Simulation                              = ${params.simulate}
-    Simulate QTL effects                    = ${params.simulate_qtlloc}
-    Result Directory                        = ${params.out}
+    Minor Allele Frequency                  = ${params.maf}
+    Relatedness Matrix Cutoff               = ${params.sparse_cut}
     """
 
     // println summary

@@ -1,9 +1,9 @@
 FROM continuumio/miniconda
 MAINTAINER Katie Evans <kathryn.evans@northwestern.edu>
 
-COPY conda.yml .
+COPY nemascan_conda.yml .
 RUN \
-   conda env update -n root -f conda.yml \
+   conda env update -n root -f nemascan_conda.yml \
 && conda clean -a
 
 RUN Rscript -e "install.packages('valr', dependencies=TRUE, repos='http://cran.us.r-project.org')"

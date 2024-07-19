@@ -1,0 +1,13 @@
+name: base
+channels:
+  - defaults
+  - bioconda
+  - r
+  - biobuilds
+  - conda-forge
+dependencies:
+  - plink=1.90b6.12
+  - gcta
+  - bcftools
+  - tabix
+  - gsl==2.5
