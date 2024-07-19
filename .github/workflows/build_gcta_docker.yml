@@ -1,0 +1,34 @@
+# Build dockerfile on change
+name: Build Docker (env/gcta.Dockerfile)
+
+on:
+  push:
+    paths:
+    - 'env/gcta.Dockerfile'
+    - 'env/gcta_conda.yml'
+    - '.github/workflows/build_gcta_docker.yml'
+  pull_request:
+    paths:
+    - 'env/gcta.Dockerfile'
+    - 'env/gcta_conda.yml'
+    - '.github/workflows/build_gcta_docker.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Build Tools
+    - name: Build and Publish
+      uses: elgohr/Publish-Docker-Github-Action@master
+      with:
+        name: andersenlab/gcta
+        tag: "${{ steps.current-time.formattedTime }}"
+        username: ${{ secrets.KSE_DOCKER_USER }}
+        password: ${{ secrets.KSE_DOCKER_PASS }}
+        snapshot: true
+        dockerfile: gcta.Dockerfile
+        workdir: "env"
+        tags: "latest"
+        cache: true
