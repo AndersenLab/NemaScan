@@ -14,7 +14,7 @@
 
 process prepare_gcta_files {
 
-    label "ml"
+    label "lg"
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -155,7 +155,8 @@ process gcta_lmm_exact_mapping_nopca {
     file(grm_bin_inbred), file(grm_id_inbred)
 
     output:
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
+    //tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact.loco.mlma")
 
 
     """
@@ -171,17 +172,17 @@ process gcta_lmm_exact_mapping_nopca {
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
 
-    gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
-           --make-bK-sparse ${params.sparse_cut} \\
-           --out ${TRAIT}_sparse_grm_inbred \\
-           --thread-num ${task.cpus}
-    gcta64 --fastGWA-lmm-exact \\
-           --grm-sparse ${TRAIT}_sparse_grm_inbred \\
-           --bfile ${TRAIT} \\
-           --out ${TRAIT}_lmm-exact_inbred \\
-           --pheno ${traits} \\
-           --maf ${params.maf} \\
-           --thread-num ${task.cpus}
+    #gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
+    #       --make-bK-sparse ${params.sparse_cut} \\
+    #       --out ${TRAIT}_sparse_grm_inbred \\
+    #       --thread-num ${task.cpus}
+    #gcta64 --fastGWA-lmm-exact \\
+    #       --grm-sparse ${TRAIT}_sparse_grm_inbred \\
+    #       --bfile ${TRAIT} \\
+    #       --out ${TRAIT}_lmm-exact_inbred \\
+    #       --pheno ${traits} \\
+    #       --maf ${params.maf} \\
+    #       --thread-num ${task.cpus}
     """
 }
 
