@@ -358,76 +358,76 @@ workflow {
                 .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping_nopca
         }
         
-        // // process GWAS mapping
-        // traits_to_map
-        //     .combine(collect_eigen_variants.out)
-        //     .combine(vcf_to_geno_matrix.out)
-        //     .combine(Channel.from("${params.sthresh}"))
-        //     .combine(Channel.from("${params.group_qtl}"))
-        //     .combine(Channel.from("${params.ci_size}"))
-        //     .join(mapping_output)
-        //     .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
+        // process GWAS mapping
+        traits_to_map
+            .combine(collect_eigen_variants.out)
+            .combine(vcf_to_geno_matrix.out)
+            .combine(Channel.from("${params.sthresh}"))
+            .combine(Channel.from("${params.group_qtl}"))
+            .combine(Channel.from("${params.ci_size}"))
+            .join(mapping_output)
+            .combine(Channel.fromPath("${params.bin_dir}/Find_Aggregate_Intervals_Maps.R")) | gcta_intervals_maps
 
-        // // plot
-        // gcta_intervals_maps.out.maps_to_plot
-        //     .combine(Channel.fromPath("${params.bin_dir}/pipeline.plotting.mod.R")) | generate_plots 
+        // plot
+        gcta_intervals_maps.out.maps_to_plot
+            .combine(Channel.fromPath("${params.bin_dir}/pipeline.plotting.mod.R")) | generate_plots 
 
-        // // LD b/w regions
-        // gcta_intervals_maps.out.maps_to_plot
-        //     .combine(Channel.fromPath("${params.bin_dir}/LD_between_regions.R")) | LD_between_regions
+        // LD b/w regions
+        gcta_intervals_maps.out.maps_to_plot
+            .combine(Channel.fromPath("${params.bin_dir}/LD_between_regions.R")) | LD_between_regions
 
-        // // summarize all peaks
-        // peaks_inbred = gcta_intervals_maps.out.qtl_peaks_inbred
-        //     .collectFile(keepHeader: true, name: "QTL_peaks_inbred.tsv", storeDir: "${params.out}/INBRED/Mapping/Processed")
+        // summarize all peaks
+        peaks_inbred = gcta_intervals_maps.out.qtl_peaks_inbred
+            .collectFile(keepHeader: true, name: "QTL_peaks_inbred.tsv", storeDir: "${params.out}/INBRED/Mapping/Processed")
 
-        // peaks_loco = gcta_intervals_maps.out.qtl_peaks_loco
-        //     .collectFile(keepHeader: true, name: "QTL_peaks_loco.tsv", storeDir: "${params.out}/LOCO/Mapping/Processed")
+        peaks_loco = gcta_intervals_maps.out.qtl_peaks_loco
+            .collectFile(keepHeader: true, name: "QTL_peaks_loco.tsv", storeDir: "${params.out}/LOCO/Mapping/Processed")
 
-        // peaks_inbred
-        //     .combine(peaks_loco)
-        //     .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
-        //     .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
+        peaks_inbred
+            .combine(peaks_loco)
+            .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
+            .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
 
-        // // // run mediation with gaotian's eqtl
-        // if(med) {
+        // // run mediation with gaotian's eqtl
+        if(med) {
 
-        //     File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
-        //     transcript_eqtl = transcripteqtl_all.getAbsolutePath()
+            File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
+            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
 
-        //     traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
-        //         .flatten()
-        //         .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
+            traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
+                .flatten()
+                .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
 
-        //     // combine inbred and loco qtl peaks for mediation
-        //     peaks_inbred
-        //         .splitCsv(sep: '\t', skip: 1)
-        //         .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-        //         .combine(Channel.of("inbred"))
-        //         .mix(peaks_loco
-        //             .splitCsv(sep: '\t', skip: 1)
-        //             .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
-        //             .combine(Channel.of("loco")))
-        //         .combine(traits_to_mediate, by: 0)
-        //         .combine(Channel.of(transcript_eqtl))
-        //         .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
+            // combine inbred and loco qtl peaks for mediation
+            peaks_inbred
+                .splitCsv(sep: '\t', skip: 1)
+                .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2 -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                .combine(Channel.of("inbred"))
+                .mix(peaks_loco
+                    .splitCsv(sep: '\t', skip: 1)
+                    .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
+                    .combine(Channel.of("loco")))
+                .combine(traits_to_mediate, by: 0)
+                .combine(Channel.of(transcript_eqtl))
+                .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
-        //     mediation_data.out
-        //         .combine(vcf_to_geno_matrix.out)
-        //         .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
-        //         .combine(Channel.fromPath("${params.bin_dir}/multi_mediation.R")) | multi_mediation
+            mediation_data.out
+                .combine(vcf_to_geno_matrix.out)
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${params.bin_dir}/multi_mediation.R")) | multi_mediation
 
-        //     multi_mediation.out.eQTL_gene
-        //          .splitCsv(sep: '\t')
-        //          .combine(mediation_data.out, by: [0,1,2,3])
-        //          .combine(vcf_to_geno_matrix.out) 
-        //          .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
-        //          .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
+            multi_mediation.out.eQTL_gene
+                 .splitCsv(sep: '\t')
+                 .combine(mediation_data.out, by: [0,1,2,3])
+                 .combine(vcf_to_geno_matrix.out) 
+                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
-        //     multi_mediation.out.result_multi_mediate
-        //         .groupTuple(by: [0,1])
-        //         .join(simple_mediation.out.groupTuple(by: [0,1]), by: [0,1], remainder: true)
-        //         .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R")) | summary_mediation
-        // }
+            multi_mediation.out.result_multi_mediate
+                .groupTuple(by: [0,1])
+                .join(simple_mediation.out.groupTuple(by: [0,1]), by: [0,1], remainder: true)
+                .combine(Channel.fromPath("${params.bin_dir}/summary_mediation.R")) | summary_mediation
+        }
 
 
         // easiest case: don't run finemap, divergent, or html if params.finemap = false
