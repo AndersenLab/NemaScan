@@ -181,7 +181,7 @@ process prep_ld_files {
             sed 's/0\\/1/NA/g' |\\
             sed 's/1\\/0/NA/g' |\\
             sed 's/.\\/./NA/g' |\\
-            sed 's/^23/X/g' > \$trait.\$chromosome:\$start_pos-\$end_pos.ROI_Genotype_Matrix_${algorithm}.tsv
+            sed 's/^23/X/g' > \$trait.\$chromosome.\$start_pos-\$end_pos.ROI_Genotype_Matrix_${algorithm}.tsv
     done < \$filename
     """
 }
@@ -220,9 +220,9 @@ process gcta_fine_maps {
     tail -n +2 ${pheno} | awk 'BEGIN {OFS="\\t"}; {print \$1, \$1, \$2}' > plink_finemap_traits.tsv
     for i in *ROI_Genotype_Matrix_${algorithm}.tsv;
         do
-        chr=`echo \$i | cut -f2 -d "." | cut -f1 -d ":"`
-        start=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f1 -d "-"`
-        stop=`echo \$i | cut -f2 -d "." | cut -f2 -d ":" | cut -f2 -d "-"`
+        chr=`echo \$i | cut -f2 -d "."`
+        start=`echo \$i | cut -f3 -d "." | cut -f1 -d "-"`
+        stop=`echo \$i | cut -f3 -d "." | cut -f2 -d "-"`
         gcta64 --bfile ${TRAIT} \\
                 --autosome \\
                 --maf ${params.maf} \\
