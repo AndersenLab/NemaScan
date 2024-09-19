@@ -167,8 +167,11 @@ if(params.debug) {
     }
 }
 
-if (!params.matrix && !params.mapping && !params.simulation){
-    log.info "At least one running mode must be set to true (mapping, matrix, or simulation)"
+if ((!params.matrix && !params.mapping && !params.simulation) |
+    (params.matrix & params.mapping) |
+    (params.matrix & params.simulation) |
+    (params.mapping & params.simulation)){
+    log.info "One running mode must be set to true (mapping, matrix, or simulation)"
     exit 1
 }
 
