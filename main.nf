@@ -350,7 +350,7 @@ workflow {
             mapping_output = pheno_strains
                 .combine(traits_to_map)
                 .combine(vcf_file.combine(vcf_index))
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm //| gcta_lmm_exact_mapping
+                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
         } else {
             mapping_output = pheno_strains
                 .combine(traits_to_map)

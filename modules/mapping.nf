@@ -156,8 +156,7 @@ process gcta_lmm_exact_mapping_nopca {
 
     output:
     //tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
-    tuple val(TRAIT), file("${TRAIT}_lmm-exact.loco.mlma")
-
+    tuple val(TRAIT), file("${TRAIT}_lmm-exact_inbred.fastGWA"), file("${TRAIT}_lmm-exact.loco.mlma")
 
     """
     gcta64 --grm ${TRAIT}_gcta_grm \\
