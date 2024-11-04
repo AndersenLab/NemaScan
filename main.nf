@@ -103,14 +103,20 @@ if(params.debug) {
     if(params.species == "c_elegans"){
         if(params.vcf == "20160408" || params.vcf == "20170531" || params.vcf == "20180527" || params.vcf == "20200815" || params.vcf == "20210121" || params.vcf == "20220216" || params.vcf == "20230731" || params.vcf == "20231213"){
             valid_date = true
+        } else {
+            valid_date = false
         }
     } else if(params.species == "c_briggsae"){
         if(params.vcf == "20210803" || params.vcf == "20230901" || params.vcf == "20240129"){
             valid_date = true
+        } else {
+            valid_date = false
         }
     } else {
         if(params.vcf == "20210901" || params.vcf == "20230809" || params.vcf == "20231201"){
             valid_date = true
+        } else {
+            valid_date = false
         }
     }
     if (valid_date) {
