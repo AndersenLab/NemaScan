@@ -97,69 +97,67 @@ if(params.debug) {
         impute_file = "20231201 - CaeNDR"
     }
     download_vcf = true
-} else if(file(params.vcf).exists()) {
-    // if it DOES exist
-    println """
-    WARNING: Using a non-CaeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
-    """
-    vcf_file = Channel.fromPath("${params.vcf}")
-    vcf_index = Channel.fromPath("${params.vcf}.tbi")
-
-    impute_file = "${params.vcf}" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.vcf}")
-    impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
-
-    //choose default caendr date based on species for ann_file
-    if(params.species == "c_elegans") {
-        default_date = "20231213"
-    } else if(params.species == "c_briggsae") {
-        default_date = "20240129"
-    } else {
-        default_date = "20231201"
-    }
-
-    // this does not work for another species...
-    ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
 } else {
     download_vcf = false
     // Check that params.vcf is valid
     if(params.species == "c_elegans"){
-        if(params.vcf != "20160408" && params.vcf != "20170531" && params.vcf != "20180527" && params.vcf != "20200815" && params.vcf != "20210121" && params.vcf != "20220216" && params.vcf != "20230731" && params.vcf != "20231213"){
-            println """
-            Error: VCF file (${params.vcf}) does not match species ${params.species}. Please enter a new vcf date or a new species to continue.
-            """
-            System.exit(1)
+        if(params.vcf == "20160408" || params.vcf == "20170531" || params.vcf == "20180527" || params.vcf == "20200815" || params.vcf == "20210121" || params.vcf == "20220216" || params.vcf == "20230731" || params.vcf == "20231213"){
+            valid_date = true
         }
     } else if(params.species == "c_briggsae"){
-        if(params.vcf != "20210803" && params.vcf != "20230901" && params.vcf != "20240129"){
-            println """
-            Error: VCF file (${params.vcf}) does not match species ${params.species}. Please enter a new vcf date or a new species to continue.
-            """
-            System.exit(1)
+        if(params.vcf == "20210803" || params.vcf == "20230901" || params.vcf == "20240129"){
+            valid_date = true
         }
     } else {
-        if(params.vcf != "20210901" && params.vcf != "20230809" && params.vcf != "20231201"){
-            println """
-            Error: VCF file (${params.vcf}) does not match species ${params.species}. Please enter a new vcf date or a new species to continue.
-            """
-            System.exit(1)
+        if(params.vcf == "20210901" || params.vcf == "20230809" || params.vcf == "20231201"){
+            valid_date = true
         }
     }
-    // use the vcf data from ROCKFISH when a caendr date is provided
-    vcf_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+    if (valid_date) {
+        // use the vcf data from ROCKFISH when a caendr date is provided
+        vcf_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+        vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
 
-    impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
-    impute_vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+        impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
+        impute_vcf = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
+        impute_vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
-    // check if caendr release date is before 20210121, use snpeff annotation
-    if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
-        println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
-        ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+        // check if caendr release date is before 20210121, use snpeff annotation
+        if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
+            println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+        } else {
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+        }
+    } else if(file(params.vcf).exists()) {
+        // if it DOES exist
+        println """
+        WARNING: Using a non-CaeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
+        """
+        vcf_file = Channel.fromPath("${params.vcf}")
+        vcf_index = Channel.fromPath("${params.vcf}.tbi")
+
+        impute_file = "${params.vcf}" // just to print out for reference
+        impute_vcf = Channel.fromPath("${params.vcf}")
+        impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
+
+        //choose default caendr date based on species for ann_file
+        if(params.species == "c_elegans") {
+            default_date = "20231213"
+        } else if(params.species == "c_briggsae") {
+            default_date = "20240129"
+        } else {
+            default_date = "20231201"
+        }
+
+        // this does not work for another species...
+        ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
     } else {
-        ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+        println """
+        The vcf file does not appear to exist
+        """
+        System.exit(1) 
     }
 }
 
