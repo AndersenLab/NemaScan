@@ -80,12 +80,12 @@ if(params.debug) {
     download_vcf = false
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from caendr.
-    if(params.species == "c_elegans"){
+    if("${params.species}" == "c_elegans"){
         params.vcf = "20231213"
         vcf_file = "20231213 - CaeNDR"
         vcf_index = "20231213 - CaeNDR"
         impute_file = "20231213 - CaeNDR"
-    } else if (params.species == 'c_briggsae'){
+    } else if ("${params.species}" == 'c_briggsae'){
         params.vcf = "20240129"
         vcf_file = "20240129 - CaeNDR"
         vcf_index = "20240129 - CaeNDR"
@@ -100,20 +100,20 @@ if(params.debug) {
 } else {
     download_vcf = false
     // Check that params.vcf is valid
-    if(params.species == "c_elegans"){
-        if(params.vcf == "20160408" || params.vcf == "20170531" || params.vcf == "20180527" || params.vcf == "20200815" || params.vcf == "20210121" || params.vcf == "20220216" || params.vcf == "20230731" || params.vcf == "20231213"){
+    if("${params.species}" == "c_elegans"){
+        if("${params.vcf}" == "20160408" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20230731" || "${params.vcf}" == "20231213"){
             valid_date = true
         } else {
             valid_date = false
         }
-    } else if(params.species == "c_briggsae"){
-        if(params.vcf == "20210803" || params.vcf == "20230901" || params.vcf == "20240129"){
+    } else if("${params.species}" == "c_briggsae"){
+        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20230901" || "${params.vcf}" == "20240129"){
             valid_date = true
         } else {
             valid_date = false
         }
     } else {
-        if(params.vcf == "20210901" || params.vcf == "20230809" || params.vcf == "20231201"){
+        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20230809" || "${params.vcf}" == "20231201"){
             valid_date = true
         } else {
             valid_date = false
