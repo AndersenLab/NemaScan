@@ -82,9 +82,12 @@ process LD_between_regions {
 
 process prep_ld_files {
 
-    label 'md'
-
     tag {TRAIT}
+    label "prep_ld_files"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 2 * task.attempt }
+    memory = { 8.GB * task.attempt }
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*ROI_Genotype_Matrix_inbred.tsv"
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*LD_inbred.tsv"
@@ -189,7 +192,12 @@ process prep_ld_files {
 
 process gcta_fine_maps {
 
-    label "md"
+    tag {TRAIT}
+    label "gcta_fine_maps"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 1 * task.attempt }
+    memory = { 4.GB * task.attempt }
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*inbred.fastGWA"
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes_inbred.tsv"
@@ -288,8 +296,11 @@ process divergent_and_haplotype {
 process html_report_main {
 
     tag {"${TRAIT} - HTML REPORT" }
-
-    label "ml"
+    label "html_report_main"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 2 * task.attempt }
+    memory = { 8.GB * task.attempt }
 
     publishDir "${params.out}/Reports/scripts/", pattern: "*.Rmd", overwrite: true, mode: 'copy'
     publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'

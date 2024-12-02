@@ -155,8 +155,11 @@ process fix_strain_names_alt {
 
 process vcf_to_geno_matrix {
 
-    label "ml"
-    label "nemascan"
+    label "vcf_to_geno_matrix"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 2 * task.attempt }
+    memory = { 8.GB * task.attempt }
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -224,8 +227,11 @@ process vcf_to_geno_matrix {
 process chrom_eigen_variants {
 
     tag { CHROM }
-
-    label "ml"
+    label "chrom_eigen_variants"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 2 * task.attempt }
+    memory = { 8.GB * task.attempt }
 
     input:
         tuple val(CHROM), file(genotypes), file(get_genomatrix_eigen)

@@ -13,8 +13,11 @@
 */
 
 process prepare_gcta_files {
-
-    label "lg"
+    label "prepare_gcta_files"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -54,8 +57,12 @@ process prepare_gcta_files {
 }
 
 process gcta_grm {
-
-    label "lg"
+ 
+    label "gcta_grm"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
 
     input:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), \
@@ -89,7 +96,11 @@ process gcta_grm {
 
 process gcta_lmm_exact_mapping {
 
-    label "lg"
+    label "gcta_lmm_exact_mapping"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*inbred_pca.fastGWA", overwrite: true
     publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*loco_pca.mlma", overwrite: true
@@ -143,8 +154,11 @@ process gcta_lmm_exact_mapping {
 
 process gcta_lmm_exact_mapping_nopca {
 
-    // machineType 'n1-highmem-4'
-    label "lg"
+    label "gcta_lmm_exact_mapping_nopca"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/LOCO/Mapping/Raw", pattern: "*.mlma", overwrite: true
@@ -188,7 +202,11 @@ process gcta_lmm_exact_mapping_nopca {
 
 process gcta_intervals_maps {
 
-    label "lg"
+    label "gcta_intervals_maps"
+    errorStrategy 'retry'
+    time { 20.minute * task.attempt }
+    cpus = { 4 * task.attempt }
+    memory = { 16.GB * task.attempt }
 
     publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*_inbred.tsv"
     publishDir "${params.out}/LOCO/Mapping/Processed", mode: 'copy', pattern: "*_loco.tsv" 
