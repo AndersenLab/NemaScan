@@ -107,7 +107,7 @@ finemap <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_n
                 POS = as.numeric(POS),
                 AF1 = as.numeric(AF1),
                 P = as.numeric(P))
-ROI.geno.matrix <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}:{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
+ROI.geno.matrix <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}-{QTL_end}.ROI_Genotype_Matrix_{stringr::str_to_lower(alg)}.tsv"))
 ROI.LD <- data.table::fread(glue::glue("../../{alg}/Fine_Mappings/Data/{trait_name}.{QTL_chrom}.{QTL_start}.{QTL_end}.LD_{stringr::str_to_lower(alg)}.tsv"))
 
 
