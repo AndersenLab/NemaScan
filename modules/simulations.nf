@@ -11,7 +11,6 @@
 
 process prepare_simulation_files {
     
-    label "prep_sims"
     label "ml"
 
     input:
@@ -186,7 +185,6 @@ process simulate_map_phenotypes {
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
     label "md"
-    label "prep_sims"
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
@@ -342,7 +340,6 @@ process get_gcta_intervals {
 
 process assess_sims_INBRED {
 
-    label 'assess_sims'
     label 'sm'
 
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
@@ -361,7 +358,6 @@ process assess_sims_INBRED {
 }
 process assess_sims_LOCO {
 
-    label 'assess_sims'
     label 'md'
 
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
