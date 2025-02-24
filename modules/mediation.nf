@@ -18,7 +18,7 @@ process mediation_data {
 
     input:
         tuple val(TRAIT),val(tch),val(tstart),val(tpeak),val(tend),val(logPvalue), val(peak_id),val(h2), val(marker), val(algorithm), file(t_file), \
-        val(transcript_eqtl), file(mediation_input)
+        file(transcript_eqtl), file(mediation_input)
 
     output:
         tuple val(TRAIT),val(tch),val(tpeak), val(algorithm),val(tstart),val(tend), file("${TRAIT}_scaled_mapping_${algorithm}.tsv"),file("${TRAIT}_${tch}_${tpeak}_eqtl_${algorithm}.tsv")
