@@ -394,9 +394,6 @@ workflow {
         // // run mediation with gaotian's eqtl
         if(med) {
 
-            File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
-            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
-
             traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -411,7 +408,7 @@ workflow {
                     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
                     .combine(Channel.of("loco")))
                 .combine(traits_to_mediate, by: 0)
-                .combine(Channel.of(transcript_eqtl))
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
             mediation_data.out
