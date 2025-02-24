@@ -366,8 +366,69 @@ Reports
 * `traitname_qtlinterval_finemap_plot.pdf` - Fine map plot of QTL interval, colored by marker LD with the peak QTL identified from the genome-wide scan
 * `traitname_qtlinterval_gene_plot.pdf` - variant annotation plot overlaid with gene CDS for QTL interval
 
+# Simulation Profile
 
-# Simulation Output Folder Structure
+## Debug the simulation Profile
+
+### Running on RockFish - JHU HPC cluster
+
+Sbatch command submitted to run the pipeline from a folder containing cloned NemaScan repo
+
+I beleive that the full path to the input files are required for the pipeline to run properly.
+```bash
+#!/bin/bash
+#SBATCH -J job_name  # Name of job with date and time
+#SBATCH -A <allocation>            # Allocation
+#SBATCH --partition=express
+#SBATCH -t 00:50:00            # Walltime/duration of the job (hh:mm:ss)
+#SBATCH --cpus-per-task=4     # Number of cores (= processors = cpus) for each task
+#SBATCH --mem-per-cpu=2G       # Memory per core needed for a job
+#SBATCH -o test_sim.out  # Standard output log
+#SBATCH -e test_sim.err  # Standard error log
+
+module load singularity
+module load anaconda
+conda activate /data/eande106/software/conda_envs/nf24_env
+# pipeline is executed withing a folder containing NemaScan folder
+
+# Get current directory and store it in a variable
+wd=$(pwd)
+
+#set path to NS simulation debug inputs
+sim_in="${wd}/NemaScan/input_data/simulations"
+
+nextflow run NemaScan/main.nf -profile simulations \
+--species c_elegans \
+--vcf '/vast/eande106/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.rename.vcf.gz' \
+--simulate_strains "${sim_in}/c_elegans_96.txt" \
+--simulate_maf "${sim_in}/maf.csv" \
+--simulate_nqtl "${sim_in}/nqtl.csv" \
+--simulate_h2 "${sim_in}/h2.csv" \
+--simulate_eff "${sim_in}/effect_sizes.csv" \
+--simulate_reps 2 \
+--out 'test_sim'
+```
+
+## Genotype_Matrix folder
+* `*Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix. This will be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
+* `*total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix. This will be also be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
+
+<!-- Note included any more -->
+<!-- * `NemaScan_Performance.*.RData` - RData file containing all simulated and detected QTL from each successful simulated mapping. Contains:
+1. Simulated and Detected status for each QTL.
+2. Minor allele frequency and simulated or estimated effect for each QTL.
+3. Detection interval according to specified grouping size and CI extension.
+4. Estimated variance explained for each detected QTL.
+5. Simulation parameters and the algorithm used for that particular regime. -->
+
+### Mappings
+* As with the mapping profile, raw and processed mappings for each simulation regime are nested within folders corresponding each specified effect range and number of simulated QTL. QTL region files are not provided in the simulation profile; this information along with other information related to mapping performance are iteratively gathered in the generation of the performance .RData file.
+
+### Phenotypes
+* `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.phen` - Simulated strain phenotypes for each simulation regime.
+* `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.par` - Simulated QTL effects for each simulation regime. NOTE: Simulation regimes with identical numbers of simulated QTL, replicate indices, and simulated heritabilities should have _identical_ simulated QTL and effects.
+
+## Simulation Output Folder Structure
 
 ```
 Genotype_Matrix
@@ -390,22 +451,3 @@ Simulations
 	└── (if applicable) [NEXT specified effect range]
 			└── ...
 ```
-
-### Genotype_Matrix folder
-* `*Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix. This will be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
-* `*total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix. This will be also be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
-
-### Simulations
-* `NemaScan_Performance.*.RData` - RData file containing all simulated and detected QTL from each successful simulated mapping. Contains:
-1. Simulated and Detected status for each QTL.
-2. Minor allele frequency and simulated or estimated effect for each QTL.
-3. Detection interval according to specified grouping size and CI extension.
-4. Estimated variance explained for each detected QTL.
-5. Simulation parameters and the algorithm used for that particular regime.
-
-### Mappings
-* As with the mapping profile, raw and processed mappings for each simulation regime are nested within folders corresponding each specified effect range and number of simulated QTL. QTL region files are not provided in the simulation profile; this information along with other information related to mapping performance are iteratively gathered in the generation of the performance .RData file.
-
-### Phenotypes
-* `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.phen` - Simulated strain phenotypes for each simulation regime.
-* `[nQTL]_[rep]_[h2]_[MAF]_[effect range]_[strain_set]_sims.par` - Simulated QTL effects for each simulation regime. NOTE: Simulation regimes with identical numbers of simulated QTL, replicate indices, and simulated heritabilities should have _identical_ simulated QTL and effects.
