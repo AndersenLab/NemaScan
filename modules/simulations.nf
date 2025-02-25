@@ -340,8 +340,9 @@ process get_gcta_intervals {
 
 process assess_sims_INBRED {
 
-    label 'sm'
-
+    container 'mckeowr1/asess_sims:1.1'
+ 
+    executor 'local'   
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
@@ -358,7 +359,8 @@ process assess_sims_INBRED {
 }
 process assess_sims_LOCO {
 
-    label 'md'
+    container 'mckeowr1/asess_sims:1.1'
+    executor = 'local'
 
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
