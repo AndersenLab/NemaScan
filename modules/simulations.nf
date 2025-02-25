@@ -10,8 +10,6 @@
 
 
 process prepare_simulation_files {
-    container 'mckeowr1/prep_sims:1.1'
-
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -78,8 +76,6 @@ process prepare_simulation_files {
 process chrom_eigen_variants_sims {
 
     tag { CHROM }
-
-    errorStrategy 'ignore'
 
     input:
         tuple val(CHROM), \
@@ -179,12 +175,6 @@ process simulate_effects_genome {
 process simulate_map_phenotypes {
 
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
-
-    container = 'andersenlab-nemascan-20220407173056db3227.img'
-
-    executor 'local'
-    maxRetries 2
-    errorStrategy 'ignore'
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
@@ -320,7 +310,6 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    errorStrategy 'ignore'
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
@@ -340,9 +329,6 @@ process get_gcta_intervals {
 
 process assess_sims_INBRED {
 
-    container 'mckeowr1/asess_sims:1.1'
- 
-    executor 'local'   
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
     input:
@@ -358,9 +344,6 @@ process assess_sims_INBRED {
     
 }
 process assess_sims_LOCO {
-
-    container 'mckeowr1/asess_sims:1.1'
-    executor = 'local'
 
     publishDir "${params.out}/scored_sims", mode: 'copy', pattern: "*_mapping.tsv"
     
