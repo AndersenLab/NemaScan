@@ -143,8 +143,11 @@ process simulate_effects_loc {
 
     tag {NQTL}
 
-    label "md"
-
+    executor 'local'
+    cpus 1
+    memory '2GB'
+    time '30min'
+    
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
 
