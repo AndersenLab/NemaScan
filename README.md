@@ -409,6 +409,19 @@ nextflow run NemaScan/main.nf -profile simulations \
 --out 'test_sim'
 ```
 
+## VCF inputs to the simulation profile
+The simulation profile expects a hardfilter WI.vcf file where roman numeral chromosomes have been renamed to numeric values ( I - 1, II - 2, ect.) (e.g. /vast/eande106/data/c_elegans/WI/variation/20220216/vcf/WI.20220216.hard-filter.isotype.rename.vcf.gz)
+
+To create this VCF you can use the rename_chromosomes file in the repo along with bcftools
+
+```bash
+#rename chromosomes
+rename_file=input_data/all_species/rename_chromosomes
+vcf=input_data/c_elegans/genotypes/c_elegans.test.vcf.gz
+
+bcftools annotate -O z --rename-chrs ${rename_file} ${vcf} > input_data/c_elegans/genotypes/c_elegans.test.rename.vcf.gz
+```
+
 ## Genotype_Matrix folder
 * `*Genotype_Matrix.tsv` - pruned LD-pruned genotype matrix used for GWAS and construction of kinship matrix. This will be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
 * `*total_independent_tests.txt` - number of independent tests determined through spectral decomposition of the genotype matrix. This will be also be appended with the chosen minor allele frequency cutoff and strain set, as they are generated separately for each strain set.
