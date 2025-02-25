@@ -10,8 +10,12 @@
 
 
 process prepare_simulation_files {
-    
-    label "ml"
+    container 'mckeowr1/prep_sims:1.1'
+
+    cpus 4
+    time '3h'
+    memory '30GB'
+    maxRetries 5
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -22,9 +26,7 @@ process prepare_simulation_files {
 
 
     """
-    export > node_name.txt
-    bcftools view --force-samples -s ${strains} ${vcf} | \\
-    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
+    bcftools view -s `echo ${strains} ${vcf} | tr -d '\\n'` |\\
     bcftools filter -i N_MISSING=0 -Oz -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
@@ -70,6 +72,7 @@ process prepare_simulation_files {
     sed 's/.\\/./NA/g' > ${strain_set}_${MAF}_Genotype_Matrix.tsv
     """
 }
+
 
 
 /*
@@ -119,7 +122,9 @@ process chrom_eigen_variants_sims {
 process collect_eigen_variants_sims {
 
     executor 'local'
-    container null
+    cpus 1
+    memory '20GB'
+    time '30min'
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -147,7 +152,7 @@ process simulate_effects_loc {
     cpus 1
     memory '2GB'
     time '30min'
-    
+
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
 
