@@ -184,7 +184,14 @@ process simulate_map_phenotypes {
 
     tag {"${NQTL} - ${SIMREP} - ${H2} - ${MAF}"}
 
-    label "md"
+    container = 'andersenlab-nemascan-20220407173056db3227.img'
+
+    executor 'local'
+    memory '20GB'
+    time '10min'
+    cpus 4
+    maxRetries 2
+    errorStrategy 'ignore'
 
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*fastGWA", overwrite: true
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", pattern: "*loco.mlma", overwrite: true
