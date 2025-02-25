@@ -320,7 +320,10 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    label 'ml'
+    memory '50GB'
+    time '20min'
+    cpus 1
+    errorStrategy 'ignore'
 
     input:
     tuple val(strain_set), val(strains), val(NQTL), val(SIMREP), val(H2), file(loci), file(gm), val(effect_range), file(n_indep_tests), val(MAF), file(lmmexact_inbred), file(lmmexact_loco), \
