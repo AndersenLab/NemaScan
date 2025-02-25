@@ -12,10 +12,6 @@
 process prepare_simulation_files {
     container 'mckeowr1/prep_sims:1.1'
 
-    cpus 4
-    time '3h'
-    memory '30GB'
-    maxRetries 5
 
     input:
         tuple val(strain_set), val(strains), file(vcf), file(index), file(num_chroms), val(MAF)
@@ -83,7 +79,7 @@ process chrom_eigen_variants_sims {
 
     tag { CHROM }
 
-    label "ml"
+    errorStrategy 'ignore'
 
     input:
         tuple val(CHROM), \
@@ -121,11 +117,6 @@ process chrom_eigen_variants_sims {
 
 process collect_eigen_variants_sims {
 
-    executor 'local'
-    cpus 1
-    memory '20GB'
-    time '30min'
-
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
     input:
@@ -148,10 +139,7 @@ process simulate_effects_loc {
 
     tag {NQTL}
 
-    executor 'local'
-    cpus 1
-    memory '2GB'
-    time '30min'
+    label 'md'
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), file(qtl_loc_bed), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -171,7 +159,7 @@ process simulate_effects_genome {
 
     tag {NQTL}
     
-    label "xs"
+    executor = 'local'
 
     input:
         tuple val(strain_set), val(strains), file(bed), file(bim), file(fam), file(map), file(nosex), file(ped), file(log), file(gm), val(MAF), file(n_indep_tests), val(NQTL), val(effect_range), val(SIMREP), file(create_causal_qtls)
@@ -195,9 +183,6 @@ process simulate_map_phenotypes {
     container = 'andersenlab-nemascan-20220407173056db3227.img'
 
     executor 'local'
-    memory '20GB'
-    time '10min'
-    cpus 4
     maxRetries 2
     errorStrategy 'ignore'
 
@@ -335,9 +320,6 @@ process get_gcta_intervals {
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*processed_LMM-EXACT-LOCO_PCA_mapping.tsv"
     publishDir "${params.out}/Simulations/${effect_range}/${NQTL}/Mappings", mode: 'copy', pattern: "*qtl_region.tsv"
 
-    memory '50GB'
-    time '20min'
-    cpus 1
     errorStrategy 'ignore'
 
     input:
