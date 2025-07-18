@@ -266,6 +266,7 @@ O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~
     log.info "Matrix run?                             = ${params.matrix}"
     log.info "Simulation run?                         = ${params.simulation}"
     log.info "Output directory                        = ${params.out}"
+    log.info "Data directory                          = ${params.data_dir}"
     if (params.mapping){
         log.info "PCA covariate                           = ${params.pca}"
         log.info "Perform fine-mapping                    = ${params.finemap}"
