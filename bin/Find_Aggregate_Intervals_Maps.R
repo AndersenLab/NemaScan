@@ -218,7 +218,7 @@ process_mapping_df <- function (mapping_df,
         dplyr::group_by(CHROM) %>% 
         dplyr::arrange(CHROM, POS)
       
-      if (findPks$nBF == 1 & length(unique(findPks$CHROM)) ==  1) {
+      if (findPks$nBF[1] == 1 & length(unique(findPks$CHROM)) ==  1) {
         findPks$pID <- 1
         findPks <- findPks %>% 
           dplyr::group_by(CHROM, pID, trait) %>%
@@ -337,10 +337,11 @@ readr::write_tsv(processed_mapping,
 # add narrow-sense heritability point estimate
 # narrow sense heritability with sommer::mmer (no bootstrap)
 narrowh2 <- function(df_h){
-    h2_res <- sommer::mmer(value ~ 1, random = ~sommer::vs(strain, Gu = A), data = df_h)
-    h2 <- as.numeric(sommer::pin(h2_res, h2 ~ (V1) / (V1+V2))[[1]][1])
+    h2_res <- sommer::mmes(value ~ 1, random = ~sommer::vsm(sommer::ism(strain), Gu = A), data = df_h)
+    h2 <- as.numeric(sommer::vpredict(h2_res, h2 ~ (V1) / (V1+V2))[[1]][1])
     return(h2)
 }
+
 
 # get trait name and rename trait column
 traitname <- names(phenotype_data)[2]

@@ -203,6 +203,7 @@ process gcta_lmm_exact_mapping_nopca {
 process gcta_intervals_maps {
 
     label "gcta_intervals_maps"
+    label "heritability"
     errorStrategy 'retry'
     time { 20.minute * task.attempt }
     cpus = { 4 * task.attempt }

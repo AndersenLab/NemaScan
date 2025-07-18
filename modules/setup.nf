@@ -228,6 +228,7 @@ process chrom_eigen_variants {
 
     tag { CHROM }
     label "chrom_eigen_variants"
+    label "R"
     errorStrategy 'retry'
     time { 20.minute * task.attempt }
     cpus = { 2 * task.attempt }
