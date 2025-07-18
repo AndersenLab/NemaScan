@@ -19,7 +19,7 @@ date = new Date().format( 'yyyyMMdd' )
 */
 
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
-params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
+params.data_dir = "${workflow.projectDir}" // this is different for gcp
 params.out = "Analysis_Results-${date}"
 // params.algorithm = 'inbred' //options: inbred, loco - now run both
 
@@ -27,7 +27,7 @@ params.out = "Analysis_Results-${date}"
 /*
 ~ ~ ~ > * Parameters setup - MAPPING
 */
-params.genes = "${params.data_dir}/${params.species}/annotations/${params.species}.gff"
+params.genes = "${params.data_dir}/input_data/${params.species}/annotations/${params.species}.gff"
 
 // mediation only with c_elegans
 if(params.species == "c_briggsae" || params.species == "c_tropicalis") {
@@ -43,20 +43,20 @@ if(params.debug) {
     """
     // debug for now with small vcf
     params.vcf = "${params.species}.test.vcf.gz"
-    params.traitfile = "${params.data_dir}/${params.species}/phenotypes/test_pheno.tsv"
+    params.traitfile = "${params.data_dir}/input_data/${params.species}/phenotypes/test_pheno.tsv"
     
-    vcf_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
-    vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
+    vcf_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
+    vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
     
     // debug can use same vcf for impute and normal
     impute_file = "${params.species}.test.vcf.gz" // just to print out for reference
-    impute_vcf = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
-    impute_vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
+    impute_vcf = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}")
+    impute_vcf_index = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.vcf}.tbi")
     
-    ann_file = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/WI.330_TEST.strain-annotation.tsv")
+    ann_file = Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/WI.330_TEST.strain-annotation.tsv")
 
     // for genomatrix profile
-    params.strains = "${params.data_dir}/${params.species}/phenotypes/strain_file.tsv"
+    params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
     download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
@@ -132,9 +132,9 @@ if(params.debug) {
         // check if caendr release date is before 20210121, use snpeff annotation
         if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
-            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
         } else {
-            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
         }
     } else if(file(params.vcf).exists()) {
         // if it DOES exist
@@ -158,7 +158,7 @@ if(params.debug) {
         }
 
         // this does not work for another species...
-        ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
+        ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
     } else {
         println """
         The vcf file does not appear to exist
@@ -211,6 +211,7 @@ O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~
     log.info "--matrix                Bool                 Whether or not to create genotype matrix (Default: false)"
     log.info "--simulation            Bool                 Whether or not to run GWAS mapping simulation (Default: false)"
     log.info "--out                   String               Name of folder that will contain the results (Default: Analysis_Results-{date})"
+    log.info "--data_dir              String               Path to genome data"
     log.info ""
     log.info "-----------------------------------------------------------------------------"
     log.info "             for GWAS mappings (--mapping)"
@@ -330,7 +331,7 @@ workflow {
             fix = "raw"
         }
         Channel.fromPath("${params.traitfile}")
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
                 .combine(Channel.of(fix)) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
@@ -354,12 +355,12 @@ workflow {
             mapping_output = pheno_strains
                 .combine(traits_to_map)
                 .combine(vcf_file.combine(vcf_index))
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
+                .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping
         } else {
             mapping_output = pheno_strains
                 .combine(traits_to_map)
                 .combine(vcf_file.combine(vcf_index))
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping_nopca
+                .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prepare_gcta_files | gcta_grm | gcta_lmm_exact_mapping_nopca
         }
         
         // process GWAS mapping
@@ -389,11 +390,14 @@ workflow {
 
         peaks_inbred
             .combine(peaks_loco)
-            .combine(Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
+            .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/genotypes/${params.species}_chr_lengths.tsv"))
             .combine(Channel.fromPath("${params.bin_dir}/summarize_mappings.R")) | summarize_mapping
 
         // // run mediation with gaotian's eqtl
         if(med) {
+
+            File transcripteqtl_all = new File("${params.data_dir}/input_data/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
+            transcript_eqtl = transcripteqtl_all.getAbsolutePath()
 
             traits_to_mediate = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
@@ -409,19 +413,19 @@ workflow {
                     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
                     .combine(Channel.of("loco")))
                 .combine(traits_to_mediate, by: 0)
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv"))
+                .combine(Channel.of(transcript_eqtl))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
             mediation_data.out
                 .combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/multi_mediation.R")) | multi_mediation
 
             multi_mediation.out.eQTL_gene
                  .splitCsv(sep: '\t')
                  .combine(mediation_data.out, by: [0,1,2,3])
                  .combine(vcf_to_geno_matrix.out) 
-                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
+                 .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/phenotypes/expression/tx5291exp_st207.tsv"))
                  .combine(Channel.fromPath("${params.bin_dir}/simple_mediation.R")) | simple_mediation
 
             multi_mediation.out.result_multi_mediate
@@ -440,14 +444,14 @@ workflow {
                 .join(generate_plots.out.maps_from_plot_inbred, by: 3)
                 .combine(impute_vcf.combine(impute_vcf_index))
                 .combine(pheno_strains)
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files_inbred
+                .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prep_ld_files_inbred
             peaks_loco
                 .splitCsv(sep: '\t', skip: 1)
                 .combine(Channel.of("loco"))
                 .join(generate_plots.out.maps_from_plot_loco, by: 3)
                 .combine(impute_vcf.combine(impute_vcf_index))
                 .combine(pheno_strains)
-                .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes")) | prep_ld_files_loco
+                .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes")) | prep_ld_files_loco
 
             //fine mapping
             prep_inbred = prep_ld_files_inbred.out.finemap_preps
@@ -470,10 +474,10 @@ workflow {
                 .mix(
                     peaks_loco
                     .combine(Channel.of("loco")))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_bins.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/divergent_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/haplotype_df_isotype.bed"))
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_bins.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/divergent_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/haplotype_df_isotype.bed"))
+                .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/div_isotype_list.txt")) | divergent_and_haplotype
 
             if(med) {
                 // generate main html report
@@ -543,7 +547,7 @@ workflow {
 
         // only run geno matrix step - and fix isotype names if needed
         Channel.fromPath("${params.strains}")
-            .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
+            .combine(Channel.fromPath("${params.data_dir}/input_data/${params.species}/isotypes/strain_isotype_lookup.tsv"))
             .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_alt.R"))
             .combine(Channel.of("${params.fix}")) | fix_strain_names_alt
         
@@ -560,7 +564,7 @@ workflow {
             .splitCsv(sep:" ")
             .map { SM, STRAINS -> [SM, STRAINS] }
             .combine(vcf_file.combine(vcf_index))
-            .combine(Channel.fromPath("${params.data_dir}/all_species/rename_chromosomes"))
+            .combine(Channel.fromPath("${params.data_dir}/input_data/all_species/rename_chromosomes"))
             .combine(Channel.fromPath("${params.simulate_maf}").splitCsv()) | prepare_simulation_files
 
         // eigen
