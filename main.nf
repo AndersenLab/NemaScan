@@ -330,10 +330,16 @@ workflow {
         } else {
             fix = "raw"
         }
-        Channel.fromPath("${params.traitfile}")
-                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
-                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
-                .combine(Channel.of(fix)) | fix_strain_names_bulk
+
+        trait_ch = Channel.fromPath("${params.traitfile}").view()
+        strain_lookup_ch = Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv").view()
+        fix_isotype_script_ch = Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R").view()
+        fix_ch = Channel.of(fix).view()
+
+        trait_ch.combine(strain_lookup_ch)
+                .combine(fix_isotype_script_ch)
+                .combine(fix_ch) | fix_strain_names_bulk
+        
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }

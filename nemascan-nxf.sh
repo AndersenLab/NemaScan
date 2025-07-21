@@ -73,5 +73,6 @@ nextflow run main.nf \
   --vcf "${VCF_VERSION}" \
   --work_dir "${WORK_DIR}" \
   --out "${OUTPUT_DIR}" \
-  --data_dir "/nemascan/input_data" \
+  --data_dir "${DATA_DIR}" \
   --work_dir "${WORK_DIR}"
+  
