@@ -1,15 +1,5 @@
 #! usr/bin/env nextflow
 
-if( !nextflow.version.matches('>23.0') ) {
-    println "This workflow requires Nextflow version 23.0 or greater -- You are running version $nextflow.version"
-    if ( !params.matches("Local")) {
-        println "On ${params.platform}, you can use `module load python/${params.anaconda}; source activate ${params.softwareDir}/conda_envs/nf23_env`"
-    } else {
-        println "Locally, you can create and activate a conda environment with 'nextflow>=23.0'"
-    }
-    exit 1
-}
-
 nextflow.enable.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
@@ -21,7 +11,7 @@ date = new Date().format( 'yyyyMMdd' )
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
-// params.algorithm = 'inbred' //options: inbred, loco - now run both
+params.algorithm = 'inbred' //options: inbred, loco - now run both
 
 
 /*
@@ -60,8 +50,8 @@ if(params.debug) {
     download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
-    // vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    // vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
     vcf_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
     vcf_index = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
@@ -101,19 +91,19 @@ if(params.debug) {
     download_vcf = false
     // Check that params.vcf is valid
     if("${params.species}" == "c_elegans"){
-        if("${params.vcf}" == "20160408" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20230731" || "${params.vcf}" == "20231213"){
+        if("${params.vcf}" == "20160408" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20230731" || "${params.vcf}" == "20231213" || "${params.vcf}" == "20250625"){
             valid_date = true
         } else {
             valid_date = false
         }
     } else if("${params.species}" == "c_briggsae"){
-        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20230901" || "${params.vcf}" == "20240129"){
+        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20230901" || "${params.vcf}" == "20240129" || "${params.vcf}" == "20250626"){
             valid_date = true
         } else {
             valid_date = false
         }
     } else {
-        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20230809" || "${params.vcf}" == "20231201"){
+        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20230809" || "${params.vcf}" == "20231201" || "${params.vcf}" == "20250627"){
             valid_date = true
         } else {
             valid_date = false
@@ -133,10 +123,12 @@ if(params.debug) {
         if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
             ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
-        } else {
+        } else if( params.vcf < 20250000) {
             ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+        } else {
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.csq.strain-annotation.csv.gz")
         }
-    } else if(file(params.vcf).exists()) {
+    } else if(file(params.vcf, checkIfExists:true)) {
         // if it DOES exist
         println """
         WARNING: Using a non-CaeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
@@ -211,6 +203,7 @@ O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~
     log.info "--matrix                Bool                 Whether or not to create genotype matrix (Default: false)"
     log.info "--simulation            Bool                 Whether or not to run GWAS mapping simulation (Default: false)"
     log.info "--out                   String               Name of folder that will contain the results (Default: Analysis_Results-{date})"
+    log.info "--data_dir              String               Path to genome data"
     log.info ""
     log.info "-----------------------------------------------------------------------------"
     log.info "             for GWAS mappings (--mapping)"
@@ -266,6 +259,7 @@ O~~      O~~   O~~~~  O~~  O~  O~~   O~~ O~~~    O~ O~~      O~~~   O~~ O~~~ O~~
     log.info "Matrix run?                             = ${params.matrix}"
     log.info "Simulation run?                         = ${params.simulation}"
     log.info "Output directory                        = ${params.out}"
+    log.info "Data directory                          = ${params.data_dir}"
     if (params.mapping){
         log.info "PCA covariate                           = ${params.pca}"
         log.info "Perform fine-mapping                    = ${params.finemap}"
@@ -328,6 +322,7 @@ workflow {
         } else {
             fix = "raw"
         }
+
         Channel.fromPath("${params.traitfile}")
                 .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
                 .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
@@ -683,6 +678,6 @@ workflow.onComplete {
     Relatedness Matrix Cutoff               = ${params.sparse_cut}
     """
 
-    // println summary
+    println summary
 
 }
