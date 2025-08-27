@@ -7,7 +7,7 @@
 DEFAULT_DATA_DIR="gs://nf-pipelines/NemaScan/input_data"
 DEFAULT_VCF_VERSION="20220216"
 DEFAULT_GOOGLE_PROJECT="andersen-lab"
-DEFAULT_GOOGLE_ZONE="us-central1-a"
+DEFAULT_QUEUE_REGION="us-east1"
 DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL="nscalc-201573431837@andersen-lab.iam.gserviceaccount.com"
 DEFAULT_SPECIES="c_elegans"
 
@@ -29,9 +29,9 @@ if [[ -z "${GOOGLE_PROJECT}" ]]; then
   echo "GOOGLE_PROJECT environment variable is not set - defaulting to ${GOOGLE_PROJECT}"
 fi
 
-if [[ -z "${GOOGLE_ZONE}" ]]; then
-  GOOGLE_ZONE=${DEFAULT_GOOGLE_ZONE}
-  echo "GOOGLE_ZONE environment variable is not set - defaulting to ${GOOGLE_ZONE}"
+if [[ -z "${QUEUE_REGION}" ]]; then
+  QUEUE_REGION=${DEFAULT_QUEUE_REGION}
+  echo "QUEUE_REGION environment variable is not set - defaulting to ${QUEUE_REGION}"
 fi
 
 if [[ -z "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" ]]; then
@@ -62,11 +62,10 @@ if [[ -z "${WORK_DIR}" ]]; then
   exit 1
 fi
 
-
 nextflow run main.nf \
   -profile gcp \
   --google_project "${GOOGLE_PROJECT}" \
-  --google_zone "${GOOGLE_ZONE}" \
+  --google_zone "${QUEUE_REGION}" \
   --google_service_account_email "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" \
   --traitfile "${TRAIT_FILE}" \
   --species "${SPECIES}" \

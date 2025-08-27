@@ -8,6 +8,8 @@ library(glue)
 library(purrr)
 library(data.table)
 
+options(dplyr.summarise.inform = FALSE)
+
 args <- commandArgs(trailingOnly = TRUE)
 
 # arguments
@@ -226,8 +228,8 @@ process_phenotypes <- function(df,
     strain_isotypes_db <- data.table::fread(args[3])
     # identify strains that were phenotyped, but are not part of an isotype
     strains_in <- df$strain %in% strain_isotypes_db$strain
-    message(glue::glue("{df$strain} "))
-    message(glue::glue("{strains_in} "))
+    # message(glue::glue("{df$strain} "))
+    # message(glue::glue("{strains_in} "))
     non_isotype_strains <- dplyr::filter(df,
                                          !(strain %in% c(strain_isotypes_db$strain, "PD1074")),
                                          !(strain %in% strain_isotypes_db$isotype))

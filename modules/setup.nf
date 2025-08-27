@@ -11,6 +11,7 @@
 process pull_vcf {
 
     tag {"PULLING VCF FROM CeNDR"}
+    label "pull_vcf"
 
     output:
         path "*hard-filter.isotype.vcf.gz", emit: hard_vcf 
@@ -55,6 +56,8 @@ process pull_vcf {
 process update_annotations {
 
     label "xs"
+    label "update_annotations"
+    label "R"
 
     publishDir "${save_dir}", mode: 'copy'
 
@@ -95,6 +98,8 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 process fix_strain_names_bulk {
 
     label "xs"
+    label "fix_strain_names_bulk"
+    label "R"
 
     tag {"BULK TRAIT"}
 
@@ -126,6 +131,8 @@ process fix_strain_names_bulk {
 process fix_strain_names_alt {
 
     label "xs"
+    label "fix_strain_names_alt"
+    label "R"
 
     publishDir "${params.out}/Phenotypes", mode: 'copy', pattern: "*.txt"
 
@@ -156,10 +163,15 @@ process fix_strain_names_alt {
 process vcf_to_geno_matrix {
 
     label "vcf_to_geno_matrix"
+    machineType "n1-standard-2"
+    // machineType { 
+    //     if (task.attempt == 1) return 'n1-standard-2'
+    //     else if (task.attempt == 2) return 'n1-standard-4' 
+    //     else return 'n1-standard-6'
+    // }
+
     errorStrategy 'retry'
-    time { 20.minute * task.attempt }
-    cpus = { 2 * task.attempt }
-    memory = { 8.GB * task.attempt }
+    maxRetries 3
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 
@@ -229,10 +241,15 @@ process chrom_eigen_variants {
     tag { CHROM }
     label "chrom_eigen_variants"
     label "R"
+    machineType "n1-standard-2"
+    // machineType { 
+    //     if (task.attempt == 1) return 'n1-standard-2'
+    //     else if (task.attempt == 2) return 'n1-standard-4' 
+    //     else return 'n1-standard-6'
+    // }
+
     errorStrategy 'retry'
-    time { 20.minute * task.attempt }
-    cpus = { 2 * task.attempt }
-    memory = { 8.GB * task.attempt }
+    maxRetries 3
 
     input:
         tuple val(CHROM), file(genotypes), file(get_genomatrix_eigen)
@@ -256,8 +273,7 @@ process chrom_eigen_variants {
 
 process collect_eigen_variants {
 
-    executor 'local'
-    container null
+    label "local"
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
 

@@ -1,15 +1,5 @@
 #! usr/bin/env nextflow
 
-if( !nextflow.version.matches('>23.0') ) {
-    println "This workflow requires Nextflow version 23.0 or greater -- You are running version $nextflow.version"
-    if ( !params.matches("Local")) {
-        println "On ${params.platform}, you can use `module load python/${params.anaconda}; source activate ${params.softwareDir}/conda_envs/nf23_env`"
-    } else {
-        println "Locally, you can create and activate a conda environment with 'nextflow>=23.0'"
-    }
-    exit 1
-}
-
 nextflow.enable.dsl=2
 
 date = new Date().format( 'yyyyMMdd' )
@@ -21,7 +11,7 @@ date = new Date().format( 'yyyyMMdd' )
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
 params.data_dir = "${workflow.projectDir}" // this is different for gcp
 params.out = "Analysis_Results-${date}"
-// params.algorithm = 'inbred' //options: inbred, loco - now run both
+params.algorithm = 'inbred' //options: inbred, loco - now run both
 
 
 /*
@@ -60,8 +50,8 @@ if(params.debug) {
     download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
-    // vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    // vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
     vcf_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
     vcf_index = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
@@ -76,7 +66,7 @@ if(params.debug) {
     // ann_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv")
     ann_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/annotation/WI.${params.vcf}.csq.strain-annotation.csv.gz")
 
-    params.strains = "${params.data_dir}/${params.species}/phenotypes/strain_file.tsv"
+    params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
     download_vcf = false
 } else if(!params.vcf) {
     // if there is no VCF date provided, pull the latest vcf from caendr.
@@ -101,19 +91,19 @@ if(params.debug) {
     download_vcf = false
     // Check that params.vcf is valid
     if("${params.species}" == "c_elegans"){
-        if("${params.vcf}" == "20160408" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20230731" || "${params.vcf}" == "20231213"){
+        if("${params.vcf}" == "20160408" || "${params.vcf}" == "20170531" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20200815" || "${params.vcf}" == "20210121" || "${params.vcf}" == "20220216" || "${params.vcf}" == "20230731" || "${params.vcf}" == "20231213" || "${params.vcf}" == "20250625"){
             valid_date = true
         } else {
             valid_date = false
         }
     } else if("${params.species}" == "c_briggsae"){
-        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20230901" || "${params.vcf}" == "20240129"){
+        if("${params.vcf}" == "20210803" || "${params.vcf}" == "20230901" || "${params.vcf}" == "20240129" || "${params.vcf}" == "20250626"){
             valid_date = true
         } else {
             valid_date = false
         }
     } else {
-        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20230809" || "${params.vcf}" == "20231201"){
+        if("${params.vcf}" == "20210901" || "${params.vcf}" == "20230809" || "${params.vcf}" == "20231201" || "${params.vcf}" == "20250627"){
             valid_date = true
         } else {
             valid_date = false
@@ -132,11 +122,13 @@ if(params.debug) {
         // check if caendr release date is before 20210121, use snpeff annotation
         if("${params.vcf}" == "20200815" || "${params.vcf}" == "20180527" || "${params.vcf}" == "20170531") {
             println "WARNING: Using snpeff annotation. To use BCSQ annotation, please use a newer vcf (2021 or later)"
-            ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.snpeff.tsv")
+        } else if( params.vcf < 20250000) {
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
         } else {
-            ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.strain-annotation.tsv")
+            ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.csq.strain-annotation.csv.gz")
         }
-    } else if(file(params.vcf).exists()) {
+    } else if(file(params.vcf, checkIfExists:true)) {
         // if it DOES exist
         println """
         WARNING: Using a non-CaeNDR VCF for analysis. Same VCF will be used for both GWA and fine mapping. 
@@ -158,7 +150,7 @@ if(params.debug) {
         }
 
         // this does not work for another species...
-        ann_file = Channel.fromPath("${params.dataDir}/input_data/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
+        ann_file = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${default_date}/vcf/WI.${default_date}.strain-annotation.tsv")
     } else {
         println """
         The vcf file does not appear to exist
@@ -331,15 +323,10 @@ workflow {
             fix = "raw"
         }
 
-        trait_ch = Channel.fromPath("${params.traitfile}").view()
-        strain_lookup_ch = Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv").view()
-        fix_isotype_script_ch = Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R").view()
-        fix_ch = Channel.of(fix).view()
-
-        trait_ch.combine(strain_lookup_ch)
-                .combine(fix_isotype_script_ch)
-                .combine(fix_ch) | fix_strain_names_bulk
-        
+        Channel.fromPath("${params.traitfile}")
+                .combine(Channel.fromPath("${params.data_dir}/${params.species}/isotypes/strain_isotype_lookup.tsv"))
+                .combine(Channel.fromPath("${params.bin_dir}/Fix_Isotype_names_bulk.R"))
+                .combine(Channel.of(fix)) | fix_strain_names_bulk
         traits_to_map = fix_strain_names_bulk.out.fixed_strain_phenotypes
                 .flatten()
                 .map { file -> tuple(file.baseName.replaceAll(/pr_/,""), file) }
@@ -691,6 +678,6 @@ workflow.onComplete {
     Relatedness Matrix Cutoff               = ${params.sparse_cut}
     """
 
-    // println summary
+    println summary
 
 }

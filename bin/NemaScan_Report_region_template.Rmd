@@ -28,50 +28,89 @@ gene_df <- genes_in_region %>%
   peak_variant <- ifelse(identical(gsub("_", ":", unique(peak_df$PEAK_MARKER)), character(0)), NA,  
                          as.numeric(strsplit(unique(peak_df$PEAK_MARKER), split = ":")[[1]][2])) 
 
-
-
-
-variant_df <- genes_in_region %>%
-    dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
-    dplyr::distinct(CHROM, POS, GENE_NAME, WBGeneID, VARIANT_LOG10p, VARIANT_IMPACT)
-
-variant_df$VARIANT_IMPACT[is.na(variant_df$VARIANT_IMPACT)] <- "Intergenic"
-
 xs <- unique(gene_df$START_POS)
 xe <- unique(gene_df$END_POS)
 cq <- unique(gene_df$CHROM)
 
-max_logp <- unique(max(variant_df$VARIANT_LOG10p, na.rm = T))/150
+if("VARIANT_IMPACT" %in% genes_in_region){
+  variant_df <- genes_in_region %>%
+      dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
+      dplyr::distinct(CHROM, POS, GENE_NAME, WBGeneID, VARIANT_LOG10p, VARIANT_IMPACT)
 
-gene_plot <- ggplot(gene_df) +
-    aes(text = paste0(GENE_NAME, "\n", WBGeneID)) +
-    geom_vline(aes(xintercept = peak_variant/1e6),
-               linetype=3, color = "cyan")+
-    geom_segment(aes(x = ifelse(STRAND == "+", TRANSCRIPTION_START_POS/1e6, TRANSCRIPTION_END_POS/1e6),
-                     xend = ifelse(STRAND == "+", TRANSCRIPTION_END_POS/1e6, TRANSCRIPTION_START_POS/1e6),
-                     y = VARIANT_LOG10p,
-                     yend = VARIANT_LOG10p),
-                 arrow = arrow(length = unit(5, "points")), size = 1) +
-    geom_segment(aes(x = POS/1e6,
-                     xend = POS/1e6,
-                     y = VARIANT_LOG10p+max_logp,
-                     yend = VARIANT_LOG10p-max_logp,
-                     color = VARIANT_IMPACT), data = variant_df) +
-    # if snpeff, need to add back moderate and modifier
-    scale_color_manual(values = c("LOW" = "gray30",
-                                  "HIGH" = "red",
-                                  "Linker" = "gray80", 
-                                  "Intergenic" = "gray80"),
-                       breaks = c("HIGH", "LOW", "Intergenic"),
-                       name = "EFFECT")+
-    labs(x = "Genomic Position (Mb)",
-         y = "-log10p") +
-         # y = expression(-log[10](italic(p))))+
-    theme_bw(18)+
-    xlim(c(xs/1e6, xe/1e6)) +
-    theme(legend.position = "top",
-          panel.grid = element_blank())
+  variant_df$VARIANT_IMPACT[is.na(variant_df$VARIANT_IMPACT)] <- "Intergenic"
 
+  max_logp <- unique(max(variant_df$VARIANT_LOG10p, na.rm = T))/150
+
+  gene_plot <- ggplot(gene_df) +
+      aes(text = paste0(GENE_NAME, "\n", WBGeneID)) +
+      geom_vline(aes(xintercept = peak_variant/1e6),
+                linetype=3, color = "cyan")+
+      geom_segment(aes(x = ifelse(STRAND == "+", TRANSCRIPTION_START_POS/1e6, TRANSCRIPTION_END_POS/1e6),
+                      xend = ifelse(STRAND == "+", TRANSCRIPTION_END_POS/1e6, TRANSCRIPTION_START_POS/1e6),
+                      y = VARIANT_LOG10p,
+                      yend = VARIANT_LOG10p),
+                  arrow = arrow(length = unit(5, "points")), size = 1) +
+      geom_segment(aes(x = POS/1e6,
+                      xend = POS/1e6,
+                      y = VARIANT_LOG10p+max_logp,
+                      yend = VARIANT_LOG10p-max_logp,
+                      color = VARIANT_IMPACT), data = variant_df) +
+      # if snpeff, need to add back moderate and modifier
+      scale_color_manual(values = c("LOW" = "gray30",
+                                    "HIGH" = "red",
+                                    "Linker" = "gray80", 
+                                    "Intergenic" = "gray80"),
+                        breaks = c("HIGH", "LOW", "Intergenic"),
+                        name = "EFFECT")+
+      labs(x = "Genomic Position (Mb)",
+          y = "-log10p") +
+          # y = expression(-log[10](italic(p))))+
+      theme_bw(18)+
+      xlim(c(xs/1e6, xe/1e6)) +
+      theme(legend.position = "top",
+            panel.grid = element_blank())
+} else {
+  variant_df <- genes_in_region %>%
+      dplyr::filter(START_POS == unique(genes_in_region$START_POS)) %>%
+      dplyr::distinct(CHROM, POS, GENE_NAME, WBGeneID, VARIANT_LOG10p, CONSEQUENCE)
+
+  variant_df$CONSEQUENCE[variant_df$CONSEQUENCE == "N/A"] <- "intergenic"
+
+  max_logp <- unique(max(variant_df$VARIANT_LOG10p, na.rm = T))/150
+
+  gene_plot <- ggplot(gene_df) +
+      aes(text = paste0(GENE_NAME, "\n", WBGeneID)) +
+      geom_vline(aes(xintercept = peak_variant/1e6),
+                linetype=3, color = "cyan")+
+      geom_segment(aes(x = ifelse(STRAND == "+", TRANSCRIPTION_START_POS/1e6, TRANSCRIPTION_END_POS/1e6),
+                      xend = ifelse(STRAND == "+", TRANSCRIPTION_END_POS/1e6, TRANSCRIPTION_START_POS/1e6),
+                      y = VARIANT_LOG10p,
+                      yend = VARIANT_LOG10p),
+                  arrow = arrow(length = unit(5, "points")), size = 1) +
+      geom_segment(aes(x = POS/1e6,
+                      xend = POS/1e6,
+                      y = VARIANT_LOG10p+max_logp,
+                      yend = VARIANT_LOG10p-max_logp,
+                      color = CONSEQUENCE), data = variant_df) +
+      # if snpeff, need to add back moderate and modifier
+      scale_color_manual(values = c("synonymous" = "green",
+                                    "missense" = "red",
+                                    "splice_region" = "red",
+                                    "intergenic" = "gray80",
+                                    "intron" = "gray30",
+                                    "5_prime_utr" = "orange",
+                                    "3_prime_utr" = "orange",
+                                    "Linker" = "gray80"),
+                         breaks = c("intergenic", "synonymous", "intron", "3_prime_utr", "5_prime_utr", "missense", "splice_region"),
+                         name = "EFFECT")+
+      labs(x = "Genomic Position (Mb)",
+          y = "-log10p") +
+          # y = expression(-log[10](italic(p))))+
+      theme_bw(18)+
+      xlim(c(xs/1e6, xe/1e6)) +
+      theme(legend.position = "top",
+            panel.grid = element_blank())
+}
 # print(gene_plot)
 
 # plotly::ggplotly(gene_plot, tooltip = c("plotly_label_gene_name", "plotly_label_gene_ID", "plotly_label_variant")) %>% plotly::toWebGL()
@@ -161,29 +200,58 @@ print(ld_plot)
 
 ```{r}
 
-if(species == "c_elegans") {
-  # All variants in interval
-  var_info <- genes_in_region %>%
-      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
-      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
-      dplyr::distinct() %>%
-      dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
-                    STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
-  
-  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
-      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
-      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+if("VARIANT_IMPACT" %in% genes_in_region){
+  if(species == "c_elegans") {
+    # All variants in interval
+    var_info <- genes_in_region %>%
+        dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+        dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+        dplyr::distinct() %>%
+        dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
+                      STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+    
+    DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+        DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+        DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+  } else {
+    # All variants in interval
+    var_info <- genes_in_region %>%
+        dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+        dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+        dplyr::distinct() %>%
+        dplyr::mutate(STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+    
+    DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+        DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+        DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+  }
 } else {
-  # All variants in interval
-  var_info <- genes_in_region %>%
-      dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
-      dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, VARIANT_IMPACT, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
-      dplyr::distinct() %>%
-      dplyr::mutate(STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
-  
-  DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
-      DT::formatStyle("STRAIN","white-space"="nowrap") %>%
-      DT::formatStyle("VARIANT_IMPACT", backgroundColor = DT::styleEqual("HIGH", "yellow"))
+  if(species == "c_elegans") {
+    # All variants in interval
+    var_info <- genes_in_region %>%
+        dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+        dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, CONSEQUENCE, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+        dplyr::distinct() %>%
+        dplyr::mutate(WBGeneID = paste0('<a href=https://wormbase.org/species/c_elegans/gene/', WBGeneID, '>', WBGeneID,'</a>' ),
+                      STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+    
+    DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+        DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("CONSEQUENCE", backgroundColor = DT::styleEqual(c("intergenic", "synonymous", "intron", "3_prime_utr", "5_prime_utr", "missense", "splice_region"),
+                                                                      c("gray80", "green", "gray30", "orange", "orange", "red", "red")))
+  } else {
+    # All variants in interval
+    var_info <- genes_in_region %>%
+        dplyr::filter(START_POS == QTL_start & !is.na(WBGeneID)) %>%
+        dplyr::select(MARKER, REF, ALT,WBGeneID,GENE_NAME, CONSEQUENCE, VARIANT_LOG10p, STRAIN_GENOTYPE, STRAIN) %>%
+        dplyr::distinct() %>%
+        dplyr::mutate(STRAIN = stringr::str_replace_all(STRAIN, ",", ", "))
+    
+    DT::datatable(var_info, filter = "top", escape = FALSE, options = list(columnDefs = list(list(width = '20%', targets = c(8))))) %>%
+        DT::formatStyle("STRAIN","white-space"="nowrap") %>%
+      DT::formatStyle("CONSEQUENCE", backgroundColor = DT::styleEqual(c("intergenic", "synonymous", "intron", "3_prime_utr", "5_prime_utr", "missense", "splice_region"),
+                                                                      c("gray80", "green", "gray30", "orange", "orange", "red", "red")))
+  }
 }
 
 
@@ -461,7 +529,7 @@ names(haplotype_in_QTL_region) <- c("chromosome", "start", "stop", "haplotype", 
 ############ keep relavent columns for plotting
 
 plot_df <- haplotype_in_QTL_region %>%
-    dplyr::filter(Chrom == QTL_chrom & Region_start == QTL_start) %>% 
+    dplyr::filter(Chrom == QTL_chrom & Region_start >= QTL_start & Region_end <= QTL_end) %>% 
     dplyr::select(chromosome, start, stop, haplotype, isotype, plotpoint, segment, color)
 
 

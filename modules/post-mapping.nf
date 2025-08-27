@@ -84,10 +84,15 @@ process prep_ld_files {
 
     tag {TRAIT}
     label "prep_ld_files"
+    machineType "n1-standard-2"
+    // machineType { 
+    //     if (task.attempt == 1) return 'n1-standard-2'
+    //     else if (task.attempt == 2) return 'n1-standard-4' 
+    //     else return 'n1-standard-6'
+    // }
+
     errorStrategy 'retry'
-    time { 20.minute * task.attempt }
-    cpus = { 2 * task.attempt }
-    memory = { 8.GB * task.attempt }
+    maxRetries 3
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*ROI_Genotype_Matrix_inbred.tsv"
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*LD_inbred.tsv"
@@ -194,10 +199,15 @@ process gcta_fine_maps {
 
     tag {TRAIT}
     label "gcta_fine_maps"
+    machineType "n1-highmem-4"
+    // machineType { 
+    //     if (task.attempt == 1) return 'n1-highmem-4'
+    //     else if (task.attempt == 2) return 'n1-highmem-8' 
+    //     else return 'n1-highmem-12'
+    // }
+
     errorStrategy 'retry'
-    time { 40.minute * task.attempt }
-    cpus { task.attempt }
-    memory { 4.GB * task.attempt }
+    maxRetries 3
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*inbred.fastGWA"
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*_genes_inbred.tsv"
@@ -245,7 +255,7 @@ process gcta_fine_maps {
                 --pca 1 \\
                 --out ${TRAIT}.sparse_FM_grm_inbred.${algorithm}  \\
                 --thread-num ${task.cpus}
-        gcta64 --fastGWA-lmm-exact \\
+        gcta64 --fastGWA-mlm-exact \\
                 --grm-sparse ${TRAIT}.sparse_FM_grm_inbred.${algorithm} \\
                 --bfile ${TRAIT}.\$chr.\$start.\$stop \\
                 --qcovar ${TRAIT}.sparse_FM_grm_inbred.${algorithm}.eigenvec \\
@@ -297,10 +307,15 @@ process html_report_main {
 
     tag {"${TRAIT} - HTML REPORT" }
     label "html_report_main"
+    machineType "n1-highmem-2"
+    // machineType { 
+    //     if (task.attempt == 1) return 'n1-highmem-2'
+    //     else if (task.attempt == 2) return 'n1-highmem-4' 
+    //     else return 'n1-highmem-6'
+    // }
+    
     errorStrategy 'retry'
-    time { 40.minute * task.attempt }
-    cpus { 2 * task.attempt }
-    memory { 8.GB * task.attempt }
+    maxRetries 3
 
     publishDir "${params.out}/Reports/scripts/", pattern: "*.Rmd", overwrite: true, mode: 'copy'
     publishDir "${params.out}/Reports", pattern: "*.html", overwrite: true, mode: 'copy'
