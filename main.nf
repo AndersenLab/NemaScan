@@ -9,7 +9,7 @@ date = new Date().format( 'yyyyMMdd' )
 */
 
 params.bin_dir = "${workflow.projectDir}/bin" // this is different for gcp
-params.data_dir = "${workflow.projectDir}" // this is different for gcp
+params.data_dir = "${workflow.projectDir}/input_data" // this is different for gcp
 params.out = "Analysis_Results-${date}"
 params.algorithm = 'inbred' //options: inbred, loco - now run both
 
