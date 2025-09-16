@@ -31,7 +31,7 @@ process prepare_gcta_files {
         tuple val(TRAIT), file("plink_formatted_traits.tsv"), file("${TRAIT}.bed"), file("${TRAIT}.bim"), file("${TRAIT}.fam"), file("${TRAIT}.map"), file("${TRAIT}.nosex"), file("${TRAIT}.ped")
 
     """
-    bcftools annotate --rename-chrs ${num_chroms} ${vcf} |\\
+    bcftools annotate -e 'CHROM="MtDNA"' --rename-chrs ${num_chroms} ${vcf} |\\
     bcftools view -S ${strains} -Ou |\\
     bcftools filter -i N_MISSING=0 -Oz --threads 5 -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz

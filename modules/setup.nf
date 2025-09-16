@@ -182,7 +182,7 @@ process vcf_to_geno_matrix {
         file("Genotype_Matrix.tsv") 
 
     """
-        bcftools view -S ${strains} -Ou ${vcf} |\\
+        bcftools view -S ${strains} -Ou ${vcf} -e 'CHROM="MtDNA"' |\\
         bcftools filter -i N_MISSING=0 -Oz --threads 5 -o Phenotyped_Strain_VCF.vcf.gz
         tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
         plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
