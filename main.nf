@@ -39,7 +39,6 @@ if(params.debug) {
     vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
     
     // debug can use same vcf for impute and normal
-    impute_file = "${params.species}.test.vcf.gz" // just to print out for reference
     impute_vcf = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}")
     impute_vcf_index = Channel.fromPath("${params.data_dir}/${params.species}/genotypes/${params.vcf}.tbi")
     
@@ -50,21 +49,14 @@ if(params.debug) {
     download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
-    vcf_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
-    vcf_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
-
-    impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
-    // impute_vcf = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
-    // impute_vcf_index = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
-
-    impute_vcf = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz")
-    impute_vcf_index = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.impute.isotype.vcf.gz")
+    impute_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.impute.isotype.vcf.gz.tbi")
 
     // ann_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv")
-    ann_file = Channel.fromPath("gs://caendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/annotation/WI.${params.vcf}.csq.strain-annotation.csv.gz")
+    ann_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.csq.strain-annotation.csv.gz")
 
     params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
     download_vcf = false
@@ -74,17 +66,14 @@ if(params.debug) {
         params.vcf = "20231213"
         vcf_file = "20231213 - CaeNDR"
         vcf_index = "20231213 - CaeNDR"
-        impute_file = "20231213 - CaeNDR"
     } else if ("${params.species}" == 'c_briggsae'){
         params.vcf = "20240129"
         vcf_file = "20240129 - CaeNDR"
         vcf_index = "20240129 - CaeNDR"
-        impute_file = "20240129 - CaeNDR"
     } else {
         params.vcf = "20231201"
         vcf_file = "20231201 - CaeNDR"
         vcf_index = "20231201 - CaeNDR"
-        impute_file = "20231201 - CaeNDR"
     }
     download_vcf = true
 } else {
@@ -115,7 +104,6 @@ if(params.debug) {
         vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
 
-        impute_file = "WI.${params.vcf}.impute.isotype.vcf.gz" // just to print out for reference
         impute_vcf = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz")
         impute_vcf_index = Channel.fromPath("${params.dataDir}/${params.species}/WI/variation/${params.vcf}/vcf/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
@@ -136,7 +124,6 @@ if(params.debug) {
         vcf_file = Channel.fromPath("${params.vcf}")
         vcf_index = Channel.fromPath("${params.vcf}.tbi")
 
-        impute_file = "${params.vcf}" // just to print out for reference
         impute_vcf = Channel.fromPath("${params.vcf}")
         impute_vcf_index = Channel.fromPath("${params.vcf}.tbi")
 

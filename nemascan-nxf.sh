@@ -8,6 +8,7 @@ DEFAULT_DATA_DIR="gs://nf-pipelines/NemaScan/input_data"
 DEFAULT_VCF_VERSION="20220216"
 DEFAULT_GOOGLE_PROJECT="andersen-lab"
 DEFAULT_QUEUE_REGION="us-east1"
+DEFAULT_DATA_BUCKET="caendr-site-private"
 DEFAULT_GOOGLE_SERVICE_ACCOUNT_EMAIL="nscalc-201573431837@andersen-lab.iam.gserviceaccount.com"
 DEFAULT_SPECIES="c_elegans"
 
@@ -32,6 +33,11 @@ fi
 if [[ -z "${QUEUE_REGION}" ]]; then
   QUEUE_REGION=${DEFAULT_QUEUE_REGION}
   echo "QUEUE_REGION environment variable is not set - defaulting to ${QUEUE_REGION}"
+fi
+
+if [[ -z "${DATA_BUCKET}" ]]; then
+  DATA_BUCKET=${DEFAULT_DATA_BUCKET}
+  echo "DATA_BUCKET environment variable is not set - defaulting to ${DEFAULT_DATA_BUCKET}"
 fi
 
 if [[ -z "${GOOGLE_SERVICE_ACCOUNT_EMAIL}" ]]; then
@@ -70,6 +76,7 @@ nextflow run main.nf \
   --traitfile "${TRAIT_FILE}" \
   --species "${SPECIES}" \
   --vcf "${VCF_VERSION}" \
+  --bucket "${DATA_BUCKET}" \
   --work_dir "${WORK_DIR}" \
   --out "${OUTPUT_DIR}" \
   --data_dir "${DATA_DIR}" \
