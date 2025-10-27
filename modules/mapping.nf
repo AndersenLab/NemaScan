@@ -139,7 +139,7 @@ process gcta_lmm_exact_mapping {
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm \\
-           --thread-num ${task.cpus}\
+           --thread-num ${task.cpus}
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\

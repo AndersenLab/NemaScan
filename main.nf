@@ -49,14 +49,14 @@ if(params.debug) {
     download_vcf = false
 } else if(params.gcp) { 
     // use the data directly from google on gcp - switch to elegansvariation.org for now?
-    vcf_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.small.hard-filter.isotype.vcf.gz")
-    vcf_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
+    vcf_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz")
+    vcf_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/WI.${params.vcf}.small.hard-filter.isotype.vcf.gz.tbi")
 
-    impute_vcf = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.impute.isotype.vcf.gz")
-    impute_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.impute.isotype.vcf.gz.tbi")
+    impute_vcf = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/WI.${params.vcf}.impute.isotype.vcf.gz")
+    impute_vcf_index = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/WI.${params.vcf}.impute.isotype.vcf.gz.tbi")
 
     // ann_file = Channel.fromPath("gs://cendr-site-public-bucket/dataset_release/${params.species}/${params.vcf}/variation/WI.${params.vcf}.strain-annotation.tsv")
-    ann_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/${params.vcf}.csq.strain-annotation.csv.gz")
+    ann_file = Channel.fromPath("gs://${params.bucket}/tool_release_data/${params.species}/WI.${params.vcf}.csq.strain-annotation.csv.gz")
 
     params.strains = "${params.data_dir}/input_data/${params.species}/phenotypes/strain_file.tsv"
     download_vcf = false
