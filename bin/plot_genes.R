@@ -207,7 +207,7 @@ if(ann_type != "snpeff") {
 }
 
 annotation_df <- annotation_out %>%
-    dplyr::select(., -DIVERGENT) %>%
+    dplyr::select(., -HDR) %>%
     dplyr::distinct() %>%
     dplyr::left_join(pr_trait_ld %>% filter(allele == "ALT"), ., by = c("marker", "REF", "ALT")) %>% {
         if(ann_type != "snpeff") dplyr::rename(., gene_id = WBGENE) else dplyr::select(., -GENE_NAME)
