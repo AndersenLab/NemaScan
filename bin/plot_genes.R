@@ -233,7 +233,7 @@ tidy_genes_in_region <- if(ann_type != "snpeff") {
             dplyr::select(MARKER = marker, CHROM = CHR, POS, REF, ALT, START_POS = start_pos, END_POS = end_pos, MAF_variant = maf_marker_b,
                       GENE_NAME, WBGeneID = gene_id,
                       WBFeature_ID = feature_id, TRANSCRIPT_BIOTYPE = BIOTYPE, CONSEQUENCE,
-                      NUCLEOTIDE_CHANGE = DNACHANGE, AMINO_ACID_CHANGE=AA, BLOSUM = BLOSUM, Grantham = GRANTHAM, Percent_Protein=percent_protein,
+                      NUCLEOTIDE_CHANGE = DNACHANGE, AMINO_ACID_CHANGE=AA, BLOSUM = BLOSUM, Grantham = GRANTHAM, Percent_Protein=PERCENT_PROTEIN,
                       STRAND=strand, TRANSCRIPTION_START_POS = txstart, TRANSCRIPTION_END_POS = txend,
                       PEAK_MARKER = peak_marker, PEAK_MAF = peak_maf, STRAIN = strains,
                       VARIANT_LD_WITH_PEAK_MARKER = ld_r2, VARIANT_LOG10p = log10p, STRAIN_GENOTYPE = allele)
