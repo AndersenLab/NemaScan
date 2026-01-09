@@ -376,6 +376,7 @@ workflow {
         // // run mediation with gaotian's eqtl
         if(med) {
 
+            // Performing regression of phenotype against gene expression to see if that is more signifcant than the correlation with genotype
             File transcripteqtl_all = new File("${params.data_dir}/${params.species}/phenotypes/expression/eQTL6545forMed.tsv")
             transcript_eqtl = transcripteqtl_all.getAbsolutePath()
 
@@ -393,7 +394,7 @@ workflow {
                     .map { tch,marker,logPvalue,TRAIT,tstart,tpeak,tend,peak_id,h2  -> [TRAIT,tch,tstart,tpeak,tend,logPvalue,peak_id,h2,marker] }
                     .combine(Channel.of("loco")))
                 .combine(traits_to_mediate, by: 0)
-                .combine(Channel.of(transcript_eqtl))
+                .combine(Channel.fromPath(transcript_eqtl))
                 .combine(Channel.fromPath("${params.bin_dir}/mediaton_input.R")) | mediation_data
 
             mediation_data.out
@@ -438,6 +439,8 @@ workflow {
                 .join(gcta_grm.out)
             prep_loco = prep_ld_files_loco.out.finemap_preps
                 .join(gcta_grm.out)
+
+            // Need a size filter to not do fine mapping on QTLS with significance across too large a region
 
             prep_inbred.mix(prep_loco)
                 .combine(ann_file)

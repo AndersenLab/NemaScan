@@ -185,6 +185,7 @@ process vcf_to_geno_matrix {
         bcftools view -S ${strains} -Ou ${vcf} -e 'CHROM="MtDNA"' |\\
         bcftools filter -i N_MISSING=0 -Oz --threads 5 -o Phenotyped_Strain_VCF.vcf.gz
         tabix -p vcf Phenotyped_Strain_VCF.vcf.gz
+        # LD pruning
         plink --vcf Phenotyped_Strain_VCF.vcf.gz \\
               --threads 5 \\
               --snps-only \\
@@ -262,6 +263,7 @@ process chrom_eigen_variants {
     """
         cat ${genotypes} |\\
         awk -v chrom="${CHROM}" '{if(\$1 == "CHROM" || \$1 == chrom) print}' > ${CHROM}_gm.tsv
+        # Get independent tests from eigen values for looser p-value correction
         Rscript --vanilla ${get_genomatrix_eigen} ${CHROM}_gm.tsv ${CHROM}
     """
 

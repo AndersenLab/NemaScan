@@ -132,14 +132,19 @@ process gcta_lmm_exact_mapping {
 
 
     """
+    # Figure out what this does
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm \\
            --thread-num ${task.cpus}
+
+    # create eigenvector to regress out relatedness
     gcta64 --grm ${TRAIT}_gcta_grm \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm \\
            --thread-num ${task.cpus}
+
+    # LOCO linear model linear regression test
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -149,14 +154,19 @@ process gcta_lmm_exact_mapping {
            --maf ${params.maf} \\
            --thread-num ${task.cpus}
 
+    # ? what does bK-sparse mean?
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
            --thread-num ${task.cpus}
+    
+    # create eigenvector to regress out relatedness
     gcta64 --grm ${TRAIT}_gcta_grm_inbred \\
            --pca 1 \\
            --out ${TRAIT}_sparse_grm_inbred \\
            --thread-num ${task.cpus}
+
+    # inbred linear regression model
     gcta64 --fastGWA-mlm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm_inbred \\
            --bfile ${TRAIT} \\
@@ -254,6 +264,7 @@ process gcta_intervals_maps {
         // tuple  val(TRAIT), file("*AGGREGATE_mapping_loco.tsv"), emit: for_html_loco, optional: true
 
     """
+    # Pull all variants around significant variant and reports stats for all of these variants
     Rscript --vanilla ${find_aggregate_intervals_maps} ${geno} ${pheno} ${lmmexact_inbred} \\
                       ${tests} ${qtl_grouping_size} ${qtl_ci_size} ${sig_thresh} \\
                       ${TRAIT}_AGGREGATE inbred
