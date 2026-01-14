@@ -97,7 +97,7 @@ THIS WILL NEED TO BE UPDATED TO HANDLE OTHER SPECIES
 
 process fix_strain_names_bulk {
 
-    label "xs"
+    label "md"
     label "fix_strain_names_bulk"
     label "R"
 

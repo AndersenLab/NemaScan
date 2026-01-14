@@ -208,6 +208,7 @@ process gcta_lmm_exact_mapping_nopca {
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm \\
            --thread-num ${task.cpus}
+
     gcta64 --mlma-loco \\
            --grm ${TRAIT}_sparse_grm \\
            --bfile ${TRAIT} \\
@@ -220,6 +221,7 @@ process gcta_lmm_exact_mapping_nopca {
            --make-bK-sparse ${params.sparse_cut} \\
            --out ${TRAIT}_sparse_grm_inbred \\
            --thread-num ${task.cpus}
+           
     gcta64 --fastGWA-mlm-exact \\
            --grm-sparse ${TRAIT}_sparse_grm_inbred \\
            --bfile ${TRAIT} \\
