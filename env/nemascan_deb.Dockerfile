@@ -58,6 +58,7 @@ RUN wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.
     rm -rf bcftools*
 
 RUN Rscript -e "install.packages('R.utils')"
+RUN Rscript -e "BiocManager::install('MultiMed')"
 RUN apt update && \
     apt purge -y make gcc
 
