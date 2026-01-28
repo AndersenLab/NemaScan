@@ -13,6 +13,7 @@ RUN apt update \
                       r-cran-data.table \
                       r-cran-knitr \
                       r-cran-biocmanager \
+                      r-cran-nloptr \
                       build-essential \
                       libcurl4-gnutls-dev \
                       libxml2-dev libssl-dev \
@@ -21,8 +22,10 @@ RUN apt update \
                       pandoc \
                       bedtools \
                       tabix \
+                      cmake \
     && apt clean
 
+RUN Rscript -e "install.packages('mediation')"
 RUN Rscript -e "install.packages('devtools')"
 RUN Rscript -e "install.packages('ggnewscale')"
 RUN Rscript -e "install.packages('coop')"
@@ -32,6 +35,8 @@ RUN Rscript -e "BiocManager::install('IRanges')"
 RUN Rscript -e "install.packages('sommer')"
 RUN Rscript -e "install.packages('valr', dependencies=TRUE, repos='http://cran.us.r-project.org')"
 RUN Rscript -e "install.packages('cairo', dependencies=TRUE, repos='http://cran.us.r-project.org')"
+RUN Rscript -e "install.packages('R.utils')"
+RUN Rscript -e "BiocManager::install('MultiMed')"
 
     # RUN grep -p "^deb" /etc/apt/sources.list | awk '{printf "%s contrib non-free\n", $0}' > sources.list \
     #     && grep -v -p "^deb" /etc/apt/sources.list >> sources.list \
@@ -57,13 +62,15 @@ RUN wget https://github.com/samtools/bcftools/releases/download/1.20/bcftools-1.
     cd .. && \
     rm -rf bcftools*
 
-RUN Rscript -e "install.packages('R.utils')"
-RUN Rscript -e "BiocManager::install('MultiMed')"
+ARG CACHE_BUST=false
+# RUN apt update && apt install -y cmake
+# RUN Rscript -e "install.packages('nloptr')"
+# RUN Rscript -e "install.packages('lme4')"
+# RUN Rscript -e "install.packages('mediation')"
 RUN apt update && \
-    apt purge -y make gcc
+    apt purge -y cmake make gcc
 
 RUN wget https://yanglab.westlake.edu.cn/software/gcta/bin/gcta-1.94.1-linux-kernel-4-x86_64.zip \
     && unzip gcta-1.94.1-linux-kernel-4-x86_64.zip \
     && mv gcta-1.94.1-linux-kernel-4-x86_64/gcta64 /usr/bin/ \
     && rm -rf gcta*
-RUN Rscript -e "install.packages('mediation')"
