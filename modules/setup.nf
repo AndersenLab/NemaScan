@@ -116,8 +116,16 @@ process fix_strain_names_bulk {
 
     script:
         """
+        awk '{
+            print \$0;
+            split(\$2,A,"|");
+            for (I in A) {
+                printf "%s\\t%s\\t%s\\n", A[I], A[I], \$3;
+            }
+        }' ${isotype_lookup} > expanded_isotype_lookup.tsv
+
         # for now, don't fix isotypes for non elegans
-        Rscript --vanilla ${fix_script} ${phenotypes} $run_fix $isotype_lookup
+        Rscript --vanilla ${fix_script} ${phenotypes} $run_fix expanded_isotype_lookup.tsv
 
         # check to make sure there are more than 40 strains for a mapping.
         if [[ \$(wc -l <Phenotyped_Strains.txt) -le 40 ]]
