@@ -327,7 +327,7 @@ workflow {
         // EIGEN
         contigs = Channel.from(["I", "II", "III", "IV", "V", "X"])
         contigs.combine(vcf_to_geno_matrix.out)
-                .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen.R")) | chrom_eigen_variants
+                .combine(Channel.fromPath("${params.bin_dir}/Get_GenoMatrix_Eigen_fixed.R")) | chrom_eigen_variants
         chrom_eigen_variants.out.collect() | collect_eigen_variants
 
         // GWAS mapping

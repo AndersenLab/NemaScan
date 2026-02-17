@@ -10,79 +10,6 @@ library(purrr)
 library(ggbeeswarm)
 library(sommer)
 
-
-# LOCAL
-# setwd("~/Documents/projects/NemaScan_Performance/data/")
-# setwd("~/Documents/AndersenLab/NemaScan_Performance/data/")
-# argument information
-# 1 - Genetoype matrix
-# 2 - Phenotype data 
-# 3 - Mapping data
-# 4 - independent tests - eigen
-# 5 - If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)
-# 6 - Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)
-# 7 - - String, What significance threshold to use for defining QTL, 
-#       BF = Bonferroni, 
-#       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix, 
-#       or a user defined number
-# 8 - mapping label
-
-# FOR LOCAL
-# args <- c("Genotype_Matrix.tsv",
-#           "pr_Emodepside_cv.EXT.tsv",
-#           "temp.aggregate.mapping.tsv",
-#           "total_independent_tests.txt",
-#           1000, # formerly args[7], now args[5]
-#           150, # formerly args[8], now args[6]
-#           "EIGEN", # formerly args[11], now args[7]
-#           "Emodepside_cv.EXT_AGGREGATE" #formerly args[15], now args[8]
-#           )
-# FOR QUEST
-# load arguments
-args <- commandArgs(trailingOnly = TRUE)
-
-
-# load phenotpe data
-phenotype_data <- data.table::fread(args[2]) %>%
-  na.omit() %>%
-  as.data.frame()
-
-# load GCTA mapping data
-if(args[9] == "inbred") {
-  map_df <- data.table::fread(args[3]) %>%
-    dplyr::rename(marker = SNP, 
-                  CHROM = CHR,
-                  POS = POS) %>%
-    dplyr::mutate(log10p = -log10(P)) %>%
-    dplyr::select(-N)
-} else {
-  map_df <- data.table::fread(args[3]) %>%
-    dplyr::rename(marker = SNP, 
-                  CHROM = Chr,
-                  POS = bp,
-                  BETA = b,
-                  P = p,
-                  SE = se, 
-                  AF1 = Freq) %>%
-    dplyr::mutate(log10p = -log10(P))
-}
-
-
-# load genotype matrix
-genotype_matrix <- readr::read_tsv(args[1]) 
-  # na.omit()
-
-# define method for setting significance threshold
-significance_threshold <- args[7]
-
-if(significance_threshold == "EIGEN"){
-  QTL_cutoff <- data.table::fread(args[4]) %>% dplyr::pull(V1) # Independent tests should be fed to calculation
-} else if(significance_threshold == "BF"){
-  QTL_cutoff <- NA
-} else {
-  QTL_cutoff <- as.numeric(args[7]) # Specified Threshold
-}
-
 # process mapping function
 process_mapping_df <- function (mapping_df, 
                                 phenotype_df, 
@@ -155,6 +82,7 @@ process_mapping_df <- function (mapping_df,
     
     rawTr <- pheno %>%
       dplyr::left_join(., snpsForVE, by = "trait")
+      # so is rawTR [strain, value, trait, marker]
     
     rawTr$marker <- as.character(rawTr$marker)
     rawTr$strain <- as.character(rawTr$strain)
@@ -174,12 +102,14 @@ process_mapping_df <- function (mapping_df,
       dplyr::mutate(marker = paste(CHROM, POS, sep = ":")) %>%
       dplyr::filter(marker %in% snpsForVE$marker) %>% 
       tidyr::gather(strain, allele, -marker, -CHROM, -POS)
+    # gINFO now has columns [strain (name), allele (-1 | 1), marker, CHROM, POS]
     
     # change from left_join to full join??
     gINFO$marker <- as.character(gINFO$marker)
     gINFO <- suppressWarnings(data.frame(gINFO) %>% 
                                 dplyr::left_join(., snpsForVE, by = "marker") %>%
                                 dplyr::left_join(rawTr, ., by = c("trait", "strain", "marker"))) 
+    # gINFO now has columns [strain, allele, marker, CHROM, POS, trait, value]
       # na.omit() # added this
     
     cors <- gINFO %>% 
@@ -310,6 +240,91 @@ process_mapping_df <- function (mapping_df,
   return(Processed)
 }
 
+# add narrow-sense heritability point estimate
+# narrow sense heritability with sommer::mmer (no bootstrap)
+narrowh2 <- function(df_h){
+    h2_res <- sommer::mmes(value ~ 1, random = ~sommer::vsm(sommer::ism(strain), Gu = A), data = df_h)
+    h2 <- as.numeric(sommer::vpredict(h2_res, h2 ~ (V1) / (V1+V2))[[1]][1])
+    return(h2)
+}
+
+# ism = identity covariance structure
+# vsm = variance-covariance structure specification, using original relationship matrix for Gu
+# mmes = mixed model equation solver
+
+
+# LOCAL
+# setwd("~/Documents/projects/NemaScan_Performance/data/")
+# setwd("~/Documents/AndersenLab/NemaScan_Performance/data/")
+# argument information
+# 1 - Genetoype matrix
+# 2 - Phenotype data 
+# 3 - Mapping data
+# 4 - independent tests - eigen
+# 5 - If two QTL are less than this distance from each other, combine the QTL into one, (DEFAULT = 1000)
+# 6 - Number of SNVs to the left and right of the peak marker used to define the QTL confidence interval, (DEFAULT = 150)
+# 7 - - String, What significance threshold to use for defining QTL, 
+#       BF = Bonferroni, 
+#       EIGEN = Defined by Number of independent tests from Eigen Decomposition of SNV correlation matrix, 
+#       or a user defined number
+# 8 - mapping label
+
+# FOR LOCAL
+# args <- c("Genotype_Matrix.tsv",
+#           "pr_Emodepside_cv.EXT.tsv",
+#           "temp.aggregate.mapping.tsv",
+#           "total_independent_tests.txt",
+#           1000, # formerly args[7], now args[5]
+#           150, # formerly args[8], now args[6]
+#           "EIGEN", # formerly args[11], now args[7]
+#           "Emodepside_cv.EXT_AGGREGATE" #formerly args[15], now args[8]
+#           )
+# FOR QUEST
+# load arguments
+args <- commandArgs(trailingOnly = TRUE)
+
+
+# load phenotpe data
+phenotype_data <- data.table::fread(args[2]) %>%
+  na.omit() %>%
+  as.data.frame()
+
+# load GCTA mapping data
+if(args[9] == "inbred") {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = CHR,
+                  POS = POS) %>%
+    dplyr::mutate(log10p = -log10(P)) %>%
+    dplyr::select(-N)
+} else {
+  map_df <- data.table::fread(args[3]) %>%
+    dplyr::rename(marker = SNP, 
+                  CHROM = Chr,
+                  POS = bp,
+                  BETA = b,
+                  P = p,
+                  SE = se, 
+                  AF1 = Freq) %>%
+    dplyr::mutate(log10p = -log10(P))
+}
+
+
+# load genotype matrix
+genotype_matrix <- readr::read_tsv(args[1]) 
+  # na.omit()
+
+# define method for setting significance threshold
+significance_threshold <- args[7]
+
+if(significance_threshold == "EIGEN"){
+  QTL_cutoff <- data.table::fread(args[4]) %>% dplyr::pull(V1) # Independent tests should be fed to calculation
+} else if(significance_threshold == "BF"){
+  QTL_cutoff <- NA
+} else {
+  QTL_cutoff <- as.numeric(args[7]) # Specified Threshold
+}
+
 
 # process mapping data, define QTL
 processed_mapping <- process_mapping_df(mapping_df = map_df, 
@@ -333,14 +348,6 @@ processed_mapping <- process_mapping_df(mapping_df = map_df,
 readr::write_tsv(processed_mapping,
                  c(paste0("processed_",args[8],"_mapping_", args[9], ".tsv")),
                  col_names = T)
-
-# add narrow-sense heritability point estimate
-# narrow sense heritability with sommer::mmer (no bootstrap)
-narrowh2 <- function(df_h){
-    h2_res <- sommer::mmes(value ~ 1, random = ~sommer::vsm(sommer::ism(strain), Gu = A), data = df_h)
-    h2 <- as.numeric(sommer::vpredict(h2_res, h2 ~ (V1) / (V1+V2))[[1]][1])
-    return(h2)
-}
 
 
 # get trait name and rename trait column
