@@ -21,8 +21,10 @@ process prepare_gcta_files {
 //         else return 'n1-standard-12'
 //     }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
     maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
 
     input:
         tuple file(strains), val(TRAIT), file(traits), file(vcf), file(index), file(num_chroms)
@@ -72,8 +74,11 @@ process gcta_grm {
 //     }
 
     
-    errorStrategy 'retry'
-    maxRetries = 3
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
+    maxRetries 3
 
     input:
         tuple val(TRAIT), file(traits), file(bed), file(bim), file(fam), file(map), file(nosex), \
@@ -115,7 +120,10 @@ process gcta_lmm_exact_mapping {
 //         else return 'n1-highmem-12'
 //     }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*inbred_pca.fastGWA", overwrite: true
@@ -188,7 +196,10 @@ process gcta_lmm_exact_mapping_nopca {
 //         else return 'n1-highmem-12'
 //     }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/INBRED/Mapping/Raw", pattern: "*fastGWA", overwrite: true
@@ -244,7 +255,10 @@ process gcta_intervals_maps {
 //         else return 'n1-highmem-12'
 //     }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/INBRED/Mapping/Processed", mode: 'copy', pattern: "*_inbred.tsv"

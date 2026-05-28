@@ -178,7 +178,9 @@ process vcf_to_geno_matrix {
     //     else return 'n1-standard-6'
     // }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/Genotype_Matrix", mode: 'copy'
@@ -257,7 +259,9 @@ process chrom_eigen_variants {
     //     else return 'n1-standard-6'
     // }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    time {40.minute * task.attempt}
+    cpus {4 * task.attempt}
     maxRetries 3
 
     input:

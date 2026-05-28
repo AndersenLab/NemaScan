@@ -91,7 +91,10 @@ process prep_ld_files {
     //     else return 'n1-standard-6'
     // }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    maxRetries 3
+    time {40.minute * task.attempt}
+    cpus {2 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*ROI_Genotype_Matrix_inbred.tsv"
@@ -206,7 +209,9 @@ process gcta_fine_maps {
     //     else return 'n1-highmem-12'
     // }
 
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    time {5.hour * task.attempt}
+    cpus {2 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/INBRED/Fine_Mappings/Data", mode: 'copy', pattern: "*inbred.fastGWA"
@@ -314,7 +319,9 @@ process html_report_main {
     //     else return 'n1-highmem-6'
     // }
     
-    errorStrategy 'retry'
+    errorStrategy { task.exitStatus in [137, 140, 143] ? 'retry' : 'finish' }
+    time {5.hour * task.attempt}
+    cpus {2 * task.attempt}
     maxRetries 3
 
     publishDir "${params.out}/Reports/scripts/", pattern: "*.Rmd", overwrite: true, mode: 'copy'
