@@ -35,7 +35,7 @@ process prepare_gcta_files {
     """
     bcftools annotate -e 'CHROM="MtDNA"' --rename-chrs ${num_chroms} ${vcf} |\\
     bcftools view -S ${strains} -Ou |\\
-    bcftools filter -i N_MISSING=0 -Oz --threads 5 -o renamed_chroms.vcf.gz
+    bcftools filter -i N_MISSING=0 -Oz --threads ${task.cpus} -o renamed_chroms.vcf.gz
     tabix -p vcf renamed_chroms.vcf.gz
     plink --vcf renamed_chroms.vcf.gz \\
           --threads ${task.cpus} \\

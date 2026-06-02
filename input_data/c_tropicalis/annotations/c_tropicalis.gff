@@ -1,3 +1,4 @@
+gene	chr	strand	txstart	txend	wbgene	gene_name	biotype type
 NIC58.1	I	-	10450	12314	NIC58.1	NIC58.1	protein_coding Transcript
 NIC58.2	I	-	13129	13722	NIC58.2	NIC58.2	protein_coding Transcript
 NIC58.3	I	+	18834	23830	NIC58.3	NIC58.3	protein_coding Transcript
